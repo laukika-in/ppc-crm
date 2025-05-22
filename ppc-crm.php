@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PPC CRM
  * Description: Frontend lead & campaign management for Client and PPC roles.
- * Version:     1.0.0
+ * Version:     1.0.0+1
  * Author:      Your Name
  * Text Domain: ppc-crm
  */
