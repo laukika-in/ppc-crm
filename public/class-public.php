@@ -19,45 +19,49 @@ class PPC_CRM_Public  {
 	 * ------------------------------------------------------------------ */
 	public function register_assets() {
 
-		// Tabulator core (CDN)
-		wp_register_style(
-			'tabulator-css',
-			'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
-			[],
-			'6.2.0'
-		);
-		wp_register_script(
-			'tabulator-js',
-			'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
-			[],
-			'6.2.0',
-			true
-		);
+	$base_url = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/ppc-crm/
 
-		// Plugin-specific initialisers
-		wp_register_script(
-			'lcm-tabulator-campaign',
-			plugins_url( 'public/assets/js/tabulator-init-campaign.js', dirname( __FILE__ ) ),
-			[ 'tabulator-js' ],
-			PPC_CRM_Plugin::VERSION,
-			true
-		);
-		wp_register_script(
-			'lcm-tabulator-lead',
-			plugins_url( 'public/assets/js/tabulator-init-lead.js', dirname( __FILE__ ) ),
-			[ 'tabulator-js' ],
-			PPC_CRM_Plugin::VERSION,
-			true
-		);
+	/* Tabulator core via CDN ------------------------------------------------ */
+	wp_register_style(
+		'tabulator-css',
+		'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
+		[],
+		'6.2.0'
+	);
+	wp_register_script(
+		'tabulator-js',
+		'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
+		[],
+		'6.2.0',
+		true
+	);
 
-		// Optional CSS overrides
-		wp_register_style(
-			'lcm-tabulator-tweaks',
-			plugins_url( 'public/assets/css/tabulator-tweaks.css', dirname( __FILE__ ) ),
-			[ 'tabulator-css' ],
-			PPC_CRM_Plugin::VERSION
-		);
-	}
+	/* Plugin CSS tweaks ----------------------------------------------------- */
+	wp_register_style(
+		'lcm-tabulator-tweaks',
+		$base_url . 'public/assets/css/tabulator-tweaks.css',
+		[ 'tabulator-css' ],
+		PPC_CRM_Plugin::VERSION
+	);
+
+	/* Init scripts (depend on Tabulator core) ------------------------------- */
+	wp_register_script(
+		'lcm-tabulator-campaign',
+		$base_url . 'public/assets/js/tabulator-init-campaign.js',
+		[ 'tabulator-js' ],                       // must run after core
+		PPC_CRM_Plugin::VERSION,
+		true
+	);
+
+	wp_register_script(
+		'lcm-tabulator-lead',
+		$base_url . 'public/assets/js/tabulator-init-lead.js',
+		[ 'tabulator-js' ],
+		PPC_CRM_Plugin::VERSION,
+		true
+	);
+}
+
 
 	/* ---------------------------------------------------------------------
 	 *  Shortcode outputs + targeted enqueue
@@ -87,10 +91,7 @@ class PPC_CRM_Public  {
 	/* --------------------------------------------------------------------- */
 	private function enqueue_for( $which ) {
 
-        // in class-public.php -> enqueue()
-wp_enqueue_style( 'tabulator-css', 'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css', [], '6.2.0' );
-wp_enqueue_script( 'tabulator-js', 'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js', [], '6.2.0', true );
-
+ 
 		// Core CSS/JS
 		wp_enqueue_style( 'tabulator-css' );
 		wp_enqueue_style( 'lcm-tabulator-tweaks' );

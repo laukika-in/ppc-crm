@@ -10,7 +10,10 @@ Text Domain: ppc-crm
 */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
-
+if ( ! defined( 'PPC_CRM_VERSION' ) ) {
+	$plugin_data = get_file_data( __FILE__, [ 'Version' => 'Version' ] );
+	define( 'PPC_CRM_VERSION', $plugin_data['Version'] );
+}
 /** Core singleton */
 require_once plugin_dir_path( __FILE__ ) . 'core/class-plugin.php';
 

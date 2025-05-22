@@ -13,8 +13,9 @@ class PPC_CRM_Plugin {
 	/** @var self|null */
 	private static $instance = null;
 
-	const VERSION = '0.23.0';
-
+public static function version() : string {
+		return defined( 'PPC_CRM_VERSION' ) ? PPC_CRM_VERSION : '0.0.0';
+	}
 	/* ---------------------------------------------------------------------
 	 * Singleton loader
 	 * ------------------------------------------------------------------ */
