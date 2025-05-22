@@ -1,10 +1,11 @@
 <?php
-// public/class-lcm-public.php
+// public/class-public.php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 class LCM_Public {
+
     public function __construct() {
-        // Shortcodes or AJAX handlers later.
+        // Front-end shortcodes or AJAX handlers will go here later.
     }
 }
 ?>
