@@ -94,7 +94,7 @@ class PPC_CRM_Admin_UI {
         add_filter( 'enter_title_here', [ $this, 'title_placeholder' ], 10, 2 );
 
 		add_action( 'save_post_lcm_campaign',[ $this, 'save_campaign' ], 10, 2 );
-		add_action( 'save_post_lcm_lead',    [ $this, 'save_lead' ],     10, 2 );
+		add_action( 'save_post_lcm_lead', [ $this, 'save_lead' ], 10, 3 );
 
 		/* Tiny JS for dynamic Adset fill --------------------------------- */
 		add_action( 'admin_enqueue_scripts', function( $hook ){
@@ -345,7 +345,7 @@ private function sanitize_array( $array ) : array {
 		$wpdb->replace( $wpdb->prefix . 'lcm_campaigns', $data );
 	}
 
-	public function save_lead( $post_id, $post ) {
+	public function save_lead( $post_id, $post, $update ) {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
 		if ( ! isset( $_POST['lcm_lead_nonce'] ) ||
@@ -367,6 +367,30 @@ private function sanitize_array( $array ) : array {
 
 		global $wpdb;
 		$wpdb->replace( $wpdb->prefix . 'lcm_leads', $data );
+        /* -----------------------------------------------------------------
+ *  Increment campaign counters (Connected / Not Connected / Relevant)
+ * ----------------------------------------------------------------*/
+if ( ! $update && ! empty( $data['adset'] ) && ! empty( $data['attempt_type'] ) ) {
+
+	$column_map = [
+		'Connected:Not Relevant' => 'connected_number',
+		'Not Connected'          => 'not_connected',
+		'Connected:Relevant'     => 'relevant',
+	];
+
+	if ( isset( $column_map[ $data['attempt_type'] ] ) ) {
+
+		$column = $column_map[ $data['attempt_type'] ];
+
+		$wpdb->query( $wpdb->prepare(
+			"UPDATE {$wpdb->prefix}lcm_campaigns
+			 SET {$column} = {$column} + 1
+			 WHERE adset = %s
+			 LIMIT 1",
+			$data['adset']
+		) );
+	}
+}
 	}
     /** Change “Add title” placeholder for each CPT */
 public function title_placeholder( $text, $post ) {
