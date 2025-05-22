@@ -39,8 +39,22 @@ class PPC_CRM_Admin_UI {
 		/* Lead fields ----------------------------------------------------- */
 		$this->lead_fields = [
 			'client_id'              => [ 'label' => 'Client',        'type' => 'user-dropdown' ],
-			'campaign_id'            => [ 'label' => 'Ad Name (Campaign)',    'type' => 'campaign-dropdown' ],
-			'adset'          => [ 'label' => 'Adset (auto)',         'type' => 'text', 'readonly' => true ],
+			'ad_name' => [                         // was 'campaign-dropdown' earlier
+	'label' => 'Ad Name',
+	'type'  => 'text',                 // manual entry now
+],
+			'adset'   => [
+	'label'   => 'Adset',
+	'type'    => 'select',             // now a dropdown
+	'options' => array_map(            // pull all Adsets (= campaign titles)
+		function ( $p ) { return $p->post_title; },
+		get_posts( [
+			'post_type'   => 'lcm_campaign',
+			'numberposts' => -1,
+			'post_status' => 'publish',
+		] )
+	),
+],
 			'uid'            => [ 'label' => 'UID',          'type' => 'text' ],
 			'lead_date'              => [ 'label' => 'Date of Lead',         'type' => 'date' ],
 			'lead_time'              => [ 'label' => 'Time of Lead',         'type' => 'time' ],
