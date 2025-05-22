@@ -1,42 +1,52 @@
 <?php
 /**
  * Plugin Name: PPC CRM
- * Description: Frontend lead & campaign management for Client and PPC roles.
- * Version:     1.0.0+23
+ * Description: Front‑end lead & campaign management (Tabulator tables) for PPC & Client roles.
+ * Version:     1.1.0
  * Author:      Your Name
  * Text Domain: ppc-crm
  */
 
-defined( 'ABSPATH' ) || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 
-define( 'PPC_CRM_VERSION', '1.0.0' );
-define( 'PPC_CRM_DIR',     plugin_dir_path( __FILE__ ) );
-define( 'PPC_CRM_URL',     plugin_dir_url( __FILE__ ) );
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
 
-// Autoload our classes – simple PSR-4-like loader
-// ppc-crm.php
-spl_autoload_register( function( $class ) {
-    // only load our namespace
-    if ( 0 !== strpos( $class, 'PPC_CRM\\' ) ) {
+define( 'PPC_CRM_VERSION', '1.1.0' );
+define( 'PPC_CRM_FILE', __FILE__ );
+define( 'PPC_CRM_DIR', plugin_dir_path( __FILE__ ) );
+define( 'PPC_CRM_URL', plugin_dir_url( __FILE__ ) );
+
+define( 'PPC_CRM_DROPDOWNS', include PPC_CRM_DIR . 'data/dropdown.php' );
+
+// -----------------------------------------------------------------------------
+// PSR‑4‑like autoloader for /includes classes
+// -----------------------------------------------------------------------------
+
+spl_autoload_register( function ( $class ) {
+    if ( strpos( $class, 'PPC_CRM_' ) !== 0 ) {
         return;
     }
-
-    // remove namespace prefix
-    $relative = substr( $class, strlen( 'PPC_CRM\\' ) );
-
-    // convert backslashes to hyphens, lowercase, prefix with 'class-'
-    $filename = 'class-' . strtolower( str_replace( ['\\','_'], ['-','-'], $relative ) ) . '.php';
-
-    $file = PPC_CRM_DIR . 'includes/' . $filename;
-    if ( file_exists( $file ) ) {
-        require_once $file;
+    $path = PPC_CRM_DIR . 'includes/' . str_replace( '_', '-', strtolower( $class ) ) . '.php';
+    if ( file_exists( $path ) ) {
+        require_once $path;
     }
-} );
+});
 
+// -----------------------------------------------------------------------------
+// Bootstrap plugin after all plugins loaded
+// -----------------------------------------------------------------------------
 
-// Activation / Deactivation hooks
-register_activation_hook( __FILE__,   [ 'PPC_CRM\\Init', 'activate' ] );
-register_deactivation_hook( __FILE__, [ 'PPC_CRM\\Init', 'deactivate' ] );
+add_action( 'plugins_loaded', function () {
+    PPC_CRM_Roles::init();
+    PPC_CRM_CPT::init();
+    PPC_CRM_Meta::init();
+    PPC_CRM_REST::init();
+    PPC_CRM_Shortcodes::init();
+});
 
-// Bootstrap
-add_action( 'init', [ 'PPC_CRM\\Init', 'get_instance' ] );
+register_activation_hook( __FILE__, [ 'PPC_CRM_Roles', 'activate' ] );
+register_deactivation_hook( __FILE__, [ 'PPC_CRM_Roles', 'deactivate' ] );

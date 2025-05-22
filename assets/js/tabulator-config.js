@@ -1,7 +1,10 @@
-// Extend Tabulator’s built-in modules if you need custom formatters/editors.
-// Here’s an example stub – you can expand as needed.
-Tabulator.prototype.extendModule("format", "formatters", {
-  datePickerEditorFormatter: function (cell, formatterParams, onRendered) {
-    return cell.getValue();
-  },
-});
+export function dropdownEditor(values){
+  return function(cell, onRendered, success, cancel){
+    var select = document.createElement('select');
+    values.forEach(v=>{ let o=document.createElement('option'); o.value=v; o.text=v; select.appendChild(o); });
+    select.value = cell.getValue();
+    select.addEventListener('change', ()=> success(select.value));
+    cell.getElement().innerHTML='';
+    cell.getElement().appendChild(select);
+  };
+}

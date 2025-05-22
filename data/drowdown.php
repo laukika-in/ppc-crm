@@ -1,13 +1,14 @@
 <?php
-namespace PPC_CRM;
-
-defined( 'ABSPATH' ) || exit;
-
 return [
-    'days'            => [ 'Mon','Tue','Wed','Thu','Fri','Sat','Sun' ],
-    'client_types'    => [ 'Existing Client','New Client' ],
-    'occasions'       => [ 'Anniversary','Birthday','Casual','Engagement/Wedding','Gifting','N/A' ],
-    'attempt_types'   => [ 'Connected:Not Relevant','Connected:Relevant','Not Connected' ],
-    'attempt_statuses'=> [ 'Call Rescheduled','Just Browsing','Not Interested','Ringing','No Response','Store Visit Scheduled','Wrong/Invalid Number' ],
-    'months'          => [ 'Jan', 'Feb', /*…*/ 'Dec' ],
+    'lead' => [
+        'day'         => [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ],
+        'client_type' => [ 'Existing Client', 'New Client' ],
+        'occasion'    => [ 'anniversary', 'birthday', 'casual occasion', 'engagement/wedding', 'gifting', 'N/A' ],
+        'attempt'     => [ '1', '2', '3', '4', '5', '6' ],
+        'attempt_type'   => [ 'Connected:Not Relevant', 'Connected:Relevant', 'Not Connected' ],
+        'attempt_status' => [ 'Call Rescheduled', 'Just browsing', 'Not Interested', 'Ringing. No Response', 'Store Visit Scheduled', 'Wrong Number / Invalid Number' ],
+    ],
+    'campaign' => [
+        'month' => [ 'January','February','March','April','May','June','July','August','September','October','November','December' ],
+    ],
 ];
