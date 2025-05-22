@@ -329,6 +329,8 @@ private function sanitize_array( $array ) : array {
 /* -------------------------------------------------------------------------
  * Bootstrap the admin UI for users who can manage posts
  * ---------------------------------------------------------------------- */
-if ( current_user_can( 'edit_posts' ) ) {
-	new PPC_CRM_Admin_UI();
-}
+add_action( 'init', function () {
+	if ( is_admin() && current_user_can( 'edit_posts' ) ) {
+		new PPC_CRM_Admin_UI();
+	}
+} );
