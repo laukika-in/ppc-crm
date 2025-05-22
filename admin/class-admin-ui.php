@@ -80,7 +80,13 @@ class PPC_CRM_Admin_UI {
 			'main_city'              => [ 'label' => 'Main City',            'type' => 'text' ],
 			'store_location'         => [ 'label' => 'Store Location',        'type' => 'text' ],
 			'store_visit'            => [ 'label' => 'Store Visit',          'type' => 'date' ],
-			'store_visit_status'      => [ 'label' => 'Store Visit Status',    'type' => 'text' ],
+'store_visit_status' => [
+	'label'   => 'Store Visit Status',
+	'type'    => 'select',
+	'options' => [ 'Show', 'No Show' ],
+],
+
+
 			'attempt'        => [ 'label' => 'Attempt (1-6)',        'type' => 'select', 'options' => [1,2,3,4,5,6] ],
 			'attempt_type'           => [ 'label' => 'Attempt Type',         'type' => 'select', 'options' =>
 				[ 'Connected:Not Relevant','Connected:Relevant','Not Connected' ] ],
@@ -109,27 +115,29 @@ class PPC_CRM_Admin_UI {
 		$map[ esc_js( $c->post_title ) ] = esc_js( $c->post_title ); // 1–1 mapping
 	}
 
-				wp_add_inline_script( 'jquery-core', '
-		const lcmAdMap = ' . wp_json_encode( $map ) . ';
+		wp_add_inline_script( 'jquery-core', '
+	/* ----- Attempt → Attempt Type → Attempt Status flow ----- */
+	function lcmUpdateAttemptUI(){
+		const $attempt  = jQuery("#lcm_attempt");
+		const $type     = jQuery("#lcm_attempt_type");
+		const $status   = jQuery("#lcm_attempt_status");
 
-		jQuery(function($){
+		if ( !$attempt.val() ) {
+			$type.prop("disabled", true).val("");
+			$status.prop("disabled", true).val("");
+		} else {
+			$type.prop("disabled", false);
+			if ( !$type.val() ) {
+				$status.prop("disabled", true).val("");
+			} else {
+				$status.prop("disabled", false);
+			}
+		}
+	}
+	jQuery(document).on("change", "#lcm_attempt, #lcm_attempt_type", lcmUpdateAttemptUI);
+	jQuery(lcmUpdateAttemptUI);  // run once on load
+' );
 
-			/* 1) When Ad Name changes, pick matching Adset */
-			$("#lcm_ad_name").on("input change", function(){
-				const val = $(this).val().trim();
-				$("#lcm_adset").val( lcmAdMap[val] || "" );
-			});
-
-			/* 2) When Date of Lead changes, choose weekday */
-			const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-			$("#lcm_lead_date").on("change", function(){
-				const d = new Date( $(this).val() );
-				if ( ! isNaN(d) ) {
-					$("#lcm_day").val( days[d.getUTCDay()] );
-				}
-			});
-		});
-	' );
 			}
 		});
         /* Recount if a Lead is trashed or deleted */
@@ -394,13 +402,16 @@ private function recount_campaign_counters( $adset ) {
 
 	global $wpdb;
 
+	/* ---------- 1) Initialise all tallies ---------- */
 	$totals = [
-		'Connected:Not Relevant' => 0,
-		'Not Connected'          => 0,
-		'Connected:Relevant'     => 0,
+		'connected_number'      => 0,  // Connected:Not Relevant
+		'not_connected'         => 0,  // Not Connected
+		'relevant'              => 0,  // Connected:Relevant
+		'scheduled_store_visit' => 0,  // Attempt Status = Store Visit Scheduled
+		'store_visit'           => 0,  // Store Visit Status = Show
 	];
 
-	/* Get fresh counts from leads table */
+	/* ---------- 2) Attempt-type tallies ------------ */
 	$rows = $wpdb->get_results( $wpdb->prepare(
 		"SELECT attempt_type, COUNT(*) AS qty
 		   FROM {$wpdb->prefix}lcm_leads
@@ -410,24 +421,62 @@ private function recount_campaign_counters( $adset ) {
 	), ARRAY_A );
 
 	foreach ( $rows as $r ) {
-		if ( isset( $totals[ $r['attempt_type'] ] ) ) {
-			$totals[ $r['attempt_type'] ] = (int) $r['qty'];
+		switch ( $r['attempt_type'] ) {
+			case 'Connected:Not Relevant':
+				$totals['connected_number'] = (int) $r['qty']; break;
+			case 'Not Connected':
+				$totals['not_connected']    = (int) $r['qty']; break;
+			case 'Connected:Relevant':
+				$totals['relevant']         = (int) $r['qty']; break;
 		}
 	}
 
-	/* Push into campaigns table */
+	/* ---------- 3) Attempt Status = Store Visit Scheduled ---------- */
+	$totals['scheduled_store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+		  WHERE adset = %s AND attempt_status = 'Store Visit Scheduled'",
+		$adset
+	) );
+
+	/* ---------- 4) Store Visit Status = Show ---------- */
+	$totals['store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+		  WHERE adset = %s AND store_visit_status = 'Show'",
+		$adset
+	) );
+
+	/* ---------- 5) Compute N/A = leads – (connected+not_connected+relevant) ---------- */
+	$leads_total = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT leads FROM {$wpdb->prefix}lcm_campaigns
+		  WHERE adset = %s LIMIT 1",
+		$adset
+	) );
+
+	$totals['not_available'] = max(
+		0,
+		$leads_total
+		- $totals['connected_number']
+		- $totals['not_connected']
+		- $totals['relevant']
+	);
+
+	/* ---------- 6) Push everything into the Campaign row ---------- */
 	$wpdb->update(
 		$wpdb->prefix . 'lcm_campaigns',
 		[
-			'connected_number' => $totals['Connected:Not Relevant'],
-			'not_connected'    => $totals['Not Connected'],
-			'relevant'         => $totals['Connected:Relevant'],
+			'connected_number'      => $totals['connected_number'],
+			'not_connected'         => $totals['not_connected'],
+			'relevant'              => $totals['relevant'],
+			'scheduled_store_visit' => $totals['scheduled_store_visit'],
+			'store_visit'           => $totals['store_visit'],
+			'not_available'         => $totals['not_available'],
 		],
 		[ 'adset' => $adset ],
-		[ '%d', '%d', '%d' ],
+		[ '%d','%d','%d','%d','%d','%d' ],
 		[ '%s' ]
 	);
 }
+
 
     /** Change “Add title” placeholder for each CPT */
 public function title_placeholder( $text, $post ) {
