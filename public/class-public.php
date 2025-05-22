@@ -2,78 +2,85 @@
 // public/class-public.php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-class PPC_CRM_Public  {
+/**
+ * Front-end layer
+ *  – Registers Tabulator assets
+ *  – Provides two shortcodes:
+ *      [lcm_campaign_table]
+ *      [lcm_lead_table]
+ */
+class PPC_CRM_Public {
 
+	/* ---------------------------------------------------------------------
+	 * Constructor – hooks
+	 * ------------------------------------------------------------------ */
 	public function __construct() {
 
-		/* Shortcodes */
+		// Only register; enqueue lazily when a shortcode is used
+		add_action( 'wp_enqueue_scripts', [ $this, 'register_assets' ] );
+
+		// Shortcodes
 		add_shortcode( 'lcm_campaign_table', [ $this, 'sc_campaign_table' ] );
 		add_shortcode( 'lcm_lead_table',     [ $this, 'sc_lead_table' ] );
-
-		/* Front-end assets  */
-		add_action( 'wp_enqueue_scripts', [ $this, 'register_assets' ] );
 	}
 
 	/* ---------------------------------------------------------------------
-	 * Register but don’t enqueue globally
+	 * 1) Register Tabulator + plugin scripts / styles
 	 * ------------------------------------------------------------------ */
 	public function register_assets() {
 
-	$base_url = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/ppc-crm/
+		$base_url = plugin_dir_url( __FILE__ ); // …/ppc-crm/
 
-	/* Tabulator core via CDN ------------------------------------------------ */
-	wp_register_style(
-		'tabulator-css',
-		'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
-		[],
-		'6.2.0'
-	);
-	wp_register_script(
-		'tabulator-js',
-		'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
-		[],
-		'6.2.0',
-		true
-	);
+		/* Tabulator core (CDN) */
+		wp_register_style(
+			'tabulator-css',
+			'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
+			[],
+			'6.2.0'
+		);
+		wp_register_script(
+			'tabulator-js',
+			'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
+			[],
+			'6.2.0',
+			true
+		);
 
-	/* Plugin CSS tweaks ----------------------------------------------------- */
-	wp_register_style(
-		'lcm-tabulator-tweaks',
-		$base_url . 'public/assets/css/tabulator-tweaks.css',
-		[ 'tabulator-css' ],
-		PPC_CRM_Plugin::VERSION
-	);
+		/* Optional tweaks */
+		wp_register_style(
+			'lcm-tabulator-tweaks',
+			$base_url . 'assets/css/tabulator-tweaks.css',
+			[ 'tabulator-css' ],
+			PPC_CRM_VERSION
+		);
 
-	/* Init scripts (depend on Tabulator core) ------------------------------- */
-	wp_register_script(
-		'lcm-tabulator-campaign',
-		$base_url . 'public/assets/js/tabulator-init-campaign.js',
-		[ 'tabulator-js' ],                       // must run after core
-		PPC_CRM_Plugin::VERSION,
-		true
-	);
+		/* Init scripts that build each table (depend on Tabulator core) */
+		wp_register_script(
+			'lcm-tabulator-campaign',
+			$base_url . 'assets/js/tabulator-init-campaign.js',
+			[ 'tabulator-js' ],
+			PPC_CRM_VERSION,
+			true
+		);
 
-	wp_register_script(
-		'lcm-tabulator-lead',
-		$base_url . 'public/assets/js/tabulator-init-lead.js',
-		[ 'tabulator-js' ],
-		PPC_CRM_Plugin::VERSION,
-		true
-	);
-}
-
+		wp_register_script(
+			'lcm-tabulator-lead',
+			$base_url . 'assets/js/tabulator-init-lead.js',
+			[ 'tabulator-js' ],
+			PPC_CRM_VERSION,
+			true
+		);
+	}
 
 	/* ---------------------------------------------------------------------
-	 *  Shortcode outputs + targeted enqueue
+	 * 2) Shortcodes
 	 * ------------------------------------------------------------------ */
 	public function sc_campaign_table() {
 
 		$this->enqueue_for( 'campaign' );
 
 		ob_start();
-		?>
-		<div id="lcm-campaign-tbl"></div>
-		<?php
+		echo '<div id="lcm-campaign-tbl"></div>';
 		return ob_get_clean();
 	}
 
@@ -82,39 +89,34 @@ class PPC_CRM_Public  {
 		$this->enqueue_for( 'lead' );
 
 		ob_start();
-		?>
-		<div id="lcm-lead-tbl"></div>
-		<?php
+		echo '<div id="lcm-lead-tbl"></div>';
 		return ob_get_clean();
 	}
 
-	/* --------------------------------------------------------------------- */
-	private function enqueue_for( $which ) {
+	/* ---------------------------------------------------------------------
+	 * 3) Helper: enqueue correct assets + localise Ajax vars
+	 * ------------------------------------------------------------------ */
+	private function enqueue_for( string $which ) : void {
 
- 
-		// Core CSS/JS
+		// Core & tweaks
 		wp_enqueue_style( 'tabulator-css' );
 		wp_enqueue_style( 'lcm-tabulator-tweaks' );
 		wp_enqueue_script( 'tabulator-js' );
-
-		// Choose correct init file
-		if ( 'campaign' === $which ) {
-			wp_enqueue_script( 'lcm-tabulator-campaign' );
-			$handle = 'lcm-tabulator-campaign';
-			$action = 'lcm_get_campaigns_json';
-		} else {
-			wp_enqueue_script( 'lcm-tabulator-lead' );
-			$handle = 'lcm-tabulator-lead';
-			$action = 'lcm_get_leads_json';
-		}
-wp_localize_script(
-    'lcm-tabulator-campaign',
-    'LCM',
-    [
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce'    => wp_create_nonce( 'lcm_ajax' ),
-			'action'   => $action,
-    ]
-); 
+ 
+	/* 2) Decide which init script and action */
+	if ( 'campaign' === $which ) {
+		$handle = 'lcm-tabulator-campaign';
+		$action = 'lcm_get_campaigns_json';
+	} else {
+		$handle = 'lcm-tabulator-lead';
+		$action = 'lcm_get_leads_json';
+	}
+		// Pass Ajax URL + nonce
+			wp_localize_script( $handle, 'LCM', [
+		'ajax_url' => admin_url( 'admin-ajax.php' ),
+		'action'   => $action,
+		'nonce'    => wp_create_nonce( 'lcm_ajax' ),
+	] );
+    wp_enqueue_script( $handle );
 	}
 }
