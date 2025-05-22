@@ -9,8 +9,74 @@ jQuery(function ($) {
       },
       layout: "fitColumns",
       columns: [
+        {
+          title: "Client",
+          field: "client",
+          editor: "select",
+          editorParams: { values: PpcCrmData.clients },
+        },
         { title: "UID", field: "uid", editor: "input" },
-        // …add one column definition per field here…
+        {
+          title: "Date of Lead",
+          field: "date_of_lead",
+          editor: "input",
+          formatter: "datetime",
+          formatterParams: {
+            inputFormat: "YYYY-MM-DD",
+            outputFormat: "DD-MMM-YYYY",
+          },
+        },
+        { title: "Time of Lead", field: "time_of_lead", editor: "input" },
+        {
+          title: "Day",
+          field: "day",
+          editor: "select",
+          editorParams: { values: PpcCrmData.days },
+        },
+        { title: "Name", field: "name", editor: "input" },
+        { title: "Phone", field: "phone", editor: "input" },
+        { title: "Alt. Phone", field: "alt_phone", editor: "input" },
+        { title: "Email", field: "email", editor: "input" },
+        { title: "Location", field: "location", editor: "input" },
+        {
+          title: "Client Type",
+          field: "client_type",
+          editor: "select",
+          editorParams: { values: PpcCrmData.client_types },
+        },
+        { title: "Sources", field: "sources", editor: "input" },
+        { title: "Campaign Source", field: "source_campaign", editor: "input" },
+        { title: "Targeting", field: "targeting", editor: "input" },
+        { title: "Ad Name", field: "ad_name", editor: "input" },
+        { title: "Adset", field: "adset", editor: "input" },
+        { title: "Budget", field: "budget", editor: "input" },
+        { title: "Product", field: "product", editor: "input" },
+        {
+          title: "Occasion",
+          field: "occasion",
+          editor: "select",
+          editorParams: { values: PpcCrmData.occasions },
+        },
+        { title: "For Whom", field: "for_whom", editor: "input" },
+        { title: "Final Type", field: "final_type", editor: "input" },
+        { title: "Final Subtype", field: "final_subtype", editor: "input" },
+        { title: "Main City", field: "main_city", editor: "input" },
+        { title: "Store Location", field: "store_location", editor: "input" },
+        { title: "Store Visit", field: "store_visit", editor: "input" },
+        {
+          title: "Visit Status",
+          field: "store_visit_status",
+          editor: "select",
+          editorParams: { values: PpcCrmData.attempt_statuses },
+        },
+        { title: "Attempts", field: "attempts", editor: "input" },
+        {
+          title: "Attempt Type",
+          field: "attempt_type",
+          editor: "select",
+          editorParams: { values: PpcCrmData.attempt_types },
+        },
+        { title: "Remarks", field: "remarks", editor: "textarea" },
         {
           title: "Save",
           formatter: function () {
@@ -62,4 +128,10 @@ jQuery(function ($) {
   // Initialize both tables
   initTable("lead_data");
   initTable("campaign_data");
+  // after table is initialized…
+  $("#ppc_crm_add_lead").on("click", function () {
+    table
+      .addRow({}, true) // true to add at top
+      .then((row) => row.getCell("uid").edit());
+  });
 });

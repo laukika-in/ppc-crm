@@ -23,7 +23,7 @@ class Init {
         User_Roles::register_roles();
 
         // Register custom post types
-        Post_Types::register();
+        add_action( 'init', [ Post_Types::class, 'register' ] );
 
         // Register meta boxes
         Meta_Boxes::register();
