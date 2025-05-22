@@ -13,7 +13,7 @@ class PPC_CRM_Plugin {
 	/** @var self|null */
 	private static $instance = null;
 
-	const VERSION = '0.3.0';
+	const VERSION = '0.23.0';
 
 	/* ---------------------------------------------------------------------
 	 * Singleton loader
