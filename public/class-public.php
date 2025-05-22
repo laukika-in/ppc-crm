@@ -96,27 +96,39 @@ class PPC_CRM_Public {
 	/* ---------------------------------------------------------------------
 	 * 3) Helper: enqueue correct assets + localise Ajax vars
 	 * ------------------------------------------------------------------ */
-	private function enqueue_for( string $which ) : void {
+	/* ---------------------------------------------------------------------
+ * 3) Helper: enqueue correct assets + localise Ajax vars
+ * ------------------------------------------------------------------ */
+private function enqueue_for( string $which ) : void {
 
-		// Core & tweaks
-		wp_enqueue_style( 'tabulator-css' );
-		wp_enqueue_style( 'lcm-tabulator-tweaks' );
-		wp_enqueue_script( 'tabulator-js' );
- 
-	/* 2) Decide which init script and action */
+	// Core + tweaks (unchanged)
+	wp_enqueue_style( 'tabulator-css' );
+	wp_enqueue_style( 'lcm-tabulator-tweaks' );
+	wp_enqueue_script( 'tabulator-js' );
+
+	// Decide which init file we’ll load
 	if ( 'campaign' === $which ) {
-		$handle = 'lcm-tabulator-campaign';
-		$action = 'lcm_get_campaigns_json';
+		$init_handle = 'lcm-tabulator-campaign';
+		$action      = 'lcm_get_campaigns_json';
 	} else {
-		$handle = 'lcm-tabulator-lead';
-		$action = 'lcm_get_leads_json';
+		$init_handle = 'lcm-tabulator-lead';
+		$action      = 'lcm_get_leads_json';
 	}
-		// Pass Ajax URL + nonce
-			wp_localize_script( $handle, 'LCM', [
-		'ajax_url' => admin_url( 'admin-ajax.php' ),
-		'action'   => $action,
-		'nonce'    => wp_create_nonce( 'lcm_ajax' ),
-	] );
-    wp_enqueue_script( $handle );
-	}
+
+	/* ----  NEW: inject the LCM object BEFORE any init scripts run ---- */
+	$vars_js = sprintf(
+		'window.LCM = %s;',
+		wp_json_encode( [
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'action'   => $action,
+			'nonce'    => wp_create_nonce( 'lcm_ajax' ),
+		] )
+	);
+	// Attach to Tabulator core (prints immediately because it’s already queued)
+	wp_add_inline_script( 'tabulator-js', $vars_js, 'after' );
+
+	/* Finally queue the init file itself */
+	wp_enqueue_script( $init_handle );
+}
+
 }
