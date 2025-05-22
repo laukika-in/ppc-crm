@@ -2,7 +2,7 @@
 // public/class-public.php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-class PPC_CRM_Public {
+class LCM_Public {
 
 	public function __construct() {
 
