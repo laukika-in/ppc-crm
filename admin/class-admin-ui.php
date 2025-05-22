@@ -99,12 +99,37 @@ class PPC_CRM_Admin_UI {
 		/* Tiny JS for dynamic Adset fill --------------------------------- */
 		add_action( 'admin_enqueue_scripts', function( $hook ){
 			if ( in_array( get_current_screen()->post_type, [ 'lcm_lead' ], true ) ) {
-				wp_add_inline_script( 'jquery-core', "
-					jQuery(document).on('change', '#lcm_campaign_id', function(){
-						var adset = jQuery(this).find('option:selected').data('adset') || '';
-						jQuery('#lcm_adset').val( adset );
-					});
-				" );
+                	$map = [];
+	$campaigns = get_posts( [
+		'post_type'   => 'lcm_campaign',
+		'numberposts' => -1,
+		'post_status' => 'publish',
+	] );
+	foreach ( $campaigns as $c ) {
+		$map[ esc_js( $c->post_title ) ] = esc_js( $c->post_title ); // 1–1 mapping
+	}
+
+				wp_add_inline_script( 'jquery-core', '
+		const lcmAdMap = ' . wp_json_encode( $map ) . ';
+
+		jQuery(function($){
+
+			/* 1) When Ad Name changes, pick matching Adset */
+			$("#lcm_ad_name").on("input change", function(){
+				const val = $(this).val().trim();
+				$("#lcm_adset").val( lcmAdMap[val] || "" );
+			});
+
+			/* 2) When Date of Lead changes, choose weekday */
+			const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+			$("#lcm_lead_date").on("change", function(){
+				const d = new Date( $(this).val() );
+				if ( ! isNaN(d) ) {
+					$("#lcm_day").val( days[d.getUTCDay()] );
+				}
+			});
+		});
+	' );
 			}
 		});
 	}
