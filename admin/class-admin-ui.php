@@ -132,6 +132,20 @@ class PPC_CRM_Admin_UI {
 	' );
 			}
 		});
+        /* Recount if a Lead is trashed or deleted */
+add_action( 'before_delete_post', function ( $post_id ) {
+	if ( get_post_type( $post_id ) === 'lcm_lead' ) {
+		global $wpdb;
+		$adset = $wpdb->get_var( $wpdb->prepare(
+			"SELECT adset FROM {$wpdb->prefix}lcm_leads WHERE post_id = %d",
+			$post_id
+		) );
+		if ( $adset ) {
+			$this->recount_campaign_counters( $adset );
+		}
+	}
+}, 10, 1 );
+
 	}
 
 	/* ---------------------------------------------------------------------
@@ -367,31 +381,54 @@ private function sanitize_array( $array ) : array {
 
 		global $wpdb;
 		$wpdb->replace( $wpdb->prefix . 'lcm_leads', $data );
-        /* -----------------------------------------------------------------
- *  Increment campaign counters (Connected / Not Connected / Relevant)
- * ----------------------------------------------------------------*/
-if ( ! $update && ! empty( $data['adset'] ) && ! empty( $data['attempt_type'] ) ) {
-
-	$column_map = [
-		'Connected:Not Relevant' => 'connected_number',
-		'Not Connected'          => 'not_connected',
-		'Connected:Relevant'     => 'relevant',
-	];
-
-	if ( isset( $column_map[ $data['attempt_type'] ] ) ) {
-
-		$column = $column_map[ $data['attempt_type'] ];
-
-		$wpdb->query( $wpdb->prepare(
-			"UPDATE {$wpdb->prefix}lcm_campaigns
-			 SET {$column} = {$column} + 1
-			 WHERE adset = %s
-			 LIMIT 1",
-			$data['adset']
-		) );
-	}
+ /* Refresh campaign counters for this Adset */
+if ( ! empty( $data['adset'] ) ) {
+	$this->recount_campaign_counters( $data['adset'] );
 }
 	}
+    /**
+ * Re-count all “Connected / Not Connected / Relevant” totals
+ * for a given Adset and push them into the Campaign row.
+ */
+private function recount_campaign_counters( $adset ) {
+
+	global $wpdb;
+
+	$totals = [
+		'Connected:Not Relevant' => 0,
+		'Not Connected'          => 0,
+		'Connected:Relevant'     => 0,
+	];
+
+	/* Get fresh counts from leads table */
+	$rows = $wpdb->get_results( $wpdb->prepare(
+		"SELECT attempt_type, COUNT(*) AS qty
+		   FROM {$wpdb->prefix}lcm_leads
+		  WHERE adset = %s
+		  GROUP BY attempt_type",
+		$adset
+	), ARRAY_A );
+
+	foreach ( $rows as $r ) {
+		if ( isset( $totals[ $r['attempt_type'] ] ) ) {
+			$totals[ $r['attempt_type'] ] = (int) $r['qty'];
+		}
+	}
+
+	/* Push into campaigns table */
+	$wpdb->update(
+		$wpdb->prefix . 'lcm_campaigns',
+		[
+			'connected_number' => $totals['Connected:Not Relevant'],
+			'not_connected'    => $totals['Not Connected'],
+			'relevant'         => $totals['Connected:Relevant'],
+		],
+		[ 'adset' => $adset ],
+		[ '%d', '%d', '%d' ],
+		[ '%s' ]
+	);
+}
+
     /** Change “Add title” placeholder for each CPT */
 public function title_placeholder( $text, $post ) {
 	if ( $post && $post->post_type === 'lcm_campaign' ) {
