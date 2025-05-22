@@ -355,17 +355,7 @@ private function sanitize_array( $array ) : array {
 		if ( empty( $data ) ) return;
 
 		$data['post_id'] = $post_id;
-
-		// Fill ad_name + adset automatically
-		if ( ! empty( $data['campaign_id'] ) ) {
-	$campaign_post   = get_post( (int) $data['campaign_id'] );
-	if ( $campaign_post ) {
-		$data['ad_name'] = $campaign_post->post_title; // keeps field name “ad_name”
-		$data['adset']   = $campaign_post->post_title; // mirrors the title
-	}
-}
-
-
+  
 		// Update post title = UID
 		if ( ! empty( $data['uid'] ) ) {
 			global $wpdb;
