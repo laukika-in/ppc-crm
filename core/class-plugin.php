@@ -25,6 +25,9 @@ class PPC_CRM_Plugin {
 		// CPTs / roles
 		add_action( 'init', [ $this, 'register_roles' ] );
 		add_action( 'init', [ $this, 'register_cpts' ] );
+require_once plugin_dir_path( __FILE__ ) . '../public/class-ajax.php';
+new PPC_CRM_Public();
+new PPC_CRM_Ajax();
 
 		// Keep Clients + PPC out of wp-admin
 		add_action( 'admin_init', [ $this, 'maybe_block_backend' ] );

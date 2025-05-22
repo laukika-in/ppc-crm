@@ -1,0 +1,10 @@
+/* Zebra striping */
+.tabulator-row:nth-child(even) .tabulator-cell {
+  background-color: #fafafa;
+}
+
+/* Compact font */
+.tabulator,
+.tabulator-cell {
+  font-size: 14px;
+}
