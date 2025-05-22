@@ -77,6 +77,8 @@ class PPC_CRM_Admin_UI {
 
 		/* Hooks ----------------------------------------------------------- */
 		add_action( 'add_meta_boxes',        [ $this, 'register_metaboxes' ] );
+        add_filter( 'enter_title_here', [ $this, 'title_placeholder' ], 10, 2 );
+
 		add_action( 'save_post_lcm_campaign',[ $this, 'save_campaign' ], 10, 2 );
 		add_action( 'save_post_lcm_lead',    [ $this, 'save_lead' ],     10, 2 );
 
@@ -154,46 +156,58 @@ class PPC_CRM_Admin_UI {
 				);
 				break;
 
-			case 'select':
-				echo '<select id="lcm_' . esc_attr( $key ) . '" name="lcm[' . esc_attr( $key ) . ']" class="widefat">';
-				foreach ( $field['options'] as $opt ) {
-					printf( '<option value="%s" %s>%s</option>',
-						esc_attr( $opt ),
-						selected( $value, $opt, false ),
-						esc_html( $opt )
-					);
-				}
-				echo '</select>';
-				break;
+			/* -------- <select> ---------- */
+case 'select':
+	echo '<select id="lcm_' . esc_attr( $key ) . '" name="lcm[' . esc_attr( $key ) . ']" class="widefat">';
+	echo '<option value="">— Select —</option>';              // <-- NEW
+	foreach ( $field['options'] as $opt ) {
+		printf(
+			'<option value="%s" %s>%s</option>',
+			esc_attr( $opt ),
+			selected( $value, $opt, false ),
+			esc_html( $opt )
+		);
+	}
+	echo '</select>';
+	break;
 
-			case 'user-dropdown':
-				echo '<select id="lcm_' . esc_attr( $key ) . '" name="lcm[' . esc_attr( $key ) . ']" class="widefat">';
-				foreach ( get_users( [ 'role' => 'client','orderby'=>'display_name','order'=>'ASC' ] ) as $user ) {
-					printf(
-						'<option value="%d" %s>%s</option>',
-						$user->ID,
-						selected( $value, $user->ID, false ),
-						esc_html( $user->display_name . " ({$user->user_email})" )
-					);
-				}
-				echo '</select>';
-				break;
+/* -------- client dropdown ---------- */
+case 'user-dropdown':
+	echo '<select id="lcm_' . esc_attr( $key ) . '" name="lcm[' . esc_attr( $key ) . ']" class="widefat">';
+	echo '<option value="">— Select —</option>';              // <-- NEW
+	foreach ( get_users( [ 'role__in' => [ 'client' ], 'orderby' => 'display_name', 'order' => 'ASC' ] ) as $user ) {
+		printf(
+			'<option value="%d" %s>%s</option>',
+			$user->ID,
+			selected( $value, $user->ID, false ),
+			esc_html( $user->display_name . " ({$user->user_email})" )
+		);
+	}
+	echo '</select>';
+	break;
 
-			case 'campaign-dropdown':
-				echo '<select id="lcm_campaign_id" name="lcm[campaign_id]" class="widefat">';
-				$campaigns = get_posts( [ 'post_type'=>'lcm_campaign','numberposts'=>-1,'post_status'=>'publish' ] );
-				foreach ( $campaigns as $c ) {
-					$adset = get_post_meta( $c->ID, '_lcm_adset', true ); // fallback if meta stored
-					printf(
-						'<option value="%d" data-adset="%s" %s>%s</option>',
-						$c->ID,
-						esc_attr( $adset ),
-						selected( $value, $c->ID, false ),
-						esc_html( $c->post_title )
-					);
-				}
-				echo '</select>';
-				break;
+/* -------- campaign dropdown ---------- */
+case 'campaign-dropdown':
+	echo '<select id="lcm_campaign_id" name="lcm[campaign_id]" class="widefat">';
+	echo '<option value="">— Select —</option>';              // <-- NEW
+	$campaigns = get_posts( [
+		'post_type'   => 'lcm_campaign',
+		'numberposts' => -1,
+		'post_status' => 'publish',
+	] );
+	foreach ( $campaigns as $c ) {
+		$adset = get_post_meta( $c->ID, '_lcm_adset', true );
+		printf(
+			'<option value="%d" data-adset="%s" %s>%s</option>',
+			$c->ID,
+			esc_attr( $adset ),
+			selected( $value, $c->ID, false ),
+			esc_html( $c->post_title )
+		);
+	}
+	echo '</select>';
+	break;
+
 		}
 
 		echo '</p>';
@@ -324,6 +338,17 @@ private function sanitize_array( $array ) : array {
 		global $wpdb;
 		$wpdb->replace( $wpdb->prefix . 'lcm_leads', $data );
 	}
+    /** Change “Add title” placeholder for each CPT */
+public function title_placeholder( $text, $post ) {
+	if ( $post && $post->post_type === 'lcm_campaign' ) {
+		return 'Ad name';
+	}
+	if ( $post && $post->post_type === 'lcm_lead' ) {
+		return 'UID';
+	}
+	return $text;
+}
+
 }
 
 /* -------------------------------------------------------------------------
