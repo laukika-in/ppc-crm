@@ -1,69 +1,74 @@
 <?php
 // core/class-plugin.php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
-/* Front-end / Ajax layers */
-require_once plugin_dir_path( __FILE__ ) . '/../public/class-public.php';
-require_once plugin_dir_path( __FILE__ ) . '/../public/class-ajax.php';
 
 /**
- * Core singleton – registers roles, CPTs, DB schema
+ * PPC-CRM main singleton.
+ *  – Registers roles, CPTs, custom tables
+ *  – Blocks Clients/PPC from wp-admin
+ *  – Boots front-end shortcodes + Ajax feeders
  */
 class PPC_CRM_Plugin {
 
+	/** @var self|null */
 	private static $instance = null;
-	const VERSION = '0.2.0';
 
-	/* -----------------------------------------------------------------------
+	const VERSION = '0.3.0';
+
+	/* ---------------------------------------------------------------------
 	 * Singleton loader
-	 * -------------------------------------------------------------------- */
-	public static function instance() {
+	 * ------------------------------------------------------------------ */
+	public static function instance() : self {
 		return self::$instance ?: ( self::$instance = new self );
 	}
 
-	/* -----------------------------------------------------------------------
-	 * Constructor – hooks that must run on every page load
-	 * -------------------------------------------------------------------- */
+	/* ---------------------------------------------------------------------
+	 * Constructor
+	 * ------------------------------------------------------------------ */
 	private function __construct() {
 
-		// CPTs / roles
+		/* 1) Core hooks common to front + back */
 		add_action( 'init', [ $this, 'register_roles' ] );
 		add_action( 'init', [ $this, 'register_cpts' ] );
-new PPC_CRM_Public();
-new PPC_CRM_Ajax();
-
-		// Keep Clients + PPC out of wp-admin
 		add_action( 'admin_init', [ $this, 'maybe_block_backend' ] );
+
+		/* 2) Boot admin UI (file already loaded from main plugin) */
+		// noop – bootstrap handled in ppc-crm.php
+
+		/* 3) Boot front-end classes
+		 *    Require files here so they are available on every request
+		 *    (both wp-admin and front).
+		 */
+		require_once dirname( __DIR__ ) . '/public/class-public.php';
+		require_once dirname( __DIR__ ) . '/public/class-ajax.php';
+
+		new PPC_CRM_Public();  // shortcodes + assets
+		new PPC_CRM_Ajax();    // JSON feeders
 	}
 
-	/* -----------------------------------------------------------------------
-	 * Lifecycle
-	 * -------------------------------------------------------------------- */
-	public static function activate() {
+	/* ---------------------------------------------------------------------
+	 * Activation / de-activation
+	 * ------------------------------------------------------------------ */
+	public static function activate() : void {
 		self::instance()->create_tables();
-		self::instance()->register_roles(); // run once in case site never hit “init”
+		self::instance()->register_roles();   // ensure roles exist even if init not hit
 	}
 
-	public static function deactivate() { /* nothing yet */ }
+	public static function deactivate() : void {
+		// Currently nothing to clean up on de-activation
+	}
 
-	/* -----------------------------------------------------------------------
+	/* ---------------------------------------------------------------------
 	 * Roles
-	 * -------------------------------------------------------------------- */
-	public function register_roles() {
+	 * ------------------------------------------------------------------ */
+	public function register_roles() : void {
 
-		add_role(
-			'client',
-			'Client',
-			[ 'read' => true ]          // no edit caps
-		);
-
-		add_role(
-			'ppc',
-			'PPC',
-			[ 'read' => true ]          // no edit caps
-		);
+		add_role( 'client', 'Client', [ 'read' => true ] );
+		add_role( 'ppc',    'PPC',    [ 'read' => true ] );
 	}
 
-	public function maybe_block_backend() {
+	/** Redirect Clients / PPC away from wp-admin */
+	public function maybe_block_backend() : void {
 		if ( is_admin()
 		     && ! wp_doing_ajax()
 		     && ( current_user_can( 'client' ) || current_user_can( 'ppc' ) )
@@ -73,44 +78,40 @@ new PPC_CRM_Ajax();
 		}
 	}
 
-	/* -----------------------------------------------------------------------
-	 * Custom post types
-	 * -------------------------------------------------------------------- */
-	public function register_cpts() {
+	/* ---------------------------------------------------------------------
+	 * Custom Post Types
+	 * ------------------------------------------------------------------ */
+	public function register_cpts() : void {
 
-		// Campaign Data (post title = Campaign Name)
-		register_post_type( 'lcm_campaign',
-			[
-				'label'               => 'Campaign Data',
-				'public'              => false,
-				'show_ui'             => true,
-				'show_in_menu'        => true,
-				'menu_position'       => 25,
-				'supports'            => [ 'title' ],
-				'capability_type'     => 'post',
-				'map_meta_cap'        => true,
-			]
-		);
+		// Campaign Data (title = Adset)
+		register_post_type( 'lcm_campaign', [
+			'label'           => 'Campaign Data',
+			'public'          => false,
+			'show_ui'         => true,
+			'show_in_menu'    => true,
+			'menu_position'   => 25,
+			'supports'        => [ 'title' ],
+			'capability_type' => 'post',
+			'map_meta_cap'    => true,
+		] );
 
-		// Lead Data (post title = UID)
-		register_post_type( 'lcm_lead',
-			[
-				'label'               => 'Lead Data',
-				'public'              => false,
-				'show_ui'             => true,
-				'show_in_menu'        => true,
-				'menu_position'       => 26,
-				'supports'            => [ 'title' ],
-				'capability_type'     => 'post',
-				'map_meta_cap'        => true,
-			]
-		);
+		// Lead Data (title = UID)
+		register_post_type( 'lcm_lead', [
+			'label'           => 'Lead Data',
+			'public'          => false,
+			'show_ui'         => true,
+			'show_in_menu'    => true,
+			'menu_position'   => 26,
+			'supports'        => [ 'title' ],
+			'capability_type' => 'post',
+			'map_meta_cap'    => true,
+		] );
 	}
 
-	/* -----------------------------------------------------------------------
-	 * Database
-	 * -------------------------------------------------------------------- */
-	private function create_tables() {
+	/* ---------------------------------------------------------------------
+	 * Database schema (custom tables)
+	 * ------------------------------------------------------------------ */
+	private function create_tables() : void {
 
 		global $wpdb;
 		$charset = $wpdb->get_charset_collate();
@@ -120,7 +121,7 @@ new PPC_CRM_Ajax();
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		// Campaigns -----------------------------------------------------------------
+		// Campaigns table
 		dbDelta("
 			CREATE TABLE $campaigns (
 				id                     BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -130,14 +131,13 @@ new PPC_CRM_Ajax();
 				week                   DECIMAL(4,1) NOT NULL,
 				campaign_date          DATE NOT NULL,
 				location               VARCHAR(255) NOT NULL,
-				campaign_name          VARCHAR(255) NOT NULL,
 				adset                  VARCHAR(255) NOT NULL,
 				leads                  INT UNSIGNED DEFAULT 0,
 				reach                  INT UNSIGNED DEFAULT 0,
 				impressions            INT UNSIGNED DEFAULT 0,
-				cost_per_lead          DECIMAL(12,2) DEFAULT 0,
-				amount_spent           DECIMAL(12,2) DEFAULT 0,
-				cpm                    DECIMAL(12,2) DEFAULT 0,
+				cost_per_lead          DECIMAL(30,10) DEFAULT 0,
+				amount_spent           DECIMAL(30,10) DEFAULT 0,
+				cpm                    DECIMAL(30,10) DEFAULT 0,
 				connected_number       INT UNSIGNED DEFAULT 0,
 				not_connected          INT UNSIGNED DEFAULT 0,
 				relevant               INT UNSIGNED DEFAULT 0,
@@ -147,11 +147,11 @@ new PPC_CRM_Ajax();
 				PRIMARY KEY  (id),
 				UNIQUE KEY post_id (post_id),
 				KEY client_id (client_id),
-				KEY campaign_name (campaign_name(191))
+				KEY adset (adset(191))
 			) $charset;
 		");
 
-		// Leads ---------------------------------------------------------------------
+		// Leads table
 		dbDelta("
 			CREATE TABLE $leads (
 				id                       BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -182,16 +182,16 @@ new PPC_CRM_Ajax();
 				main_city                VARCHAR(255) NOT NULL,
 				store_location           VARCHAR(255) NOT NULL,
 				store_visit              DATE         NOT NULL,
-				store_visit_status       VARCHAR(255) NOT NULL,
+				store_visit_status       VARCHAR(10)  NOT NULL,
 				attempt                  TINYINT      NOT NULL,
-				attempt_type             VARCHAR(50)  NOT NULL,
+				attempt_type             VARCHAR(30)  NOT NULL,
 				attempt_status           VARCHAR(80)  NOT NULL,
 				remarks                  TEXT         NOT NULL,
 				PRIMARY KEY  (id),
 				UNIQUE KEY post_id (post_id),
 				KEY client_id  (client_id),
 				KEY campaign_id (campaign_id),
-				KEY ad_name (ad_name(191))
+				KEY adset (adset(191))
 			) $charset;
 		");
 	}
