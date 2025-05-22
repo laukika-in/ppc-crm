@@ -35,7 +35,7 @@ class Init {
         Ajax_Handlers::init();
 
         // Initialize shortcodes
-        Shortcodes::init();
+        add_action( 'init', [ Shortcodes::class,   'init' ] );
 
         // Initialize admin UI enhancements
         Admin_UI::init();

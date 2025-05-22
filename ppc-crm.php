@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PPC CRM
  * Description: Frontend lead & campaign management for Client and PPC roles.
- * Version:     1.0.0+1
+ * Version:     1.0.0+23
  * Author:      Your Name
  * Text Domain: ppc-crm
  */
@@ -39,4 +39,4 @@ register_activation_hook( __FILE__,   [ 'PPC_CRM\\Init', 'activate' ] );
 register_deactivation_hook( __FILE__, [ 'PPC_CRM\\Init', 'deactivate' ] );
 
 // Bootstrap
-add_action( 'plugins_loaded', [ 'PPC_CRM\\Init', 'get_instance' ] );
+add_action( 'init', [ 'PPC_CRM\\Init', 'get_instance' ] );

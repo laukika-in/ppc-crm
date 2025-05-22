@@ -128,10 +128,17 @@ jQuery(function ($) {
   // Initialize both tables
   initTable("lead_data");
   initTable("campaign_data");
-  // after table is initialized…
+  // for Lead table
   $("#ppc_crm_add_lead").on("click", function () {
     table
-      .addRow({}, true) // true to add at top
-      .then((row) => row.getCell("uid").edit());
+      .addRow({}, true) // true = add to top
+      .then((row) => row.getCell("uid").edit()); // optionally open first cell for editing
+  });
+
+  // and similarly for Campaign:
+  $("#ppc_crm_add_campaign").on("click", function () {
+    campaignTable
+      .addRow({}, true)
+      .then((r) => r.getCell("campaign_name").edit());
   });
 });

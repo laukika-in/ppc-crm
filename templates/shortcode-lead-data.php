@@ -19,7 +19,8 @@ $current_user = wp_get_current_user();
             ?>
         </select>
     <?php endif; ?>
-<button id="ppc_crm_add_lead" class="button"><?php esc_html_e( 'Add New Lead', 'ppc-crm' ); ?></button>
-
-    <div id="lead_data_table" class="ppc-crm-table"></div>
+<button id="ppc_crm_add_lead" class="button">
+    <?php esc_html_e( 'Add New Lead', 'ppc-crm' ); ?>
+</button>
+<div id="lead_data_table" class="ppc-crm-table"></div>
 </div>
