@@ -11,7 +11,8 @@ class PPC_CRM_Public {
 	/* ------------------------------------------------------------------ */
 	public function register_assets() {
 
-		$base = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/plugins/ppc-crm/
+		/* Base now points to /public/ so `assets/js/...` resolves correctly */
+		$base = plugin_dir_url( __FILE__ ); // …/ppc-crm/public/
 
 		wp_register_style(
 			'bootstrap-css',
@@ -26,33 +27,33 @@ class PPC_CRM_Public {
 
 		wp_register_script(
 			'lcm-lead-table',
-			$base . 'public/assets/js/lead-table.js',
+			$base . 'assets/js/lead-table.js',   // ✅ correct path
 			[ 'jquery', 'bootstrap-js' ],
 			PPC_CRM_VERSION,
 			true
 		);
 
-		/* tiny css tweak for nowrap cells */
-		wp_add_inline_style( 'bootstrap-css', '.lcm-nowrap td, .lcm-nowrap th{white-space:nowrap}' );
+		/* nowrap helper */
+		wp_add_inline_style( 'bootstrap-css',
+			'.lcm-nowrap td,.lcm-nowrap th{white-space:nowrap} .lcm-scroll{max-width:100%;overflow-x:auto}'
+		);
 	}
 
 	/* ------------------------------------------------------------------ */
 	public function shortcode_lead_table() : string {
 
-		$clients   = get_users( [ 'role__in' => [ 'client' ], 'fields' => [ 'ID','display_name' ] ] );
-		$campaigns = get_posts( [ 'post_type' => 'lcm_campaign', 'numberposts' => -1, 'fields' => 'ids' ] );
-
-		$vars = [
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( 'lcm_ajax' ),
-			'clients'  => array_map( fn($u)=>[ $u->ID, $u->display_name ], $clients ),
-			'adsets'   => array_map( fn($id)=>get_the_title( $id ), $campaigns ),
-			'per_page' => 10,
-		];
+		$clients   = get_users( [ 'role__in' => [ 'client' ], 'fields'=>['ID','display_name'] ] );
+		$campaigns = get_posts( [ 'post_type'=>'lcm_campaign', 'numberposts'=>-1, 'fields'=>'ids' ] );
 
 		wp_enqueue_style( 'bootstrap-css' );
 		wp_enqueue_script( 'lcm-lead-table' );
-		wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
+		wp_localize_script( 'lcm-lead-table', 'LCM', [
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'lcm_ajax' ),
+			'clients'  => array_map( fn($u)=>[ $u->ID,$u->display_name ], $clients ),
+			'adsets'   => array_map( fn($id)=>get_the_title($id), $campaigns ),
+			'per_page' => 10,
+		] );
 
 		ob_start(); ?>
 		<div class="card p-3 shadow-sm">
@@ -61,8 +62,10 @@ class PPC_CRM_Public {
 				<div id="lcm-pager" class="btn-group btn-group-sm"></div>
 			</div>
 
-			<div class="table-responsive lcm-nowrap">
-				<table id="lcm-lead-table" class="table table-sm table-bordered align-middle mb-0 w-100">
+			<div class="table-responsive lcm-scroll lcm-nowrap">
+				<table id="lcm-lead-table"
+					   class="table table-sm table-bordered align-middle mb-0 w-100"
+					   style="table-layout:auto">
 					<thead class="table-light"></thead>
 					<tbody></tbody>
 				</table>
