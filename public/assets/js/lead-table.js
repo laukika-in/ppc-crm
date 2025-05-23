@@ -1,9 +1,5 @@
 jQuery(function ($) {
-  /* ---------- helpers ------------------------------------------------ */
-  const $tbl = $("#lcm-lead-table");
-  const $thead = $tbl.find("thead");
-  const $tbody = $tbl.find("tbody");
-  const $pager = $("#lcm-pager");
+  /* ---------------- column config ---------------------------------- */
   const cols = [
     ["client_id", "Client", "select", LCM.clients],
     ["ad_name", "Ad Name", "select", LCM.ad_names],
@@ -50,64 +46,91 @@ jQuery(function ($) {
     ["remarks", "Remarks", "text"],
   ];
 
+  const $tbl = $("#lcm-lead-table");
+  const $thead = $tbl.find("thead");
+  const $tbody = $tbl.find("tbody");
+  const $pager = $("#lcm-pager");
+  const per = LCM.per_page;
   let curPage = 1;
 
-  /* build thead */
-  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
-
-  function renderRow(r) {
-    return (
-      "<tr data-id='" +
-      (r.id || "") +
-      "' class='" +
-      (r.id ? "" : "table-warning") +
-      "'>" +
-      cols
-        .map((c) => {
-          const name = c[0],
-            type = c[2],
-            opts = c[3] || [];
-          const val = r[name] || "";
-          if (type === "select") {
-            const optHtml = ["<option value=''></option>"]
-              .concat(
-                opts.map((o) => {
-                  const v = Array.isArray(o) ? o[0] : o;
-                  const t = Array.isArray(o) ? o[1] : o;
-                  return `<option value="${v}" ${
-                    v == val ? "selected" : ""
-                  }>${t}</option>`;
-                })
-              )
-              .join("");
-            return `<td><select class='form-select form-select-sm' data-name='${name}'>${optHtml}</select></td>`;
-          }
-          return `<td><input type='text' class='form-control form-control-sm' data-name='${name}' value='${val}'></td>`;
-        })
-        .join("") +
+  /* build header row */
+  $thead.html(
+    "<tr>" +
+      cols.map((c) => `<th class='small'>${c[1]}</th>`).join("") +
       "</tr>"
-    );
-  }
+  );
 
-  function loadPage(p) {
+  /* fetch and render page */
+  function load(p = 1) {
     $.getJSON(
       LCM.ajax_url,
       {
         action: LCM.action,
         nonce: LCM.nonce,
         page: p,
-        per_page: LCM.per_page,
+        per_page: per,
       },
-      function (res) {
+      (res) => {
         curPage = p;
-        $tbody.html(res.rows.map(renderRow).join(""));
-        buildPager(res.total);
+        renderRows(res.rows);
+        renderPager(res.total);
       }
     );
   }
+  /* render rows */
+  function renderRows(rows) {
+    $tbody.html(
+      rows
+        .map((r) => {
+          let t =
+            "<tr data-id='" +
+            (r.id || "") +
+            "'" +
+            (r.id ? "" : ' class="table-warning"') +
+            ">";
+          cols.forEach(([field, label, type]) => {
+            const val = r[field] || "";
+            if (type === "select") {
+              t +=
+                "<td><select class='form-select form-select-sm' data-name='" +
+                field +
+                "'>" +
+                selectOpts(field, val) +
+                "</select></td>";
+            } else {
+              t +=
+                "<td><input type='text' class='form-control form-control-sm' data-name='" +
+                field +
+                "' value='" +
+                val +
+                "'></td>";
+            }
+          });
+          t += "</tr>";
+          return t;
+        })
+        .join("")
+    );
+  }
+  function selectOpts(field, cur) {
+    const def = cols.find((c) => c[0] === field)[3] || [];
+    return (
+      "<option value=''></option>" +
+      def
+        .map((o) => {
+          const v = Array.isArray(o) ? o[0] : o;
+          const t = Array.isArray(o) ? o[1] : o;
+          return `<option value="${v}"${
+            v == cur ? " selected" : ""
+          }>${t}</option>`;
+        })
+        .join("")
+    );
+  }
 
-  function buildPager(total) {
-    const pages = Math.ceil(total / LCM.per_page) || 1;
+  /* pager */
+  function renderPager(total) {
+    const pages = Math.max(1, Math.ceil(total / per));
     let html = "";
     for (let i = 1; i <= pages; i++) {
       html += `<button class='btn btn-outline-secondary ${
@@ -116,42 +139,37 @@ jQuery(function ($) {
     }
     $pager.html(html);
   }
-
-  /* pager click */
-  $pager.on("click", "button", function () {
-    loadPage(parseInt(this.dataset.page, 10));
+  $pager.on("click", "button", (e) => {
+    load(parseInt($(e.currentTarget).data("page"), 10));
   });
 
-  /* Add new blank row */
-  $("#lcm-add-row").on("click", function () {
+  /* add new blank row */
+  $("#lcm-add-row").on("click", () => {
     const blank = {};
     cols.forEach((c) => (blank[c[0]] = ""));
-    $tbody.prepend(renderRow(blank));
+    $tbody.prepend(renderRows([blank]));
   });
 
-  /* Save on blur/select change */
+  /* autosave new row */
   $tbody.on("change blur", "input,select", function () {
     const $tr = $(this).closest("tr");
-    if ($tr.data("id")) return; // only new rows
-    const data = { action: "lcm_create_lead", nonce: LCM.nonce };
+    if ($tr.data("id")) return; // only unsaved rows
+    const rowData = { action: "lcm_create_lead", nonce: LCM.nonce };
     $tr.find("input,select").each(function () {
-      data[this.dataset.name] = $(this).val();
+      rowData[this.dataset.name] = $(this).val();
     });
-    if (!data.uid || !data.adset) return; // need keys
+    if (!rowData.uid || !rowData.adset) return;
     $.post(
       LCM.ajax_url,
-      data,
-      function (res) {
-        if (res.success) {
-          loadPage(curPage); // reload current page
-        } else {
-          alert(res.data.msg || "Save error");
-        }
+      rowData,
+      (res) => {
+        if (res.success) load(curPage);
+        else alert(res.data.msg || "Save failed");
       },
       "json"
     );
   });
 
-  /* load first page */
-  loadPage(1);
+  /* initial load */
+  load(1);
 });

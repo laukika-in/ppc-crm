@@ -6,15 +6,15 @@ class PPC_CRM_Public {
 
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'register_assets' ] );
-		add_shortcode( 'lcm_lead_table', [ $this, 'shortcode_lead_table' ] );
+		add_shortcode( 'lcm_lead_table',  [ $this, 'shortcode_lead_table' ] );
 	}
 
 	/* ------------------------------------------------------------------ */
 	public function register_assets() {
 
-		$base = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/ppc-crm/
+		$base = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/plugins/ppc-crm/
 
-		/* Bootstrap 5 (CDN) + jQuery (shipped with WP) */
+		/* Bootstrap 5 (CSS + bundle JS) */
 		wp_register_style(
 			'bootstrap-css',
 			'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
@@ -26,7 +26,7 @@ class PPC_CRM_Public {
 			[ 'jquery' ], '5.3.3', true
 		);
 
-		/* Our lead-table driver */
+		/* Lead-table driver */
 		wp_register_script(
 			'lcm-lead-table',
 			$base . 'public/assets/js/lead-table.js',
@@ -39,32 +39,37 @@ class PPC_CRM_Public {
 	/* ------------------------------------------------------------------ */
 	public function shortcode_lead_table() : string {
 
-		/* dropdown sources */
-		$clients   = get_users( [ 'role__in' => [ 'client' ], 'fields'=>['ID','display_name'] ] );
-		$campaigns = get_posts( [ 'post_type'=>'lcm_campaign', 'numberposts'=>-1, 'fields'=>'ids' ] );
+		/* Build dropdown source arrays */
+		$clients   = get_users( [ 'role__in' => [ 'client' ], 'fields' => [ 'ID', 'display_name' ] ] );
+		$campaigns = get_posts( [ 'post_type' => 'lcm_campaign', 'numberposts' => -1, 'fields' => 'ids' ] );
 
-		$js_vars = [
+		$vars = [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'lcm_ajax' ),
+
+			// Dropdown sources
 			'clients'  => array_map( fn($u)=>[ $u->ID, $u->display_name ], $clients ),
-			'ad_names' => array_map( fn($id)=>get_the_title($id), $campaigns ),
+			'ad_names' => array_map( fn($id)=>get_the_title( $id ), $campaigns ),
+
+			// Pagination
 			'per_page' => 10,
 		];
 
-		/* enqueue */
+		/* Enqueue assets */
 		wp_enqueue_style( 'bootstrap-css' );
 		wp_enqueue_script( 'lcm-lead-table' );
-		wp_localize_script( 'lcm-lead-table', 'LCM', $js_vars );
+		wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
 
-		/* html skeleton */
+		/* Output skeleton */
 		ob_start(); ?>
-		<div class="lcm-table-wrapper card p-3">
+		<div class="card p-3 shadow-sm lcm-table-wrapper">
 			<div class="d-flex justify-content-between mb-2">
-				<button class="btn btn-primary btn-sm" id="lcm-add-row">➕ Add Lead</button>
+				<button id="lcm-add-row" class="btn btn-primary btn-sm">➕ Add Lead</button>
 				<div id="lcm-pager" class="btn-group btn-group-sm"></div>
 			</div>
+
 			<div class="table-responsive">
-				<table id="lcm-lead-table" class="table table-bordered table-sm align-middle">
+				<table id="lcm-lead-table" class="table table-sm table-bordered align-middle mb-0">
 					<thead class="table-light"></thead>
 					<tbody></tbody>
 				</table>
