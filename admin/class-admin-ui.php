@@ -398,7 +398,7 @@ if ( ! empty( $data['adset'] ) ) {
  * Re-count all “Connected / Not Connected / Relevant” totals
  * for a given Adset and push them into the Campaign row.
  */
-private function recount_campaign_counters( $adset ) {
+public  function recount_campaign_counters( $adset ) {
 
 	global $wpdb;
 

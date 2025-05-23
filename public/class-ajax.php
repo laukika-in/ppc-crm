@@ -98,8 +98,7 @@ public function delete_lead() {
 	}
 $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
 wp_send_json_success( [ 'total' => $total ] );   // ← NEW
-
-	wp_send_json_success();
+ 
 }
 
 }
