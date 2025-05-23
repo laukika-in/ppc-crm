@@ -244,7 +244,7 @@ jQuery(function ($) {
 
   /* ---------- Delete flow (shared modal) */
   let delId = 0;
-  const modal = new bootstrap.Modal("#lcmDelModal");
+  const modal = new bootstrap.Modal(document.getElementById("lcmDelModal"));
   $tbody.on("click", ".del-row", function () {
     delId = $(this).data("id") || 0;
     if (!delId) {
