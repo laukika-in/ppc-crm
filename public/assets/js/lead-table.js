@@ -1,6 +1,7 @@
 jQuery(function ($) {
   /* columns ---------------------------------------------------------- */
   const cols = [
+    ["_action", "Action", "action"],
     ["client_id", "Client", "select", LCM.clients],
     ["ad_name", "Ad Name", "text"],
     ["adset", "Adset", "select", LCM.adsets],
@@ -74,15 +75,24 @@ jQuery(function ($) {
     }>`;
     cols.forEach(([f, _, t, arr]) => {
       const v = r[f] || "";
-      if (t === "select") {
+      if (t === "action") {
+        html += r.id
+          ? `<td class="text-center">🗑</td>` // saved rows – only delete icon (future)
+          : `<td class="text-center">
+             <button class="btn btn-success btn-sm save-row me-1">💾</button>
+             <button class="btn btn-danger  btn-sm del-row">🗑</button>
+           </td>`;
+      } else if (t === "select") {
         html += `<td><select class='form-select form-select-sm' data-name='${f}'>${opts(
           arr,
           v
         )}</select></td>`;
       } else if (t === "date") {
-        html += `<td><input type='date' class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
+        html += `<td><input type='date'  class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
+      } else if (t === "time") {
+        html += `<td><input type='time'  class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
       } else {
-        html += `<td><input type='text' class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
+        html += `<td><input type='text'  class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
       }
     });
     return html + "</tr>";
@@ -158,6 +168,30 @@ jQuery(function ($) {
       "json"
     );
   });
+  /* save clicked ------------------------------------------------------- */
+  $tbody.on("click", ".save-row", function () {
+    const $tr = $(this).closest("tr");
+    const d = { action: "lcm_create_lead", nonce: LCM.nonce };
+    $tr.find("input,select").each(function () {
+      d[this.dataset.name] = $(this).val();
+    });
+    if (!d.uid || !d.adset) {
+      alert("UID & Adset required");
+      return;
+    }
+    $.post(
+      LCM.ajax_url,
+      d,
+      (res) => {
+        res.success ? load(page) : alert(res.data.msg || "Save failed");
+      },
+      "json"
+    );
+  });
 
+  /* delete clicked ----------------------------------------------------- */
+  $tbody.on("click", ".del-row", function () {
+    $(this).closest("tr").remove();
+  });
   load(1);
 });
