@@ -178,26 +178,50 @@ jQuery(function ($) {
   });
 
   /* Delete */
+  /* ---------- Delete flow (lazy modal) ------------------------------ */
   let delId = 0;
-  const modal = new bootstrap.Modal("#lcmDelModal");
-  $tbody.on("click", ".del-camp", function () {
-    delId = $(this).data("id");
+
+  /* open modal on 🗑 click */
+  $tbody.on("click", ".del-row, .del-camp", function () {
+    delId = $(this).data("id") || 0;
+
+    /* draft row: just remove from DOM */
+    if (!delId) {
+      $(this).closest("tr").remove();
+      return;
+    }
+
+    /* get or create the Bootstrap modal */
+    const modalEl = document.getElementById("lcmDelModal");
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
   });
-  $("#lcm-confirm-del").on("click", function () {
-    $.post(
-      LCM.ajax_url,
-      { action: "lcm_delete_campaign", nonce: LCM.nonce, id: delId },
-      (res) => {
-        const total = res.data.total;
-        const pages = Math.max(1, Math.ceil(total / per));
-        if (page > pages) page = pages;
-        load(page);
-        modal.hide();
-      },
-      "json"
-    );
-  });
+
+  /* confirm button inside the shared modal */
+  $("#lcm-confirm-del")
+    .off("click")
+    .on("click", function () {
+      const action =
+        $(this).closest("table").attr("id") === "lcm-campaign-table"
+          ? "lcm_delete_campaign"
+          : "lcm_delete_lead";
+
+      $.post(
+        LCM.ajax_url,
+        { action, nonce: LCM.nonce, id: delId },
+        (res) => {
+          const total = res.data.total || 0;
+          const pages = Math.max(1, Math.ceil(total / LCM.per_page));
+          if (page > pages) page = pages;
+          load(page); // refresh current grid page
+
+          bootstrap.Modal.getInstance(
+            document.getElementById("lcmDelModal")
+          ).hide();
+        },
+        "json"
+      );
+    });
 
   load(1);
 });
