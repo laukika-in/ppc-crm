@@ -207,26 +207,6 @@ jQuery(function ($) {
     );
   });
 
-  /* ---------------- auto-save on valid change ----------------------- */
-  $tbody.on("change blur", "input,select", function () {
-    const $tr = $(this).closest("tr");
-    if ($tr.data("id")) return; // only drafts
-    const d = collect($tr);
-    if (d.uid && d.adset) {
-      // minimal keys exist
-      d.action = "lcm_create_lead";
-      d.nonce = LCM.nonce;
-      $.post(
-        LCM.ajax_url,
-        d,
-        (res) => {
-          res.success && load(page);
-        },
-        "json"
-      );
-    }
-  });
-
   /* ---------------- delete (modal) ---------------------------------- */
   let delId = 0;
   const delModal = new bootstrap.Modal("#lcmDelModal");

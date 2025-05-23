@@ -10,6 +10,9 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_nopriv_lcm_create_lead',     [ $this, 'forbid' ] );
         add_action( 'wp_ajax_lcm_delete_lead', [ $this, 'delete_lead' ] );
 add_action( 'wp_ajax_nopriv_lcm_delete_lead', [ $this, 'forbid' ] );
+add_action( 'wp_ajax_lcm_get_campaigns_json', [ $this, 'get_campaigns' ] );
+add_action( 'wp_ajax_lcm_create_campaign',    [ $this, 'create_campaign' ] );
+add_action( 'wp_ajax_lcm_delete_campaign',    [ $this, 'delete_campaign' ] );
 
 	}
 
@@ -99,6 +102,67 @@ public function delete_lead() {
 $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
 wp_send_json_success( [ 'total' => $total ] );   // ← NEW
  
+}
+/* ---------- Campaign: fetch --------------------------------------- */
+public function get_campaigns() {
+	$this->verify();
+	global $wpdb;
+	$p  = max(1,intval($_GET['page']??1));
+	$pp = max(1,intval($_GET['per_page']??10));
+	$o  = ($p-1)*$pp;
+
+	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
+	$rows =$wpdb->get_results($wpdb->prepare(
+		"SELECT * FROM {$wpdb->prefix}lcm_campaigns ORDER BY id DESC LIMIT %d OFFSET %d",$pp,$o
+	),ARRAY_A);
+
+	wp_send_json(['total'=>$total,'rows'=>$rows]);
+}
+
+/* ---------- Campaign: create / update ----------------------------- */
+public function create_campaign(){
+	$this->verify();
+	global $wpdb;
+
+	$fields=[
+		'client_id','month','week','campaign_date','location','adset',
+		'leads','reach','impressions','cost_per_lead','amount_spent','cpm'
+	];
+	$d=[];
+	foreach($fields as $f){ $d[$f]=sanitize_text_field($_POST[$f]??''); }
+
+	if(!$d['adset']) wp_send_json_error(['msg'=>'Adset required'],400);
+
+	$post=get_page_by_title($d['adset'],OBJECT,'lcm_campaign');
+	if($post){
+		$d['post_id']=$post->ID;
+	}else{
+		$d['post_id']=wp_insert_post([
+			'post_type'=>'lcm_campaign','post_status'=>'publish','post_title'=>$d['adset']
+		],true);
+	}
+
+	$d['not_available']=max(0,intval($d['leads'])-intval($_POST['connected'])-intval($_POST['not_connected'])-intval($_POST['relevant']));
+
+	$wpdb->replace($wpdb->prefix.'lcm_campaigns',$d);
+	wp_send_json_success();
+}
+
+/* ---------- Campaign: delete -------------------------------------- */
+public function delete_campaign(){
+	$this->verify();
+	$id=absint($_POST['id']??0);
+	if(!$id) wp_send_json_error(['msg'=>'Missing id'],400);
+
+	global $wpdb;
+	$row=$wpdb->get_row($wpdb->prepare("SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d",$id));
+	if(!$row) wp_send_json_error(['msg'=>'Not found'],404);
+
+	$wpdb->delete($wpdb->prefix.'lcm_campaigns',['id'=>$id]);
+	wp_delete_post($row->post_id,true);
+
+	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
+	wp_send_json_success(['total'=>$total]);
 }
 
 }
