@@ -263,27 +263,7 @@ else if (type === "select") {
       "json"
     );
   });
-public function update_lead() {
 
-	$this->verify();
-	global $wpdb;
-
-	$id = absint( $_POST['id'] ?? 0 );
-	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
-
-	$cols = [
-		'ad_name','adset','lead_date','lead_time','day','phone_number',
-		'attempt','attempt_type','attempt_status','store_visit_status','remarks'
-	];
-	$data = [];
-	foreach ( $cols as $c ) {
-		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
-	}
-	if ( empty( $data ) ) wp_send_json_success();  // nothing to update
-
-	$wpdb->update( $wpdb->prefix.'lcm_leads', $data, [ 'id'=>$id ] );
-	wp_send_json_success();
-}
 
   /* initial load */
   load(1);

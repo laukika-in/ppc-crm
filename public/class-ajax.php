@@ -166,5 +166,62 @@ public function delete_campaign(){
 	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
 	wp_send_json_success(['total'=>$total]);
 }
+public function update_lead() {
+
+	$this->verify();
+	global $wpdb;
+
+	$id = absint( $_POST['id'] ?? 0 );
+	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
+
+	$cols = [
+		'ad_name','adset','lead_date','lead_time','day','phone_number',
+		'attempt','attempt_type','attempt_status','store_visit_status','remarks'
+	];
+	$data = [];
+	foreach ( $cols as $c ) {
+		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
+	}
+	if ( empty( $data ) ) wp_send_json_success();  // nothing to update
+
+	$wpdb->update( $wpdb->prefix.'lcm_leads', $data, [ 'id'=>$id ] );
+	wp_send_json_success();
+}
+public function update_campaign() {
+
+	$this->verify();
+	global $wpdb;
+
+	$id = absint( $_POST['id'] ?? 0 );
+	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
+
+	$cols = [
+		'month','week','campaign_date','location','leads','reach','impressions',
+		'cost_per_lead','amount_spent','cpm'
+	];
+	$data = [];
+	foreach ( $cols as $c ) {
+		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
+	}
+
+	if ( isset( $data['leads'] ) ) {
+		/* re-compute N/A = leads - (connected+not_connected+relevant) */
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT connected_number, not_connected, relevant FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d", $id
+		), ARRAY_A );
+		if ( $row ) {
+			$data['not_available'] = max( 0,
+				intval( $data['leads'] ) -
+				intval( $row['connected_number'] ) -
+				intval( $row['not_connected'] )  -
+				intval( $row['relevant'] )
+			);
+		}
+	}
+
+	if ( empty( $data ) ) wp_send_json_success();
+	$wpdb->update( $wpdb->prefix.'lcm_campaigns', $data, [ 'id'=>$id ] );
+	wp_send_json_success();
+}
 
 }

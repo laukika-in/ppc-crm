@@ -197,42 +197,6 @@ else if (type === "select") {
       "json"
     );
   });
-public function update_campaign() {
-
-	$this->verify();
-	global $wpdb;
-
-	$id = absint( $_POST['id'] ?? 0 );
-	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
-
-	$cols = [
-		'month','week','campaign_date','location','leads','reach','impressions',
-		'cost_per_lead','amount_spent','cpm'
-	];
-	$data = [];
-	foreach ( $cols as $c ) {
-		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
-	}
-
-	if ( isset( $data['leads'] ) ) {
-		/* re-compute N/A = leads - (connected+not_connected+relevant) */
-		$row = $wpdb->get_row( $wpdb->prepare(
-			"SELECT connected_number, not_connected, relevant FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d", $id
-		), ARRAY_A );
-		if ( $row ) {
-			$data['not_available'] = max( 0,
-				intval( $data['leads'] ) -
-				intval( $row['connected_number'] ) -
-				intval( $row['not_connected'] )  -
-				intval( $row['relevant'] )
-			);
-		}
-	}
-
-	if ( empty( $data ) ) wp_send_json_success();
-	$wpdb->update( $wpdb->prefix.'lcm_campaigns', $data, [ 'id'=>$id ] );
-	wp_send_json_success();
-}
 
   load(1);
 });
