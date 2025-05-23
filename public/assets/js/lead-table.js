@@ -85,18 +85,15 @@ jQuery(function ($) {
    const disabled = r.id ? " disabled" : "";   // ← the one-liner flag
 
      if (type === "action") {
-
-  if (!r.id) { // draft
-    html += `<td class="text-center">
-               <button class="btn btn-success btn-sm save-row me-1">💾</button>
-               <button class="btn btn-danger  btn-sm del-row">🗑</button>
-             </td>`;
-  } else {     // saved
-    html += `<td class="text-center">
-               <button class="btn btn-secondary btn-sm edit-row me-1">✏️</button>
-               <button class="btn btn-danger   btn-sm del-row" data-id="${r.id}">🗑</button>
-             </td>`;
-  }
+  html += r.id
+        ? `<td class="text-center">
+             <button class="btn btn-secondary btn-sm edit-row me-1">✏️</button>
+             <button class="btn btn-danger   btn-sm del-row" data-id="${r.id}">🗑</button>
+           </td>`
+        : `<td class="text-center">
+             <button class="btn btn-success btn-sm save-row me-1">💾</button>
+             <button class="btn btn-danger  btn-sm del-row">🗑</button>
+           </td>`;
 }
 else if (type === "select") {
       html += `<td>
