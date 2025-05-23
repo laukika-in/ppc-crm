@@ -42,11 +42,13 @@ class PPC_CRM_Public {
 			PPC_CRM_VERSION,
 			true
 		);
-
-		/* nowrap for all tables */
-		wp_add_inline_style( 'bootstrap-css',
-			'.lcm-nowrap td,.lcm-nowrap th{white-space:nowrap} .lcm-scroll{max-width:100%;overflow-x:auto}'
-		);
+// pretty table skin
+wp_register_style(
+    'lcm-tables',
+    $base . 'assets/css/lcm-tables.css',
+    [ 'bootstrap-css' ],
+    PPC_CRM_VERSION
+); 
 	}
 
 	/* ------------------------------------------------------------------ */
@@ -74,6 +76,7 @@ class PPC_CRM_Public {
 		];
 
 		wp_enqueue_style( 'bootstrap-css' );
+wp_enqueue_style( 'lcm-tables' );   
 		if ( $which === 'lead' ) {
 			wp_enqueue_script( 'lcm-lead-table' );
 			wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
@@ -85,33 +88,43 @@ class PPC_CRM_Public {
 		$div = $which === 'lead' ? 'lcm-lead-table' : 'lcm-campaign-table';
 
 		ob_start(); ?>
-		<div class="card p-3 shadow-sm mb-4">
-			<div class="d-flex justify-content-between mb-2">
-				<button id="lcm-add-row-<?=esc_attr($which);?>" class="btn btn-primary btn-sm">➕ Add <?=ucfirst($which);?></button>
-				<div id="lcm-pager-<?=esc_attr($which);?>" class="btn-group btn-group-sm"></div>
-			</div>
+		<div class="lcm-table-card p-3 shadow-sm mb-4">
+  <div class="d-flex justify-content-between mb-2">
+    <!-- Add-row button -->
+    <button id="lcm-add-row-lead" class="btn btn-primary btn-sm">
+      ➕ Add Lead
+    </button>
 
-			<div class="table-responsive lcm-scroll lcm-nowrap">
-				<table id="<?=esc_attr($div);?>" class="table table-sm table-bordered align-middle mb-0 w-100" style="table-layout:auto">
-					<thead class="table-light"></thead>
-					<tbody></tbody>
-				</table>
-			</div>
-		</div>
+    <!-- Pager buttons land here -->
+    <div id="lcm-pager-lead" class="btn-group btn-group-sm"></div>
+  </div>
 
-		<!-- Shared delete modal -->
-		<div class="modal fade" id="lcmDelModal" tabindex="-1">
-		  <div class="modal-dialog modal-dialog-centered">
-		    <div class="modal-content">
-		      <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
-		      <div class="modal-body">Are you sure you want to delete this row?</div>
-		      <div class="modal-footer">
-		        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-		        <button type="button" class="btn btn-danger btn-sm" id="lcm-confirm-del">Delete</button>
-		      </div>
-		    </div>
-		  </div>
-		</div>
+  <!-- Scroll wrapper keeps the table from shrinking; gives horizontal drag -->
+  <div class="table-responsive lcm-scroll">
+    <table id="lcm-lead-table"
+           class="table table-sm lcm-table align-middle mb-0">
+      <thead class="table-light"></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Shared Bootstrap confirm modal (one per page is enough) -->
+<div class="modal fade" id="lcmDelModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
+      <div class="modal-body">Are you sure you want to delete this row?</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm"
+                data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm"
+                id="lcm-confirm-del">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 		<?php
 		return ob_get_clean();
 	}

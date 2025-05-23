@@ -1,0 +1,90 @@
+/* ---------- wrapper ------------------------------------------------ */
+.lcm-table-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+}
+
+/* ---------- scroll container --------------------------------------- */
+.lcm-scroll {
+  max-width: 100%;
+  overflow-x: auto; /* always allow horizontal drag   */
+}
+
+/* ---------- table base --------------------------------------------- */
+.lcm-table {
+  min-width: 1200px; /* forces scroll on narrow view   */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.lcm-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f9fafb;
+  border-bottom: 2px solid #d1d5db;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.lcm-table td,
+.lcm-table th {
+  white-space: nowrap; /* keep cells compact             */
+  vertical-align: middle;
+}
+
+.lcm-table tbody tr:nth-child(even) td {
+  background: #f7fafc; /* zebra stripe                   */
+}
+
+.lcm-table tbody tr:hover td {
+  background: #eef2ff; /* soft indigo hover              */
+}
+
+/* ---------- action buttons ----------------------------------------- */
+.lcm-table .btn {
+  line-height: 1;
+  padding: 0.15rem 0.45rem;
+}
+
+.lcm-table .btn-secondary {
+  background: #64748b;
+  border: 0;
+}
+.lcm-table .btn-secondary:hover {
+  background: #475569;
+}
+
+.lcm-table .btn-success {
+  background: #22c55e;
+  border: 0;
+}
+.lcm-table .btn-success:hover {
+  background: #16a34a;
+}
+
+.lcm-table .btn-warning {
+  background: #facc15;
+  border: 0;
+  color: #000;
+}
+.lcm-table .btn-warning:hover {
+  background: #eab308;
+  color: #000;
+}
+
+.lcm-table .btn-danger {
+  background: #ef4444;
+  border: 0;
+}
+.lcm-table .btn-danger:hover {
+  background: #dc2626;
+}
+
+/* ---------- draft rows (yellow) ------------------------------------ */
+.lcm-table tbody tr.table-warning td {
+  background: #fffbea;
+}
