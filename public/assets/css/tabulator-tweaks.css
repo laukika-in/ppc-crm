@@ -8,3 +8,44 @@
 .tabulator-cell {
   font-size: 14px;
 }
+/* Light card look ------------------------------------------------------- */
+.lcm-table-wrapper {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.5rem;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    margin-bottom: 2rem;
+}
+
+/* ‘Add’ button ---------------------------------------------------------- */
+.lcm-add-btn {
+    display:inline-block;
+    padding:6px 12px;
+    margin:0 0 8px 0;
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:13px;
+}
+.lcm-add-btn:hover{background:#1d4ed8}
+
+/* Tabulator tweaks ------------------------------------------------------ */
+.tabulator {
+    font-size:14px;
+}
+.tabulator .tabulator-header .tabulator-col{
+    background:#f9fafb;
+    border-right:1px solid #e5e7eb;
+}
+.tabulator-row:nth-child(even) .tabulator-cell{
+    background:#f7fafc;
+}
+.tabulator .tabulator-cell{
+    padding:4px 6px;
+}
+.tabulator .tabulator-footer{
+    background:#f9fafb;
+}

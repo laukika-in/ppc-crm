@@ -75,23 +75,36 @@ class PPC_CRM_Public {
 	/* ---------------------------------------------------------------------
 	 * 2) Shortcodes
 	 * ------------------------------------------------------------------ */
-	public function sc_campaign_table() {
+public function sc_campaign_table() {
 
-		$this->enqueue_for( 'campaign' );
+	$vars = [
+		'ajax_url' => admin_url( 'admin-ajax.php' ),
+		'action'   => 'lcm_get_campaigns_json',
+		'nonce'    => wp_create_nonce( 'lcm_ajax' ),
+	];
 
-		ob_start();
-		echo '<div id="lcm-campaign-tbl"></div>';
-		return ob_get_clean();
-	}
+	$this->enqueue_for( 'campaign' );
 
-	public function sc_lead_table() {
+return '<script>window.LCM=' . wp_json_encode( $vars ) . ';</script>'
+     . '<div class="lcm-table-wrapper">'
+     .   '<div id="lcm-lead-tbl"></div>'
+     . '</div>';
 
-		$this->enqueue_for( 'lead' );
+}
 
-		ob_start();
-		echo '<div id="lcm-lead-tbl"></div>';
-		return ob_get_clean();
-	}
+public function sc_lead_table() {
+
+	$vars = [
+		'ajax_url' => admin_url( 'admin-ajax.php' ),
+		'action'   => 'lcm_get_leads_json',
+		'nonce'    => wp_create_nonce( 'lcm_ajax' ),
+	];
+
+	$this->enqueue_for( 'lead' );
+
+	return '<script>window.LCM=' . wp_json_encode( $vars ) . ';</script>'
+	     . '<div id="lcm-lead-tbl"></div>';
+}
 
 	/* ---------------------------------------------------------------------
 	 * 3) Helper: enqueue correct assets + localise Ajax vars
