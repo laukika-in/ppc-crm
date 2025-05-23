@@ -12,7 +12,9 @@ class PPC_CRM_Public {
 	/* ------------------------------------------------------------------ */
 	public function register_assets() {
 
-		$base_url = plugin_dir_url( __FILE__ ); // …/ppc-crm/
+	
+		$base = plugin_dir_url( __FILE__ ); // …/ppc-crm/
+
 
 		/* Bootstrap 5 (CSS + bundle JS) */
 		wp_register_style(
