@@ -8,6 +8,9 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_lcm_create_lead',      [ $this, 'create_lead' ] );
 		add_action( 'wp_ajax_nopriv_lcm_get_leads_json',  [ $this, 'forbid' ] );
 		add_action( 'wp_ajax_nopriv_lcm_create_lead',     [ $this, 'forbid' ] );
+        add_action( 'wp_ajax_lcm_delete_lead', [ $this, 'delete_lead' ] );
+add_action( 'wp_ajax_nopriv_lcm_delete_lead', [ $this, 'forbid' ] );
+
 	}
 
 	private function verify() {
@@ -69,4 +72,32 @@ class PPC_CRM_Ajax {
 		}
 		wp_send_json_success();
 	}
+    /* ---------- 3) Delete saved lead row ------------------------------- */
+public function delete_lead() {
+
+	$this->verify();
+
+	$id = absint( $_POST['id'] ?? 0 );
+	if ( ! $id ) wp_send_json_error( [ 'msg' => 'Missing ID' ], 400 );
+
+	global $wpdb;
+	$lead = $wpdb->get_row( $wpdb->prepare(
+		"SELECT adset, post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
+		$id
+	), ARRAY_A );
+
+	if ( ! $lead ) wp_send_json_error( [ 'msg' => 'Lead not found' ], 404 );
+
+	/* Remove from custom table and wp_posts */
+	$wpdb->delete( $wpdb->prefix . 'lcm_leads', [ 'id' => $id ] );
+	wp_delete_post( $lead['post_id'], true );
+
+	/* Re-count campaign counters */
+	if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
+		( new PPC_CRM_Admin_UI )->recount_campaign_counters( $lead['adset'] );
+	}
+
+	wp_send_json_success();
+}
+
 }

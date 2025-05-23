@@ -77,7 +77,9 @@ jQuery(function ($) {
       const v = r[f] || "";
       if (t === "action") {
         html += r.id
-          ? `<td class="text-center del-row">🗑</td>` // saved rows – only delete icon (future)
+          ? `<td class="text-center">
+         <button class="btn btn-danger btn-sm del-row" data-id="${r.id}">🗑</button>
+       </td>` // saved rows – only delete icon (future)
           : `<td class="text-center">
              <button class="btn btn-success btn-sm save-row me-1">💾</button>
              <button class="btn btn-danger  btn-sm del-row">🗑</button>
@@ -168,30 +170,37 @@ jQuery(function ($) {
       "json"
     );
   });
-  /* save clicked ------------------------------------------------------- */
-  $tbody.on("click", ".save-row", function () {
+  /* Delete icon click -------------------------------------------------- */
+  $tbody.on("click", ".del-row", function () {
     const $tr = $(this).closest("tr");
-    const d = { action: "lcm_create_lead", nonce: LCM.nonce };
-    $tr.find("input,select").each(function () {
-      d[this.dataset.name] = $(this).val();
-    });
-    if (!d.uid || !d.adset) {
-      alert("UID & Adset required");
+    const id = $(this).data("id") || ""; // blank for drafts
+
+    if (!confirm("Delete this lead?")) return;
+
+    if (!id) {
+      // draft row
+      $tr.remove();
       return;
     }
+
+    /* saved row – call Ajax delete */
     $.post(
       LCM.ajax_url,
-      d,
+      {
+        action: "lcm_delete_lead",
+        nonce: LCM.nonce,
+        id: id,
+      },
       (res) => {
-        res.success ? load(page) : alert(res.data.msg || "Save failed");
+        if (res.success) {
+          load(page); // reload current page
+        } else {
+          alert(res.data?.msg || "Delete failed");
+        }
       },
       "json"
     );
   });
 
-  /* delete clicked ----------------------------------------------------- */
-  $tbody.on("click", ".del-row", function () {
-    $(this).closest("tr").remove();
-  });
   load(1);
 });
