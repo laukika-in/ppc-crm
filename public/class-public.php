@@ -12,7 +12,7 @@ class PPC_CRM_Public {
 	/* ------------------------------------------------------------------ */
 	public function register_assets() {
 
-		$base = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/plugins/ppc-crm/
+		$base_url = plugin_dir_url( __FILE__ ); // …/ppc-crm/
 
 		/* Bootstrap 5 (CSS + bundle JS) */
 		wp_register_style(
@@ -29,7 +29,7 @@ class PPC_CRM_Public {
 		/* Lead-table driver */
 		wp_register_script(
 			'lcm-lead-table',
-			$base . 'public/assets/js/lead-table.js',
+			$base . 'assets/js/lead-table.js',
 			[ 'jquery', 'bootstrap-js' ],
 			PPC_CRM_VERSION,
 			true
