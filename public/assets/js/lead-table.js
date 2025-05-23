@@ -7,7 +7,7 @@ jQuery(function ($) {
     ["adset", "Adset", "select", LCM.adsets],
     ["uid", "UID", "text"],
     ["lead_date", "Date", "date"],
-    ["lead_time", "Time", "text"],
+    ["lead_time", "Time", "time"],
     [
       "day",
       "Day",
@@ -77,7 +77,7 @@ jQuery(function ($) {
       const v = r[f] || "";
       if (t === "action") {
         html += r.id
-          ? `<td class="text-center">🗑</td>` // saved rows – only delete icon (future)
+          ? `<td class="text-center del-row">🗑</td>` // saved rows – only delete icon (future)
           : `<td class="text-center">
              <button class="btn btn-success btn-sm save-row me-1">💾</button>
              <button class="btn btn-danger  btn-sm del-row">🗑</button>
