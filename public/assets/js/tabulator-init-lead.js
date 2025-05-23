@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const j = await r.json();
 
       if (j.success) {
-        grid.replaceData(); // reload entire dataset
+        grid.setData(LCM.ajax_url, { action: LCM.action, nonce: LCM.nonce });
       } else {
         alert(j.data.msg || "Save error");
         row.getElement().style.opacity = 1;

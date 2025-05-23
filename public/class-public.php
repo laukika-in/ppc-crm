@@ -31,21 +31,29 @@ class PPC_CRM_Public {
 
 		$base_url = plugin_dir_url( __FILE__ ); // …/ppc-crm/
 
-		/* Tabulator core (CDN) */
-		wp_register_style(
-			'tabulator-css',
-			'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
-			[],
-			'6.2.0'
-		);
-		wp_register_script(
-			'tabulator-js',
-			'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
-			[],
-			'6.2.0',
-			true
-		);
+    /* 0) Luxon – required by Tabulator’s datetime formatter ----------- */
+    wp_register_script(
+        'luxon-js',
+        'https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.0/luxon.min.js',
+        [],
+        '3.4.0',
+        true
+    );
 
+    /* 1) Tabulator core (now depends on luxon-js) ---------------------- */
+    wp_register_style(
+        'tabulator-css',
+        'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
+        [],
+        '6.2.0'
+    );
+    wp_register_script(
+        'tabulator-js',
+        'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
+        [ 'luxon-js' ],        // <— new dependency
+        '6.2.0',
+        true
+    );
 		/* Optional tweaks */
 		wp_register_style(
 			'lcm-tabulator-tweaks',
