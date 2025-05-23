@@ -23,7 +23,7 @@ jQuery(function ($) {
     ["store_visit_status","Store Visit","select",["Show","No Show"]],
     ["remarks","Remarks","text"],
   ];
-  if (!IS_CLIENT) base.splice(1, 0, ["client_id","Client","readonly"]);
+if (!IS_CLIENT) base.splice(1, 0, ["client_id","Client","select", LCM.clients]);
   const cols = base;
 
   /* ------------------------------------------------ DOM refs ------- */
