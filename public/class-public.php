@@ -102,8 +102,19 @@ wp_register_style(
             </table>
         </div>
     </div>
-
-    <!-- delete modal stays unchanged -->
+<!-- Shared delete modal (unchanged) -->
+<div class="modal fade" id="lcmDelModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
+      <div class="modal-body">Are you sure you want to delete this row?</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="lcm-confirm-del">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
     <?php
     return ob_get_clean();
 }
