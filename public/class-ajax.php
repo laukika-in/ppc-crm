@@ -26,23 +26,31 @@ add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
 	/* paginated fetch --------------------------------------------------- */
 	public function get_leads() {
-		$this->verify();
-		global $wpdb;
+    $this->verify();
+    global $wpdb;
 
-		$p  = max( 1, (int)($_GET['page'] ?? 1) );
-		$pp = max( 1, (int)($_GET['per_page'] ?? 10) );
-		$o  = ( $p - 1 ) * $pp;
+    $user = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles, true );
 
-		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
-		$rows  = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}lcm_leads ORDER BY id DESC LIMIT %d OFFSET %d",
-				$pp, $o
-			),
-			ARRAY_A
-		);
-		wp_send_json( [ 'total'=>$total, 'rows'=>$rows ] );
-	}
+    $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
+
+    $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
+
+    $p  = max(1,(int)($_GET['page']??1));
+    $pp = max(1,(int)($_GET['per_page']??10));
+    $o  = ($p-1)*$pp;
+
+    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads $where" );
+    $rows  = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}lcm_leads $where ORDER BY id DESC LIMIT %d OFFSET %d",
+            $pp, $o
+        ),
+        ARRAY_A
+    );
+    wp_send_json( [ 'total'=>$total, 'rows'=>$rows ] );
+}
+
 
 	/* create lead ------------------------------------------------------- */
 	public function create_lead() {
@@ -68,6 +76,11 @@ add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 		],true);
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
+if ( $is_client ) {
+    $data['client_id'] = $user->ID;          // force client id
+} else {
+    $data['client_id'] = absint( $_POST['client_id'] ?? 0 );
+}
 
 		global $wpdb;
 		$wpdb->replace($wpdb->prefix.'lcm_leads',$data);

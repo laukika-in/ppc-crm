@@ -52,9 +52,62 @@ wp_register_style(
 	}
 
 	/* ------------------------------------------------------------------ */
-	public function shortcode_lead_table() {
-		return $this->render_table( 'lead' );
-	}
+	public function shortcode_lead_table() : string {
+
+    $user   = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles, true );
+
+    /* dropdown sources */
+    $clients = get_users( [ 'role__in'=>['client'], 'fields'=>['ID','display_name'] ] );
+    $campaigns = get_posts( [ 'post_type'=>'lcm_campaign', 'numberposts'=>-1, 'fields'=>'ids' ] );
+
+    $vars = [
+        'ajax_url'         => admin_url( 'admin-ajax.php' ),
+        'nonce'            => wp_create_nonce( 'lcm_ajax' ),
+        'per_page'         => 10,
+        'is_client'        => $is_client,
+        'current_client_id'=> $user->ID,
+        'clients'          => array_map( fn($u)=>[ $u->ID,$u->display_name ], $clients ),
+        'adsets'           => array_map( fn($id)=>get_the_title($id), $campaigns ),
+    ];
+
+    wp_enqueue_style( 'bootstrap-css' );
+    wp_enqueue_style( 'lcm-tables' );
+    wp_enqueue_script( 'lcm-lead-table' );
+    wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
+
+    ob_start(); ?>
+    <div class="lcm-table-card p-3 shadow-sm mb-4">
+        <div class="d-flex justify-content-between mb-2">
+
+            <?php if ( ! $is_client ) : ?>
+                <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
+                    <option value="">All Clients</option>
+                    <?php foreach ( $clients as $c ) : ?>
+                        <option value="<?=esc_attr( $c->ID );?>"><?=esc_html( $c->display_name );?></option>
+                    <?php endforeach; ?>
+                </select>
+            <?php endif; ?>
+
+            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm ms-auto">
+                ➕ Add Lead
+            </button>
+
+            <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
+        </div>
+
+        <div class="table-responsive lcm-scroll">
+            <table id="lcm-lead-table" class="table table-sm lcm-table align-middle mb-0">
+                <thead></thead><tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- delete modal stays unchanged -->
+    <?php
+    return ob_get_clean();
+}
+
 	public function shortcode_campaign_table() {
 		return $this->render_table( 'campaign' );
 	}
