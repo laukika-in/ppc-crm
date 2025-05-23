@@ -82,29 +82,56 @@ jQuery(function ($) {
           r.attempt_status !== "Store Visit Scheduled")
           ? " disabled"
           : "";
+   const disabled = r.id ? " disabled" : "";   // ← the one-liner flag
 
-      if (type === "action") {
-        h += r.id
-          ? `<td class="text-center"><button class="btn btn-danger btn-sm del-row" data-id="${r.id}">🗑</button></td>`
-          : `<td class="text-center">
+     if (type === "action") {
+
+  if (!r.id) { // draft
+    html += `<td class="text-center">
                <button class="btn btn-success btn-sm save-row me-1">💾</button>
                <button class="btn btn-danger  btn-sm del-row">🗑</button>
              </td>`;
-      } else if (type === "select") {
-        h += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>${opts(
-          arr,
-          v
-        )}</select></td>`;
-      } else if (type === "date") {
-        h += `<td><input type="date" class="form-control form-control-sm" data-name="${f}" value="${v}"></td>`;
-      } else if (type === "time") {
-        h += `<td><input type="time" class="form-control form-control-sm" data-name="${f}" value="${v}"></td>`;
-      } else {
-        h += `<td><input type="text" class="form-control form-control-sm" data-name="${f}" value="${v}"></td>`;
-      }
-    });
-    return h + "</tr>";
+  } else {     // saved
+    html += `<td class="text-center">
+               <button class="btn btn-secondary btn-sm edit-row me-1">✏️</button>
+               <button class="btn btn-danger   btn-sm del-row" data-id="${r.id}">🗑</button>
+             </td>`;
   }
+}
+else if (type === "select") {
+      html += `<td>
+        <select class="form-select form-select-sm" data-name="${field}"${disabled}>
+          ${opts(options, val)}
+        </select>
+      </td>`;
+    } else if (type === "date") {
+      html += `<td>
+        <input type="date" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    } else if (type === "time") {
+      html += `<td>
+        <input type="time" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    } else if (type === "number") {
+      html += `<td>
+        <input type="number" step="any" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    } else if (type === "readonly") {
+      html += `<td>${val}</td>`;
+    } else { // plain text
+      html += `<td>
+        <input type="text" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    }
+  });
+
+  html += "</tr>";
+  return html;
+}
 
   /* ---------------- pagination -------------------------------------- */
   function load(p = 1) {
@@ -236,6 +263,27 @@ jQuery(function ($) {
       "json"
     );
   });
+public function update_lead() {
+
+	$this->verify();
+	global $wpdb;
+
+	$id = absint( $_POST['id'] ?? 0 );
+	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
+
+	$cols = [
+		'ad_name','adset','lead_date','lead_time','day','phone_number',
+		'attempt','attempt_type','attempt_status','store_visit_status','remarks'
+	];
+	$data = [];
+	foreach ( $cols as $c ) {
+		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
+	}
+	if ( empty( $data ) ) wp_send_json_success();  // nothing to update
+
+	$wpdb->update( $wpdb->prefix.'lcm_leads', $data, [ 'id'=>$id ] );
+	wp_send_json_success();
+}
 
   /* initial load */
   load(1);

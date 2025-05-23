@@ -57,27 +57,56 @@ jQuery(function ($) {
     }>`;
     cols.forEach(([f, _, t, a]) => {
       const v = r[f] || "";
-      if (t === "action") {
-        h += r.id
-          ? `<td class="text-center"><button class="btn btn-danger btn-sm del-camp" data-id="${r.id}">🗑</button></td>`
-          : `<td class="text-center"><button class="btn btn-success btn-sm save-camp">💾</button></td>`;
-      } else if (t === "select") {
-        h += `<td><select class="form-select form-select-sm" data-name="${f}">${opts(
-          a
-        )}</select></td>`;
-      } else if (t === "date") {
-        h += `<td><input type="date" class="form-control form-control-sm" data-name="${f}" value="${v}"></td>`;
-      } else if (t === "number") {
-        h += `<td><input type="number" step="any" class="form-control form-control-sm" data-name="${f}" value="${v}"></td>`;
-      } else if (t === "readonly") {
-        h += `<td>${v}</td>`;
-      } else {
-        h += `<td><input type="text" class="form-control form-control-sm" data-name="${f}" value="${v}"></td>`;
-      }
-    });
-    return h + "</tr>";
-  }
+        const disabled = r.id ? " disabled" : "";   // ← the one-liner flag
 
+     if (type === "action") {
+
+  if (!r.id) { // draft
+    html += `<td class="text-center">
+               <button class="btn btn-success btn-sm save-row me-1">💾</button>
+               <button class="btn btn-danger  btn-sm del-row">🗑</button>
+             </td>`;
+  } else {     // saved
+    html += `<td class="text-center">
+               <button class="btn btn-secondary btn-sm edit-row me-1">✏️</button>
+               <button class="btn btn-danger   btn-sm del-row" data-id="${r.id}">🗑</button>
+             </td>`;
+  }
+}
+else if (type === "select") {
+      html += `<td>
+        <select class="form-select form-select-sm" data-name="${field}"${disabled}>
+          ${opts(options, val)}
+        </select>
+      </td>`;
+    } else if (type === "date") {
+      html += `<td>
+        <input type="date" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    } else if (type === "time") {
+      html += `<td>
+        <input type="time" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    } else if (type === "number") {
+      html += `<td>
+        <input type="number" step="any" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    } else if (type === "readonly") {
+      html += `<td>${val}</td>`;
+    } else { // plain text
+      html += `<td>
+        <input type="text" class="form-control form-control-sm"
+               data-name="${field}" value="${val}"${disabled}>
+      </td>`;
+    }
+  });
+
+  html += "</tr>";
+  return html;
+}
   function load(p = 1) {
     $.getJSON(
       LCM.ajax_url,
@@ -168,6 +197,42 @@ jQuery(function ($) {
       "json"
     );
   });
+public function update_campaign() {
+
+	$this->verify();
+	global $wpdb;
+
+	$id = absint( $_POST['id'] ?? 0 );
+	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
+
+	$cols = [
+		'month','week','campaign_date','location','leads','reach','impressions',
+		'cost_per_lead','amount_spent','cpm'
+	];
+	$data = [];
+	foreach ( $cols as $c ) {
+		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
+	}
+
+	if ( isset( $data['leads'] ) ) {
+		/* re-compute N/A = leads - (connected+not_connected+relevant) */
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT connected_number, not_connected, relevant FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d", $id
+		), ARRAY_A );
+		if ( $row ) {
+			$data['not_available'] = max( 0,
+				intval( $data['leads'] ) -
+				intval( $row['connected_number'] ) -
+				intval( $row['not_connected'] )  -
+				intval( $row['relevant'] )
+			);
+		}
+	}
+
+	if ( empty( $data ) ) wp_send_json_success();
+	$wpdb->update( $wpdb->prefix.'lcm_campaigns', $data, [ 'id'=>$id ] );
+	wp_send_json_success();
+}
 
   load(1);
 });
