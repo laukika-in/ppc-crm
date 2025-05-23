@@ -1,24 +1,23 @@
-/* ---------- wrapper ------------------------------------------------ */
+/* ---------- card wrapper ------------------------------------------ */
 .lcm-table-card {
   border: 1px solid #e2e8f0;
-  border-radius: 0.65rem;
+  border-radius: 10px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-  background: #ffffff;
+  background: #fff;
 }
 
-/* ---------- scroll container --------------------------------------- */
+/* ---------- scroll container -------------------------------------- */
 .lcm-scroll {
   max-width: 100%;
-  overflow-x: auto; /* always allow horizontal drag   */
+  overflow-x: auto;
 }
 
-/* ---------- table base --------------------------------------------- */
+/* ---------- base table style -------------------------------------- */
 .lcm-table {
-  min-width: 1200px; /* forces scroll on narrow view   */
+  min-width: 1200px;
   border-collapse: separate;
   border-spacing: 0;
 }
-
 .lcm-table thead th {
   position: sticky;
   top: 0;
@@ -28,28 +27,49 @@
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.lcm-table tbody tr td,
+.lcm-table tbody tr th {
+  white-space: nowrap;
 }
 
+/* remove borders in readonly mode */
 .lcm-table td,
 .lcm-table th {
-  white-space: nowrap; /* keep cells compact             */
-  vertical-align: middle;
+  border: 0;
 }
 
+/* zebra + hover ----------------------------------------------------- */
 .lcm-table tbody tr:nth-child(even) td {
-  background: #f7fafc; /* zebra stripe                   */
+  background: #f7fafc;
 }
-
 .lcm-table tbody tr:hover td {
-  background: #eef2ff; /* soft indigo hover              */
+  background: #eef2ff;
+  cursor: pointer;
 }
 
-/* ---------- action buttons ----------------------------------------- */
+/* draft yellow ------------------------------------------------------ */
+.lcm-table tbody tr.table-warning td {
+  background: #fffbea;
+}
+
+/* ---------- editing focus ----------------------------------------- */
+.lcm-table tbody tr.lcm-editing {
+  transform: scale(1.015);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transition: 0.1s;
+}
+.lcm-table tbody tr.lcm-editing td {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+}
+
+/* ---------- buttons ------------------------------------------------ */
 .lcm-table .btn {
   line-height: 1;
   padding: 0.15rem 0.45rem;
 }
-
 .lcm-table .btn-secondary {
   background: #64748b;
   border: 0;
@@ -57,7 +77,6 @@
 .lcm-table .btn-secondary:hover {
   background: #475569;
 }
-
 .lcm-table .btn-success {
   background: #22c55e;
   border: 0;
@@ -65,7 +84,6 @@
 .lcm-table .btn-success:hover {
   background: #16a34a;
 }
-
 .lcm-table .btn-warning {
   background: #facc15;
   border: 0;
@@ -75,16 +93,10 @@
   background: #eab308;
   color: #000;
 }
-
 .lcm-table .btn-danger {
   background: #ef4444;
   border: 0;
 }
 .lcm-table .btn-danger:hover {
   background: #dc2626;
-}
-
-/* ---------- draft rows (yellow) ------------------------------------ */
-.lcm-table tbody tr.table-warning td {
-  background: #fffbea;
 }
