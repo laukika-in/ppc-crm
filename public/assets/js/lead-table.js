@@ -1,5 +1,5 @@
 jQuery(function ($) {
-  /* columns ---------------------------------------------------------- */
+  /* --------------- column config ------------------------------------ */
   const cols = [
     ["_action", "Action", "action"],
     ["client_id", "Client", "select", LCM.clients],
@@ -55,51 +55,49 @@ jQuery(function ($) {
 
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
-  function opts(arr, cur = "") {
-    return (
-      "<option value=''></option>" +
-      arr
-        .map((o) => {
-          const v = Array.isArray(o) ? o[0] : o,
-            t = Array.isArray(o) ? o[1] : o;
-          return `<option value="${v}"${
-            v == cur ? " selected" : ""
-          }>${t}</option>`;
-        })
-        .join("")
-    );
-  }
+  /* ---------- helpers ------------------------------------------------ */
+  const opts = (arr, cur = "") =>
+    "<option value=''></option>" +
+    arr
+      .map((o) => {
+        const v = Array.isArray(o) ? o[0] : o,
+          t = Array.isArray(o) ? o[1] : o;
+        return `<option value="${v}"${
+          v == cur ? " selected" : ""
+        }>${t}</option>`;
+      })
+      .join("");
+
   function rowHtml(r) {
     let html = `<tr data-id="${r.id || ""}"${
       r.id ? "" : " class='table-warning'"
     }>`;
     cols.forEach(([f, _, t, arr]) => {
-      const v = r[f] || "";
+      const val = r[f] || "";
       if (t === "action") {
         html += r.id
-          ? `<td class="text-center">
-         <button class="btn btn-danger btn-sm del-row" data-id="${r.id}">🗑</button>
-       </td>` // saved rows – only delete icon (future)
+          ? `<td class="text-center"><button class="btn btn-danger btn-sm del-row" data-id="${r.id}">🗑</button></td>`
           : `<td class="text-center">
-             <button class="btn btn-success btn-sm save-row me-1">💾</button>
-             <button class="btn btn-danger  btn-sm del-row">🗑</button>
-           </td>`;
+               <button class="btn btn-success btn-sm save-row me-1">💾</button>
+               <button class="btn btn-danger  btn-sm del-row">🗑</button>
+             </td>`;
       } else if (t === "select") {
         html += `<td><select class='form-select form-select-sm' data-name='${f}'>${opts(
           arr,
-          v
+          val
         )}</select></td>`;
       } else if (t === "date") {
-        html += `<td><input type='date'  class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
+        html += `<td><input type='date' class='form-control form-control-sm' data-name='${f}' value='${val}'></td>`;
       } else if (t === "time") {
-        html += `<td><input type='time'  class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
+        html += `<td><input type='time' class='form-control form-control-sm' data-name='${f}' value='${val}'></td>`;
       } else {
-        html += `<td><input type='text'  class='form-control form-control-sm' data-name='${f}' value='${v}'></td>`;
+        html += `<td><input type='text' class='form-control form-control-sm' data-name='${f}' value='${val}'></td>`;
       }
     });
     return html + "</tr>";
   }
 
+  /* ---------- Ajax pagination --------------------------------------- */
   function load(p = 1) {
     $.getJSON(
       LCM.ajax_url,
@@ -129,88 +127,84 @@ jQuery(function ($) {
   }
   $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
 
+  /* ---------- Add blank row ---------------------------------------- */
   $("#lcm-add-row").on("click", () => {
     const blank = {};
     cols.forEach((c) => (blank[c[0]] = ""));
     $tbody.prepend(rowHtml(blank));
   });
 
-  /* Date → Day auto-fill (no UTC offset issue) */
+  /* ---------- Date auto Day ---------------------------------------- */
   $tbody.on("change", "input[type=date]", function () {
-    const val = this.value;
-    if (!val) return;
-    const d = new Date(val + "T12:00:00"); // noon avoids UTC shift
-    const day = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ][d.getDay()];
-    $(this).closest("tr").find("select[data-name=day]").val(day);
+    const d = new Date(this.value + "T12:00:00");
+    if (!isNaN(d)) {
+      const day = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ][d.getDay()];
+      $(this).closest("tr").find("select[data-name=day]").val(day);
+    }
   });
 
-  /* Autosave new row */
-  $tbody.on("change blur", "input,select", function () {
+  /* ---------- Save new row ----------------------------------------- */
+  $tbody.on("click", ".save-row", function () {
     const $tr = $(this).closest("tr");
-    if ($tr.data("id")) return;
     const d = { action: "lcm_create_lead", nonce: LCM.nonce };
     $tr.find("input,select").each(function () {
       d[this.dataset.name] = $(this).val();
     });
-    if (!d.uid || !d.adset) return;
+    if (!d.uid || !d.adset) {
+      alert("UID & Adset required");
+      return;
+    }
     $.post(
       LCM.ajax_url,
       d,
       (res) => {
-        res.success ? load(page) : alert(res.data.msg || "Save error");
+        res.success ? load(page) : alert(res.data.msg || "Save failed");
       },
       "json"
     );
   });
 
-  /* Delete icon click ----------------------------------------------- */
+  /* ---------- Delete row (modal) ----------------------------------- */
+  let deleteId = 0;
+  const delModal = new bootstrap.Modal(document.getElementById("lcmDelModal"));
+
   $tbody.on("click", ".del-row", function () {
-    const $tr = $(this).closest("tr");
-    const id = $(this).data("id") || "";
-
-    if (!confirm("Delete this lead?")) return;
-
-    /* Draft row: just remove from DOM */
-    if (!id) {
-      $tr.remove();
+    deleteId = $(this).data("id") || 0;
+    /* draft row remove instantly */
+    if (!deleteId) {
+      $(this).closest("tr").remove();
       return;
     }
+    delModal.show();
+  });
 
-    /* Saved row: Ajax delete */
+  $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
-      { action: "lcm_delete_lead", nonce: LCM.nonce, id },
+      { action: "lcm_delete_lead", nonce: LCM.nonce, id: deleteId },
       (res) => {
-        if (!res.success) {
-          alert(res.data?.msg || "Delete failed");
-          return;
-        }
-
-        /* 1. Remove the row visually */
-        $tr.remove();
-
-        /* 2. Re-calculate pager */
-        const total = res.data.total;
-        const pages = Math.max(1, Math.ceil(total / LCM.per_page));
-
-        /* If current page is now beyond last page, load previous */
-        if (page > pages) {
-          load(pages);
+        if (res.success) {
+          const total = res.data.total;
+          const pages = Math.max(1, Math.ceil(total / per));
+          if (page > pages) page = pages;
+          load(page);
         } else {
-          buildPager(total); // just redraw pager numbers
+          alert(res.data.msg || "Delete failed");
         }
+        delModal.hide();
       },
       "json"
     );
   });
 
+  /* initial load */
   load(1);
 });
