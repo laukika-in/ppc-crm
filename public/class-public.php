@@ -88,38 +88,33 @@ wp_enqueue_style( 'lcm-tables' );
 		$div = $which === 'lead' ? 'lcm-lead-table' : 'lcm-campaign-table';
 
 		ob_start(); ?>
-		<div class="lcm-table-card p-3 shadow-sm mb-4">
-  <div class="d-flex justify-content-between mb-2">
-    <!-- Add-row button -->
-    <button id="lcm-add-row-lead" class="btn btn-primary btn-sm">
-      ➕ Add Lead
-    </button>
+		 <div class="lcm-table-card p-3 shadow-sm mb-4">
+    <div class="d-flex justify-content-between mb-2">
+        <button id="lcm-add-row-<?=esc_attr( $which );?>" class="btn btn-primary btn-sm">
+            ➕ Add <?=ucfirst( $which );?>
+        </button>
 
-    <!-- Pager buttons land here -->
-    <div id="lcm-pager-lead" class="btn-group btn-group-sm"></div>
-  </div>
+        <div id="lcm-pager-<?=esc_attr( $which );?>" class="btn-group btn-group-sm"></div>
+    </div>
 
-  <!-- Scroll wrapper keeps the table from shrinking; gives horizontal drag -->
-  <div class="table-responsive lcm-scroll">
-    <table id="lcm-lead-table"
-           class="table table-sm lcm-table align-middle mb-0">
-      <thead class="table-light"></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <div class="table-responsive lcm-scroll">
+        <table id="<?=esc_attr( $div );?>"
+               class="table table-sm lcm-table align-middle mb-0" style="table-layout:auto">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
-<!-- Shared Bootstrap confirm modal (one per page is enough) -->
+<!-- Shared delete modal (unchanged) -->
 <div class="modal fade" id="lcmDelModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
       <div class="modal-body">Are you sure you want to delete this row?</div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm"
-                data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger btn-sm"
-                id="lcm-confirm-del">Delete</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="lcm-confirm-del">Delete</button>
       </div>
     </div>
   </div>
