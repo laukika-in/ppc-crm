@@ -6,106 +6,71 @@ class PPC_CRM_Public {
 
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'register_assets' ] );
-		add_shortcode( 'lcm_campaign_table', [ $this, 'sc_campaign_table' ] );
-		add_shortcode( 'lcm_lead_table',     [ $this, 'sc_lead_table' ] );
+		add_shortcode( 'lcm_lead_table', [ $this, 'shortcode_lead_table' ] );
 	}
 
-	/* -------------------------------------------------------- */
+	/* ------------------------------------------------------------------ */
 	public function register_assets() {
 
-	
-		$base_url = plugin_dir_url( __FILE__ ); // …/ppc-crm/
+		$base = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/ppc-crm/
 
-		/* Luxon (needed for Tabulator datetime formatter) */
-		wp_register_script(
-			'luxon-js',
-			'https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.0/luxon.min.js',
-			[],
-			'3.4.0',
-			true
-		);
-
-		/* Tabulator core (depends on Luxon) */
+		/* Bootstrap 5 (CDN) + jQuery (shipped with WP) */
 		wp_register_style(
-			'tabulator-css',
-			'https://unpkg.com/tabulator-tables@6.2.0/dist/css/tabulator.min.css',
-			[],
-			'6.2.0'
+			'bootstrap-css',
+			'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+			[], '5.3.3'
 		);
 		wp_register_script(
-			'tabulator-js',
-			'https://unpkg.com/tabulator-tables@6.2.0/dist/js/tabulator.min.js',
-			[ 'luxon-js' ],
-			'6.2.0',
-			true
+			'bootstrap-js',
+			'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
+			[ 'jquery' ], '5.3.3', true
 		);
 
-		/* Style tweaks */
-		wp_register_style(
-			'lcm-tabulator-tweaks',
-			$base_url . 'assets/css/tabulator-tweaks.css',
-			[ 'tabulator-css' ],
-			PPC_CRM_VERSION
-		);
-
-		/* Init scripts */
+		/* Our lead-table driver */
 		wp_register_script(
-			'lcm-tabulator-campaign',
-			$base_url . 'assets/js/tabulator-init-campaign.js',
-			[ 'tabulator-js' ],
-			PPC_CRM_VERSION,
-			true
-		);
-		wp_register_script(
-			'lcm-tabulator-lead',
-			$base_url . 'assets/js/tabulator-init-lead.js',
-			[ 'tabulator-js' ],
+			'lcm-lead-table',
+			$base . 'public/assets/js/lead-table.js',
+			[ 'jquery', 'bootstrap-js' ],
 			PPC_CRM_VERSION,
 			true
 		);
 	}
 
-	/* -------------------------------------------------------- */
-	public function sc_campaign_table() {
-		return $this->render_table_shortcode( 'campaign' );
-	}
+	/* ------------------------------------------------------------------ */
+	public function shortcode_lead_table() : string {
 
-	public function sc_lead_table() {
-		return $this->render_table_shortcode( 'lead' );
-	}
+		/* dropdown sources */
+		$clients   = get_users( [ 'role__in' => [ 'client' ], 'fields'=>['ID','display_name'] ] );
+		$campaigns = get_posts( [ 'post_type'=>'lcm_campaign', 'numberposts'=>-1, 'fields'=>'ids' ] );
 
-	/* -------------------------------------------------------- */
-	private function render_table_shortcode( string $which ) : string {
-
-		/* Dynamic dropdown data */
-		$clients   = get_users( [ 'role__in' => [ 'client' ], 'fields' => [ 'ID', 'display_name' ] ] );
-		$campaigns = get_posts( [ 'post_type' => 'lcm_campaign', 'numberposts' => -1, 'fields' => 'ids' ] );
-
-		$vars = [
+		$js_vars = [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'action'   => ( $which === 'campaign' ? 'lcm_get_campaigns_json' : 'lcm_get_leads_json' ),
 			'nonce'    => wp_create_nonce( 'lcm_ajax' ),
 			'clients'  => array_map( fn($u)=>[ $u->ID, $u->display_name ], $clients ),
-			'ad_names' => array_map( fn($id)=>get_the_title( $id ), $campaigns ),
+			'ad_names' => array_map( fn($id)=>get_the_title($id), $campaigns ),
+			'per_page' => 10,
 		];
 
-		// Assets
-		wp_enqueue_style( 'tabulator-css' );
-		wp_enqueue_style( 'lcm-tabulator-tweaks' );
-		wp_enqueue_script( 'tabulator-js' );
+		/* enqueue */
+		wp_enqueue_style( 'bootstrap-css' );
+		wp_enqueue_script( 'lcm-lead-table' );
+		wp_localize_script( 'lcm-lead-table', 'LCM', $js_vars );
 
-		if ( $which === 'campaign' ) {
-			wp_enqueue_script( 'lcm-tabulator-campaign' );
-		} else {
-			wp_enqueue_script( 'lcm-tabulator-lead' );
-		}
-
-		// HTML output
-		$div_id = $which === 'campaign' ? 'lcm-campaign-tbl' : 'lcm-lead-tbl';
-
-		return '<script>window.LCM=' . wp_json_encode( $vars ) . ';</script>'
-		     . '<div class="lcm-table-wrapper">'
-		     .   '<div id="' . esc_attr( $div_id ) . '"></div>'
-		     . '</div>';
+		/* html skeleton */
+		ob_start(); ?>
+		<div class="lcm-table-wrapper card p-3">
+			<div class="d-flex justify-content-between mb-2">
+				<button class="btn btn-primary btn-sm" id="lcm-add-row">➕ Add Lead</button>
+				<div id="lcm-pager" class="btn-group btn-group-sm"></div>
+			</div>
+			<div class="table-responsive">
+				<table id="lcm-lead-table" class="table table-bordered table-sm align-middle">
+					<thead class="table-light"></thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 }
