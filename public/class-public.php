@@ -13,7 +13,8 @@ class PPC_CRM_Public {
 	/* -------------------------------------------------------- */
 	public function register_assets() {
 
-		$base_url = plugin_dir_url( dirname( __FILE__, 2 ) ); // …/plugins/ppc-crm/
+	
+		$base_url = plugin_dir_url( __FILE__ ); // …/ppc-crm/
 
 		/* Luxon (needed for Tabulator datetime formatter) */
 		wp_register_script(
@@ -42,7 +43,7 @@ class PPC_CRM_Public {
 		/* Style tweaks */
 		wp_register_style(
 			'lcm-tabulator-tweaks',
-			$base_url . 'public/assets/css/tabulator-tweaks.css',
+			$base_url . 'assets/css/tabulator-tweaks.css',
 			[ 'tabulator-css' ],
 			PPC_CRM_VERSION
 		);
@@ -50,14 +51,14 @@ class PPC_CRM_Public {
 		/* Init scripts */
 		wp_register_script(
 			'lcm-tabulator-campaign',
-			$base_url . 'public/assets/js/tabulator-init-campaign.js',
+			$base_url . 'assets/js/tabulator-init-campaign.js',
 			[ 'tabulator-js' ],
 			PPC_CRM_VERSION,
 			true
 		);
 		wp_register_script(
 			'lcm-tabulator-lead',
-			$base_url . 'public/assets/js/tabulator-init-lead.js',
+			$base_url . 'assets/js/tabulator-init-lead.js',
 			[ 'tabulator-js' ],
 			PPC_CRM_VERSION,
 			true
