@@ -96,6 +96,8 @@ public function delete_lead() {
 	if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
 		( new PPC_CRM_Admin_UI )->recount_campaign_counters( $lead['adset'] );
 	}
+$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
+wp_send_json_success( [ 'total' => $total ] );   // ← NEW
 
 	wp_send_json_success();
 }

@@ -170,32 +170,42 @@ jQuery(function ($) {
       "json"
     );
   });
-  /* Delete icon click -------------------------------------------------- */
+
+  /* Delete icon click ----------------------------------------------- */
   $tbody.on("click", ".del-row", function () {
     const $tr = $(this).closest("tr");
-    const id = $(this).data("id") || ""; // blank for drafts
+    const id = $(this).data("id") || "";
 
     if (!confirm("Delete this lead?")) return;
 
+    /* Draft row: just remove from DOM */
     if (!id) {
-      // draft row
       $tr.remove();
       return;
     }
 
-    /* saved row – call Ajax delete */
+    /* Saved row: Ajax delete */
     $.post(
       LCM.ajax_url,
-      {
-        action: "lcm_delete_lead",
-        nonce: LCM.nonce,
-        id: id,
-      },
+      { action: "lcm_delete_lead", nonce: LCM.nonce, id },
       (res) => {
-        if (res.success) {
-          load(page); // reload current page
-        } else {
+        if (!res.success) {
           alert(res.data?.msg || "Delete failed");
+          return;
+        }
+
+        /* 1. Remove the row visually */
+        $tr.remove();
+
+        /* 2. Re-calculate pager */
+        const total = res.data.total;
+        const pages = Math.max(1, Math.ceil(total / LCM.per_page));
+
+        /* If current page is now beyond last page, load previous */
+        if (page > pages) {
+          load(pages);
+        } else {
+          buildPager(total); // just redraw pager numbers
         }
       },
       "json"
