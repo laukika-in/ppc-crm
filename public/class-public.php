@@ -102,7 +102,7 @@ wp_register_style(
         </div>
 
         <div class="table-responsive lcm-scroll">
-            <table id="<?=esc_attr( $div );?>" class="table table-bordered table-striped table-sm lcm-table align-middle mb-0"  >
+            <table id="lcm-lead-table" class="table table-bordered table-striped table-sm lcm-table align-middle mb-0">
                 <thead></thead><tbody></tbody>
             </table>
         </div>
