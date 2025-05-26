@@ -33,6 +33,11 @@ class PPC_CRM_Public {
 			PPC_CRM_VERSION,
 			true
 		);
+// Inside each shortcode_*_table() method
+
+wp_enqueue_style( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css' );
+wp_enqueue_script( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', [], null, true );
+wp_enqueue_script( 'flatpickr-init', plugin_dir_url( __FILE__ ) . 'assets/js/flatpickr-init.js', ['jquery','flatpickr'], null, true );
 
 		/* NEW Campaign grid */
 		wp_register_script(
