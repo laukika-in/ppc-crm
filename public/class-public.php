@@ -13,6 +13,10 @@ class PPC_CRM_Public {
 	public function register_assets() {
 
 		$base = plugin_dir_url( __FILE__ );          // …/ppc-crm/public/
+wp_enqueue_style(
+  'bootstrap-icons',
+  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css'
+);
 
 		wp_register_style(
 			'bootstrap-css',
