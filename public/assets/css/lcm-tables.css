@@ -100,11 +100,24 @@
 .lcm-table .btn-danger:hover {
   background: #dc2626;
 }
-.form-select:disabled, .form-control:disabled {
-       background: transparent;
-    border: 0px;
+.form-select:disabled,
+.form-control:disabled {
+  background: transparent;
+  border: 0px;
 }
-.lcm-table thead th:nth-child(1), .lcm-table thead th:nth-child(2) {
-    min-width: 120px;
-    text-align: center;
+.form-select-sm,
+.form-control-sm {
+  border-radius: 8px;
+  background-color: #fafafa;
+  border: none;
+}
+.lcm-table thead th:nth-child(1),
+.lcm-table thead th:nth-child(2),
+.lcm-table thead th:nth-child(3),
+#lcm-lead-table thead th:nth-child(4),
+#lcm-lead-table thead th:nth-child(5),
+.lcm-table thead th:nth-child(9),
+.lcm-table thead th:nth-child(10) {
+  min-width: 120px;
+  text-align: center;
 }
