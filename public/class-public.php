@@ -157,7 +157,8 @@ wp_enqueue_style( 'lcm-tables' );
 		$div = $which === 'lead' ? 'lcm-lead-table' : 'lcm-campaign-table';
 
 		ob_start(); ?>
-		 <div class="lcm-table-card p-3 shadow-sm mb-4">
+		 <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
+      <div>
     <div class="d-flex justify-content-between mb-2">
         <button id="lcm-add-row-<?=esc_attr( $which );?>" class="btn btn-primary btn-sm">
             ➕ Add <?=ucfirst( $which );?>
