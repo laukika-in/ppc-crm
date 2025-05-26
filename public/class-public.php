@@ -167,7 +167,7 @@ wp_enqueue_style( 'lcm-tables' );
     </div>
 
     <div class="lcm-scroll">
-        <table id="<?=esc_attr( $div );?>" class="table align-middle mb-0"  >
+        <table id="<?=esc_attr( $div );?>" class="table  lcm-table align-middle mb-0"  >
             <thead></thead>
             <tbody></tbody>
         </table>

@@ -17,17 +17,23 @@
   min-width: 1200px;
   border-collapse: collapse;
   border-spacing: 0;
+  margin: 0px 16px;
 }
 .lcm-table thead th {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f9fafb;
+  color: #fff;
+  background: #000;
   border-bottom: 2px solid #d1d5db;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  text-transform: capitalize;
+  font-weight: 500;
+  padding: 0.25em 0.7em;
+  text-align: center;
 }
 .lcm-table tbody tr td,
 .lcm-table tbody tr th {
@@ -41,18 +47,12 @@
   border-collapse: collapse;
   padding: 0.05rem;
 }
-.lcm-table thead th {
-  color: #fff;
-  background: #000;
-  text-transform: capitalize;
-  font-weight: 500;
-  padding: 0.25em 0.7em;
-  text-align: center;
-}
-/* zebra + hover ----------------------------------------------------- */
-.lcm-table tbody tr:nth-child(even) td {
+.lcm-table td {
   background: #f7fafc;
 }
+
+/* zebra + hover ----------------------------------------------------- */
+
 .lcm-table tbody tr:hover td {
   background: #eef2ff;
   cursor: pointer;
@@ -70,7 +70,7 @@
   transition: 0.1s;
 }
 .lcm-table:has(.lcm-editing) {
-  padding: 0px 16px;
+  margin: 0px 16px;
 }
 .lcm-table tbody tr.lcm-editing td {
   border: 1px solid #d1d5db;
