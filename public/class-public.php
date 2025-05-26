@@ -166,9 +166,9 @@ wp_enqueue_style( 'lcm-tables' );
         <div id="lcm-pager-<?=esc_attr( $which );?>" class="btn-group btn-group-sm"></div>
     </div>
 
-    <div class="table-responsive lcm-scroll">
+    <div class="lcm-scroll">
         <table id="<?=esc_attr( $div );?>"
-               class="table table-sm lcm-table align-middle mb-0" style="table-layout:auto">
+               class="table table-bordered table-striped table-sm lcm-table align-middle mb-0"  >
             <thead></thead>
             <tbody></tbody>
         </table>

@@ -9,7 +9,7 @@
 /* ---------- scroll container -------------------------------------- */
 .lcm-scroll {
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
 }
 
 /* ---------- base table style -------------------------------------- */
@@ -99,4 +99,12 @@
 }
 .lcm-table .btn-danger:hover {
   background: #dc2626;
+}
+.form-select:disabled, .form-control:disabled {
+       background: transparent;
+    border: 0px;
+}
+.lcm-table thead th:nth-child(1), .lcm-table thead th:nth-child(2) {
+    min-width: 120px;
+    text-align: center;
 }
