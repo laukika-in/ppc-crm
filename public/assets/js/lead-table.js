@@ -215,9 +215,9 @@ jQuery(function ($) {
     $(this)
       .removeClass("edit-row btn-secondary")
       .addClass("save-edit btn-success")
-      .text("💾")
+      .html('<i class="bi bi-save"></i>')
       .after(
-        '<button class="btn btn-warning btn-sm cancel-edit ms-1">✖</button>'
+        '<button class="btn btn-warning btn-sm cancel-edit ms-1"><i class="bi bi-x-lg"></i></button>'
       );
 
     toggleDeps($tr);
