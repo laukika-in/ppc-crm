@@ -86,6 +86,8 @@ wp_register_style(
       <div>
         <div class="d-flex justify-content-between mb-2">
 
+            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm ms-auto">+ Add Lead
+            </button>
             <?php if ( ! $is_client ) : ?>
                 <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
                     <option value="">All Clients</option>
@@ -95,14 +97,12 @@ wp_register_style(
                 </select>
             <?php endif; ?>
 
-            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm ms-auto">+ Add Lead
-            </button>
 
             <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
         </div>
 
         <div class="table-responsive lcm-scroll">
-            <table id="lcm-lead-table" class="table table-bordered table-striped table-sm lcm-table align-middle mb-0">
+            <table id="lcm-lead-table" class="table lcm-table align-middle mb-0">
                 <thead></thead><tbody></tbody>
             </table>
         </div>
@@ -167,7 +167,7 @@ wp_enqueue_style( 'lcm-tables' );
     </div>
 
     <div class="lcm-scroll">
-        <table id="<?=esc_attr( $div );?>" class="table table-bordered table-striped table-sm lcm-table align-middle mb-0"  >
+        <table id="<?=esc_attr( $div );?>" class="table align-middle mb-0"  >
             <thead></thead>
             <tbody></tbody>
         </table>
