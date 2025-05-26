@@ -89,12 +89,14 @@ wp_register_style(
             <button id="lcm-add-row-lead" class="btn btn-primary btn-sm">+ Add Lead
             </button>
             <?php if ( ! $is_client ) : ?>
+              <div class="lcm-filters">
                 <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
                     <option value="">All Clients</option>
                     <?php foreach ( $clients as $c ) : ?>
                         <option value="<?=esc_attr( $c->ID );?>"><?=esc_html( $c->display_name );?></option>
                     <?php endforeach; ?>
                 </select>
+                    </div>
             <?php endif; ?>
 
 

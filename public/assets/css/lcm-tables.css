@@ -17,7 +17,10 @@
   min-width: 1200px;
   border-collapse: collapse;
   border-spacing: 0;
-  margin: 0px 16px;
+}
+.lcm-filters {
+  flex-grow: 1;
+  margin: 0px 8px;
 }
 .lcm-table thead th {
   position: sticky;
@@ -48,7 +51,7 @@
   padding: 0.05rem;
 }
 .lcm-table td {
-  background: #f7fafc;
+  background: #f8f9fa;
 }
 
 /* zebra + hover ----------------------------------------------------- */
@@ -65,9 +68,10 @@
 
 /* ---------- editing focus ----------------------------------------- */
 .lcm-table tbody tr.lcm-editing {
-  transform: scale(1.015);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  transition: 0.1s;
+  transform: scale(1, 1.015);
+  box-shadow: 0 0px 17px rgb(94 94 94 / 50%);
+  transition: 0.5s;
+  border-radius: 4px;
 }
 .lcm-table:has(.lcm-editing) {
   margin: 0px 16px;
@@ -75,6 +79,7 @@
 .lcm-table tbody tr.lcm-editing td {
   border: 1px solid #d1d5db;
   background: #ffffff;
+  padding: 3px 2px;
 }
 
 /* ---------- buttons ------------------------------------------------ */
@@ -116,12 +121,19 @@
 .form-control:disabled {
   background: transparent;
   border: 0px;
+  padding: 0px 6px;
+}
+.lcm-table option {
+  background: #fff;
 }
 .form-select-sm,
 .form-control-sm {
   border-radius: 8px;
-  background-color: #fafafa;
+  background-color: #eeeeee;
   border: none;
+  height: 100%;
+  margin: 0px;
+  min-height: 30px;
 }
 .lcm-table thead th:nth-child(1),
 .lcm-table thead th:nth-child(2),
@@ -132,17 +144,17 @@
 #lcm-lead-table thead th:nth-child(8),
 #lcm-lead-table thead th:nth-child(9),
 .lcm-table thead th:nth-child(11),
-.lcm-table thead th:nth-child(12),
-.lcm-table thead th:nth-child(14) {
+.lcm-table thead th:nth-child(13) {
   min-width: 120px;
 }
 
-#lcm-campaign-table thead th:nth-child(7) {
+#lcm-campaign-table thead th:nth-child(7),
+.lcm-table thead th:nth-child(12),
+.lcm-table thead th:nth-child(14) {
   min-width: 200px;
 }
 .lcm-table thead th:nth-child(7),
-#lcm-campaign-table thead th:nth-child(4),
-.lcm-table thead th:nth-child(13) {
+#lcm-campaign-table thead th:nth-child(4) {
   min-width: 85px;
 }
 .lcm-table thead th:nth-child(10),
