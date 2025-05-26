@@ -160,8 +160,7 @@ wp_enqueue_style( 'lcm-tables' );
 		 <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
       <div>
     <div class="d-flex justify-content-between mb-2">
-        <button id="lcm-add-row-<?=esc_attr( $which );?>" class="btn btn-primary btn-sm">
-            ➕ Add <?=ucfirst( $which );?>
+        <button id="lcm-add-row-<?=esc_attr( $which );?>" class="btn btn-primary btn-sm"> + Add <?=ucfirst( $which );?>
         </button>
 
         <div id="lcm-pager-<?=esc_attr( $which );?>" class="btn-group btn-group-sm"></div>

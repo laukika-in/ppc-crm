@@ -116,8 +116,19 @@
 .lcm-table thead th:nth-child(3),
 #lcm-lead-table thead th:nth-child(4),
 #lcm-lead-table thead th:nth-child(5),
-.lcm-table thead th:nth-child(9),
-.lcm-table thead th:nth-child(10) {
+.lcm-table thead th:nth-child(6),
+#lcm-lead-table thead th:nth-child(8),
+#lcm-lead-table thead th:nth-child(9) {
   min-width: 120px;
+  text-align: center;
+}
+
+#lcm-campaign-table thead th:nth-child(7) {
+  min-width: 150px;
+}
+.lcm-table thead th:nth-child(7),
+#lcm-campaign-table thead th:nth-child(8),
+.lcm-table thead th:nth-child(10) {
+  min-width: 85px;
   text-align: center;
 }
