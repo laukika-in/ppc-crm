@@ -15,7 +15,7 @@
 /* ---------- base table style -------------------------------------- */
 .lcm-table {
   min-width: 1200px;
-  border-collapse: separate;
+  border-collapse: collapse;
   border-spacing: 0;
 }
 .lcm-table thead th {
@@ -37,9 +37,18 @@
 /* remove borders in readonly mode */
 .lcm-table td,
 .lcm-table th {
-  border: 0;
+  border: 1px solid #d6d6d6;
+  border-collapse: collapse;
+  padding: 0.05rem;
 }
-
+.lcm-table thead th {
+  color: #fff;
+  background: #000;
+  text-transform: capitalize;
+  font-weight: 500;
+  padding: 0.25em 0.7em;
+  text-align: center;
+}
 /* zebra + hover ----------------------------------------------------- */
 .lcm-table tbody tr:nth-child(even) td {
   background: #f7fafc;
@@ -139,9 +148,4 @@
 .lcm-table thead th:nth-child(10),
 #lcm-campaign-table thead th:nth-child(8) {
   min-width: 70px;
-}
-.lcm-table td,
-.lcm-table th {
-  border: 1px solid #d6d6d6;
-  border-collapse: collapse;
 }

@@ -86,7 +86,7 @@ wp_register_style(
       <div>
         <div class="d-flex justify-content-between mb-2">
 
-            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm ms-auto">+ Add Lead
+            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm">+ Add Lead
             </button>
             <?php if ( ! $is_client ) : ?>
                 <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
