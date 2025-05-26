@@ -82,7 +82,8 @@ wp_register_style(
     wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
 
     ob_start(); ?>
-    <div class="lcm-table-card p-3 shadow-sm mb-4">
+    <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
+      <div>
         <div class="d-flex justify-content-between mb-2">
 
             <?php if ( ! $is_client ) : ?>
@@ -94,15 +95,14 @@ wp_register_style(
                 </select>
             <?php endif; ?>
 
-            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm ms-auto">
-                ➕ Add Lead
+            <button id="lcm-add-row-lead" class="btn btn-primary btn-sm ms-auto">+ Add Lead
             </button>
 
             <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
         </div>
 
         <div class="table-responsive lcm-scroll">
-            <table id="lcm-lead-table" class="table table-sm lcm-table align-middle mb-0">
+            <table id="<?=esc_attr( $div );?>" class="table table-bordered table-striped table-sm lcm-table align-middle mb-0"  >
                 <thead></thead><tbody></tbody>
             </table>
         </div>
@@ -167,8 +167,7 @@ wp_enqueue_style( 'lcm-tables' );
     </div>
 
     <div class="lcm-scroll">
-        <table id="<?=esc_attr( $div );?>"
-               class="table table-bordered table-striped table-sm lcm-table align-middle mb-0"  >
+        <table id="<?=esc_attr( $div );?>" class="table table-bordered table-striped table-sm lcm-table align-middle mb-0"  >
             <thead></thead>
             <tbody></tbody>
         </table>

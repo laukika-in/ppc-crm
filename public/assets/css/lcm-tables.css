@@ -118,17 +118,27 @@
 #lcm-lead-table thead th:nth-child(5),
 .lcm-table thead th:nth-child(6),
 #lcm-lead-table thead th:nth-child(8),
-#lcm-lead-table thead th:nth-child(9) {
+#lcm-lead-table thead th:nth-child(9),
+.lcm-table thead th:nth-child(11),
+.lcm-table thead th:nth-child(12),
+.lcm-table thead th:nth-child(14) {
   min-width: 120px;
-  text-align: center;
 }
 
 #lcm-campaign-table thead th:nth-child(7) {
-  min-width: 150px;
+  min-width: 200px;
 }
 .lcm-table thead th:nth-child(7),
-#lcm-campaign-table thead th:nth-child(8),
-.lcm-table thead th:nth-child(10) {
+#lcm-campaign-table thead th:nth-child(4),
+.lcm-table thead th:nth-child(13) {
   min-width: 85px;
-  text-align: center;
+}
+.lcm-table thead th:nth-child(10),
+#lcm-campaign-table thead th:nth-child(8) {
+  min-width: 70px;
+}
+.lcm-table td,
+.lcm-table th {
+  border: 1px solid #d6d6d6;
+  border-collapse: collapse;
 }
