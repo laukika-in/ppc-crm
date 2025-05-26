@@ -123,7 +123,7 @@ jQuery(function ($) {
   $pager.on("click", "button", e => load(+e.currentTarget.dataset.p));
 
   /* ---------- add draft row -------------------------------------- */
-  $("#lcm-add-row-campaign").on("click", () => { $tbody.prepend(rowHtml({})); });
+  $("#lcm-add-row-campaign").on("click", () => {LCM_initFlatpickr($tbody.find("tr").first());  });
 
   /* ---------- row click => edit ---------------------------------- */
   $tbody.on("click", "tr", function (e) {
@@ -148,6 +148,7 @@ jQuery(function ($) {
   /* ---------- edit / cancel / save edit -------------------------- */
   $tbody.on("click", ".edit-row", function () {
     const $tr = $(this).closest("tr").addClass("lcm-editing");
+    LCM_initFlatpickr($tr);
     $tr.find("input,select").prop("disabled", false);
     $(this).removeClass("edit-row btn-secondary")
            .addClass("save-edit btn-success").text("💾")
