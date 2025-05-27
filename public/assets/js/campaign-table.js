@@ -114,7 +114,7 @@ jQuery(function ($) {
                  </td>`;
       } else if (type === "date") {
         html += `<td>
-                   <input type="text" class="form-control form-control-sm flatpickr-date"
+                   <input type="date" class="form-control form-control-sm" 
                           data-name="${field}" value="${val}"${dis}>
                  </td>`;
       } else if (type === "number") {
