@@ -152,54 +152,102 @@ public function get_campaigns() {
     wp_send_json(['total' => $total, 'rows' => $rows]);
 }
 
-
-/* ---------- Campaign: create / update ----------------------------- */
 public function create_campaign() {
     $this->verify();
+    $user      = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles );
 
-    $user   = wp_get_current_user();
-    $is_client = in_array('client', (array) $user->roles);
+    // Gather & sanitize all fields, including campaign_date
     $fields = [
-        'client_id', 'month', 'week', 'campaign_date', 'location', 'adset',
-        'leads', 'reach', 'impressions', 'cost_per_lead', 'amount_spent', 'cpm',
-        'connected_number', 'not_connected', 'relevant', 'not_available',
-        'scheduled_store_visit', 'store_visit'
+        'client_id','month','week','campaign_date','location','adset',
+        'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
+        'connected_number','not_connected','relevant','not_available',
+        'scheduled_store_visit','store_visit'
     ];
-
     $data = [];
-    foreach ($fields as $f) {
-        $data[$f] = sanitize_text_field($_POST[$f] ?? '');
+    foreach ( $fields as $f ) {
+        $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
     }
 
-    // Title = adset
-    $title = $data['adset'] ?? '';
-    if (!$title) wp_send_json_error(['msg' => 'Adset required'], 400);
+    // Force title = adset
+    if ( empty( $data['adset'] ) ) {
+        wp_send_json_error([ 'msg'=>'Adset required' ], 400);
+    }
 
-    // Force client ID for client role
-    if ($is_client) {
+    // ① Force or validate client_id
+    if ( $is_client ) {
         $data['client_id'] = $user->ID;
     } else {
-        $data['client_id'] = absint($data['client_id']);
-        if (!$data['client_id']) {
-            wp_send_json_error(['msg' => 'Client is required'], 400);
+        $data['client_id'] = absint( $data['client_id'] );
+        if ( ! $data['client_id'] ) {
+            wp_send_json_error([ 'msg'=>'Client is required' ], 400);
         }
     }
 
-    // Insert post (for linking)
+    // ② Insert WP post for linking
     $post_id = wp_insert_post([
         'post_type'   => 'lcm_campaign',
         'post_status' => 'publish',
-        'post_title'  => $title
+        'post_title'  => $data['adset'],
     ], true);
 
-    if (is_wp_error($post_id)) {
-        wp_send_json_error(['msg' => $post_id->get_error_message()], 500);
+    if ( is_wp_error( $post_id ) ) {
+        wp_send_json_error([ 'msg' => $post_id->get_error_message() ], 500);
     }
-
     $data['post_id'] = $post_id;
 
+    // ③ Write into custom table, including campaign_date
     global $wpdb;
-    $wpdb->replace($wpdb->prefix . 'lcm_campaigns', $data);
+    $wpdb->replace( $wpdb->prefix . 'lcm_campaigns', $data );
+
+    wp_send_json_success();
+}
+
+public function update_campaign() {
+    $this->verify();
+    $user      = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles );
+    $id        = absint( $_POST['id'] ?? 0 );
+    if ( ! $id ) wp_send_json_error([ 'msg'=>'Missing ID' ], 400);
+
+    // Same fields & sanitization
+    $fields = [
+        'client_id','month','week','campaign_date','location','adset',
+        'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
+        'connected_number','not_connected','relevant','not_available',
+        'scheduled_store_visit','store_visit'
+    ];
+    $data = [];
+    foreach ( $fields as $f ) {
+        $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
+    }
+
+    if ( empty( $data['adset'] ) ) {
+        wp_send_json_error([ 'msg'=>'Adset required' ], 400);
+    }
+
+    // Force client for clients
+    if ( $is_client ) {
+        $data['client_id'] = $user->ID;
+    } else {
+        $data['client_id'] = absint( $data['client_id'] );
+        if ( ! $data['client_id'] ) {
+            wp_send_json_error([ 'msg'=>'Client is required' ], 400);
+        }
+    }
+
+    // ④ Update both WP post title and custom table
+    wp_update_post([
+        'ID'         => $id,
+        'post_title' => $data['adset'],
+    ]);
+
+    global $wpdb;
+    $wpdb->update(
+        $wpdb->prefix . 'lcm_campaigns',
+        $data,
+        [ 'post_id' => $id ]
+    );
 
     wp_send_json_success();
 }
@@ -242,41 +290,5 @@ public function update_lead() {
 	$wpdb->update( $wpdb->prefix.'lcm_leads', $data, [ 'id'=>$id ] );
 	wp_send_json_success();
 }
-public function update_campaign() {
-
-	$this->verify();
-	global $wpdb;
-
-	$id = absint( $_POST['id'] ?? 0 );
-	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
-
-	$cols = [
-		'month','week','campaign_date','location','leads','reach','impressions',
-		'cost_per_lead','amount_spent','cpm'
-	];
-	$data = [];
-	foreach ( $cols as $c ) {
-		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
-	}
-
-	if ( isset( $data['leads'] ) ) {
-		/* re-compute N/A = leads - (connected+not_connected+relevant) */
-		$row = $wpdb->get_row( $wpdb->prepare(
-			"SELECT connected_number, not_connected, relevant FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d", $id
-		), ARRAY_A );
-		if ( $row ) {
-			$data['not_available'] = max( 0,
-				intval( $data['leads'] ) -
-				intval( $row['connected_number'] ) -
-				intval( $row['not_connected'] )  -
-				intval( $row['relevant'] )
-			);
-		}
-	}
-
-	if ( empty( $data ) ) wp_send_json_success();
-	$wpdb->update( $wpdb->prefix.'lcm_campaigns', $data, [ 'id'=>$id ] );
-	wp_send_json_success();
-}
-
+ 
 }

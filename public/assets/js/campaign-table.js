@@ -55,6 +55,18 @@ jQuery(function ($) {
     $pager = $("#lcm-pager-campaign"),
     $add = $("#lcm-add-row-campaign");
 
+  if (IS_CLIENT) {
+    // 1) Hide the “Add Campaign” button for clients
+    $add.hide();
+
+    // 2) Whenever rows are rendered, strip out any edit/delete buttons
+    //    (Alternatively, you already omit them in rowHtml for clients)
+    $tbody.on("click", "tr", function () {
+      // Prevent clients from entering edit mode by removing buttons
+      $(this).find(".edit-row, .del-camp, .save-camp, .cancel-draft").remove();
+    });
+  }
+
   let page = 1;
 
   /* ---------- Render table header -------------------------- */
@@ -108,16 +120,18 @@ jQuery(function ($) {
         }
       } else if (type === "select") {
         html += `<td>
-                   <select class="form-select form-select-sm" data-name="${field}"${dis}>
-                     ${opts(opt, val)}
-                   </select>
-                 </td>`;
+             <select class="form-select form-select-sm"
+                     data-name="${field}"${dis}>
+               ${opts(opt, val)}
+             </select>
+           </td>`;
       } else if (type === "date") {
         html += `<td>
-                   <input type="date" class="form-control form-control-sm" 
-                          data-name="${field}" value="${val}"${dis}>
-                          
-                 </td>`;
+             <input type="text"
+                    class="form-control form-control-sm"
+                    data-name="${field}"
+                    value="${val}"${dis}>
+           </td>`;
       } else if (type === "number") {
         html += `<td>
                    <input type="number" step="any" class="form-control form-control-sm"
