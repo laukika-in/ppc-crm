@@ -27,11 +27,11 @@ add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 	/* paginated fetch --------------------------------------------------- */
 	public function get_leads() {
     $this->verify();
-    global $wpdb;
-
-    $user = wp_get_current_user();
+ $user      = wp_get_current_user();
+    $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
 
+    global $wpdb;
     $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
 
     $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
@@ -121,11 +121,12 @@ wp_send_json_success( [ 'total' => $total ] );   // ← NEW
 /* ---------- Campaign: fetch --------------------------------------- */
 public function get_campaigns() {
     $this->verify();
-    global $wpdb;
 
-$user      = wp_get_current_user();
+ $user      = wp_get_current_user();
+    $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
 
+    global $wpdb;
     $p  = max(1, (int)($_GET['page'] ?? 1));
     $pp = max(1, (int)($_GET['per_page'] ?? 10));
     $o  = ($p - 1) * $pp;
@@ -155,8 +156,8 @@ $user      = wp_get_current_user();
 public function create_campaign() {
     $this->verify();
     $user      = wp_get_current_user();
+    $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
-
     // Gather & sanitize all fields, including campaign_date
     $fields = [
         'client_id','month','week','campaign_date','location','adset',
@@ -205,7 +206,8 @@ public function create_campaign() {
 
 public function update_campaign() {
     $this->verify();
-    $user      = wp_get_current_user();
+     $user      = wp_get_current_user();
+    $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
     $id        = absint( $_POST['id'] ?? 0 );
     if ( ! $id ) wp_send_json_error([ 'msg'=>'Missing ID' ], 400);
