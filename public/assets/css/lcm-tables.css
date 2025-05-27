@@ -73,9 +73,7 @@
   transition: 0.5s;
   border-radius: 4px;
 }
-.lcm-table:has(.lcm-editing) {
-  margin: 0px 16px;
-}
+
 .lcm-table tbody tr.lcm-editing td {
   border: 1px solid #d1d5db;
   background: #ffffff;
