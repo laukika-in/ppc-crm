@@ -2,6 +2,7 @@ jQuery(function ($) {
   const IS_CLIENT = !!LCM.is_client;
   const CLIENT_ID = LCM.current_client_id;
   const PER_PAGE = LCM.per_page;
+  const ADSETS_BY_CLIENT = LCM.adsets_by_client;
 
   // Column definitions
   const cols = [
@@ -113,9 +114,15 @@ jQuery(function ($) {
                <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
              </td>`;
       } else if (typ === "select") {
-        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
-                   ${opts(opt, val)}
-                 </select></td>`;
+        let choices = opt;
+        if (f === "adset") {
+          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
+          choices = ADSETS_BY_CLIENT[cid] || [];
+        }
+        html += `<td><select class="form-select form-select-sm"
+                                    data-name="${f}"${dis}>
+                                  ${opts(choices, v)}
+                                </select></td>`;
       } else if (typ === "date") {
         html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
@@ -176,6 +183,14 @@ jQuery(function ($) {
     if (IS_CLIENT) d.client_id = CLIENT_ID;
     $tbody.prepend(rowHtml(d));
     LCM_initFlatpickr($tbody.find("tr").first());
+  });
+  // Whenever Client is changed in a draft/edit row, refresh its Adset options:
+  $tbody.on("change", "select[data-name=client_id]", function () {
+    const $tr = $(this).closest("tr");
+    const cid = $(this).val();
+    const $ad = $tr.find("select[data-name=adset]");
+    const optsHtml = opts(ADSETS_BY_CLIENT[cid] || [], "");
+    $ad.html("<option value=''></option>" + optsHtml);
   });
 
   // Row-click edit

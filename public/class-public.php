@@ -98,7 +98,17 @@ class PPC_CRM_Public {
 
         // Data sources
         $clients   = get_users( [ 'role__in' => ['client'], 'fields' => ['ID','display_name'] ] );
+        
         $campaigns = get_posts( [ 'post_type' => 'lcm_campaign', 'numberposts' => -1, 'fields' => 'ids' ] );
+      global $wpdb;
+      $rows = $wpdb->get_results(
+        "SELECT client_id, adset FROM {$wpdb->prefix}lcm_campaigns WHERE adset<>''",
+        ARRAY_A
+      );
+      $adsets_by_client = [];
+      foreach ( $rows as $r ) {
+        $adsets_by_client[ $r['client_id'] ][] = $r['adset'];
+      }
 
         // Localize variables for JS
         $vars = [
@@ -108,7 +118,7 @@ class PPC_CRM_Public {
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
-            'adsets'            => array_map( fn($id) => get_the_title($id), $campaigns ),
+  'adsets_by_client'   => $adsets_by_client,   
         ];
 
         // Enqueue styles & scripts
