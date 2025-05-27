@@ -293,20 +293,35 @@ public function update_campaign() {
         $data['client_id'] = absint( $data['client_id'] );
     }
 
-    // Update the WP post title (adset)
-    wp_update_post([
-        'ID'         => $post_id,
-        'post_title' => $data['adset'],
-    ]);
-
-    // Persist to custom table
     global $wpdb;
+	 // Persist to custom table
     $wpdb->update(
         $wpdb->prefix . 'lcm_campaigns',
         $data,
-        [ 'post_id' => $post_id ]
+        [ 'post_id' => $post_id ],
+        array_fill( 0, count( $data ), '%s' ),
+        [ '%d' ]
     );
 
+	// Also update the WP post title (UID)
+    $campaign = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d",
+        $id
+    ) );
+    if ( $campaign ) {
+        wp_update_post([
+            'ID'         => $campaign,
+            'post_title' => sanitize_text_field( $_POST['adset'] ?? '' ),
+        ]);
+    }
+
+    // // Update the WP post title (adset)
+    // wp_update_post([
+    //     'ID'         => $post_id,
+    //     'post_title' => $data['adset'],
+    // ]);
+
+   
     wp_send_json_success();
 }
 
