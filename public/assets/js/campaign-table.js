@@ -56,11 +56,7 @@ jQuery(function ($) {
     $add = $("#lcm-add-row-campaign");
 
   if (IS_CLIENT) {
-    // 1) Hide the “Add Campaign” button for clients
     $add.hide();
-
-    // 2) Whenever rows are rendered, strip out any edit/delete buttons
-    //    (Alternatively, you already omit them in rowHtml for clients)
     $tbody.on("click", "tr", function () {
       // Prevent clients from entering edit mode by removing buttons
       $(this).find(".edit-row, .del-camp, .save-camp, .cancel-draft").remove();
@@ -127,7 +123,7 @@ jQuery(function ($) {
            </td>`;
       } else if (type === "date") {
         html += `<td>
-             <input type="text"
+             <input type="date"
                     class="form-control form-control-sm"
                     data-name="${field}"
                     value="${val}"${dis}>
