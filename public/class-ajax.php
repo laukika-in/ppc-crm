@@ -76,6 +76,10 @@ add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 		],true);
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
+		
+ $user      = wp_get_current_user();
+    $user_id   = $user->ID;
+    $is_client = in_array( 'client', (array) $user->roles, true );
 if ( $is_client ) {
     $data['client_id'] = $user->ID;          // force client id
 } else {
