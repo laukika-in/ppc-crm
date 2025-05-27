@@ -223,9 +223,8 @@ class PPC_CRM_Public {
             </button>
 
             <?php if ( ! $is_client ) : ?>
-                <div class="mb-2">
-                    <label for="lcm-filter-client-camp" class="form-label">Filter by Client</label>
-                    <select id="lcm-filter-client-camp" class="form-select form-select-sm" style="max-width:220px">
+                               <div class="lcm-filters">
+                    <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px"> 
                         <option value="">All Clients</option>
                         <?php foreach ( $clients as $c ) : ?>
                             <option value="<?= esc_attr( $c->ID ); ?>"><?= esc_html( $c->display_name ); ?></option>

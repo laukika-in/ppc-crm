@@ -5,7 +5,7 @@ jQuery(function ($) {
 
   // Define all columns
   const allCols = [
-    ["_action", "Action", "action"],
+    ...(!IS_CLIENT ? [["_action", "Action", "action"]] : []),
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     [
       "month",
@@ -90,16 +90,16 @@ jQuery(function ($) {
     cols.forEach(([f, _l, typ, opt]) => {
       const v = r[f] || "",
         dis = saved ? " disabled" : "";
-      if (typ === "action") {
+      if (typ === "action" && !IS_CLIENT) {
         if (!saved && !IS_CLIENT) {
           html += `<td class="text-center">
-                   <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-save"></i></button>
+                   <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-check-circle-fill"></i></button>
                    <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
                  </td>`;
         } else if (saved && !IS_CLIENT) {
           html += `<td class="text-center">
-                   <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
-                   <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+                   <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
+                   <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
                  </td>`;
         } else {
           html += `<td></td>`; // clients get no actions

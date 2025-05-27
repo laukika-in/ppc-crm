@@ -105,11 +105,11 @@ jQuery(function ($) {
       if (typ === "action") {
         html += saved
           ? `<td class="text-center">
-               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
-               <button class="btn btn-danger btn-sm del-row" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
+               <button class="btn btn-danger btn-sm del-row" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
              </td>`
           : `<td class="text-center">
-               <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-save"></i></button>
+               <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-check-circle-fill"></i></button>
                <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
              </td>`;
       } else if (typ === "select") {
