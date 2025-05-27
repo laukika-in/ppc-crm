@@ -10,55 +10,81 @@ class PPC_CRM_Public {
 	}
 
 	/* ------------------------------------------------------------------ */
-	public function register_assets() {
+public function register_assets() {
+    $base = plugin_dir_url( __FILE__ );
 
-		$base = plugin_dir_url( __FILE__ );          // …/ppc-crm/public/
-wp_enqueue_style(
-  'bootstrap-icons',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css'
-);
+    // ─── Bootstrap ──────────────────────────────────────────────
+    wp_register_style(
+        'bootstrap-css',
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+        [],
+        '5.3.3'
+    );
+    wp_register_script(
+        'bootstrap-js',
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
+        [ 'jquery' ],
+        '5.3.3',
+        true
+    );
 
-		wp_register_style(
-			'bootstrap-css',
-			'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
-			[], '5.3.3'
-		);
-		wp_register_script(
-			'bootstrap-js',
-			'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
-			[ 'jquery' ], '5.3.3', true
-		);
+    // ─── Bootstrap Icons ───────────────────────────────────────
+    wp_register_style(
+        'bootstrap-icons',
+        'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css',
+        [],
+        null
+    );
 
-		/* Lead grid (already working) */
-		wp_register_script(
-			'lcm-lead-table',
-			$base . 'assets/js/lead-table.js',
-			[ 'jquery', 'bootstrap-js' ],
-			PPC_CRM_VERSION,
-			true
-		);
-// Inside each shortcode_*_table() method
+    // ─── Flatpickr ─────────────────────────────────────────────
+    wp_register_style(
+        'flatpickr-css',
+        'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
+        [],
+        null
+    );
+    wp_register_script(
+        'flatpickr-js',
+        'https://cdn.jsdelivr.net/npm/flatpickr',
+        [],
+        null,
+        true
+    );
+    wp_register_script(
+        'flatpickr-init',
+        $base . 'assets/js/flatpickr-init.js',
+        [ 'jquery', 'flatpickr-js' ],
+        PPC_CRM_VERSION,
+        true
+    );
 
-wp_enqueue_style( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css' );
-wp_enqueue_script( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', [], null, true );
-wp_enqueue_script( 'flatpickr-init', plugin_dir_url( __FILE__ ) . 'assets/js/flatpickr-init.js', ['jquery','flatpickr'], PPC_CRM_VERSION, true );
+    // ─── Table styling ──────────────────────────────────────────
+    wp_register_style(
+        'lcm-tables',
+        $base . 'assets/css/lcm-tables.css',
+        [ 'bootstrap-css' ],
+        PPC_CRM_VERSION
+    );
 
-		/* NEW Campaign grid */
-		wp_register_script(
-			'lcm-campaign-table',
-			$base . 'assets/js/campaign-table.js',
-			[ 'jquery', 'bootstrap-js' ],
-			PPC_CRM_VERSION,
-			true
-		);
-// pretty table skin
-wp_register_style(
-    'lcm-tables',
-    $base . 'assets/css/lcm-tables.css',
-    [ 'bootstrap-css' ],
-    PPC_CRM_VERSION
-); 
-	}
+    // ─── Lead table script ─────────────────────────────────────
+    wp_register_script(
+        'lcm-lead-table',
+        $base . 'assets/js/lead-table.js',
+        [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
+        PPC_CRM_VERSION,
+        true
+    );
+
+    // ─── Campaign table script ─────────────────────────────────
+    wp_register_script(
+        'lcm-campaign-table',
+        $base . 'assets/js/campaign-table.js',
+        [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
+        PPC_CRM_VERSION,
+        true
+    );
+}
+
 
 	/* ------------------------------------------------------------------ */
 	public function shortcode_lead_table() : string {
@@ -80,12 +106,21 @@ wp_register_style(
         'adsets'           => array_map( fn($id)=>get_the_title($id), $campaigns ),
     ];
 
+    // ① Register & enqueue all needed styles and scripts
     wp_enqueue_style( 'bootstrap-css' );
+    wp_enqueue_style( 'bootstrap-icons' );
+    wp_enqueue_style( 'flatpickr-css' );
     wp_enqueue_style( 'lcm-tables' );
+
+    wp_enqueue_script( 'bootstrap-js' );
+    wp_enqueue_script( 'flatpickr-js' );
+    wp_enqueue_script( 'flatpickr-init' );
     wp_enqueue_script( 'lcm-lead-table' );
     wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
 
-    ob_start(); ?>
+    // ② Now start output buffering and render your table
+    ob_start();
+    ?>
     <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
       <div>
         <div class="d-flex justify-content-between mb-2">
@@ -150,17 +185,23 @@ wp_register_style(
 			'adsets'   => array_map( fn($id)=>get_the_title($id), $campaigns ),
 		];
 
-		wp_enqueue_style( 'bootstrap-css' );
-wp_enqueue_style( 'lcm-tables' );   
-		if ( $which === 'lead' ) {
-			wp_enqueue_script( 'lcm-lead-table' );
-			wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
-		} else {
-			wp_enqueue_script( 'lcm-campaign-table' );
-			wp_localize_script( 'lcm-campaign-table', 'LCM', $vars );
-		}
+		  wp_enqueue_style( 'bootstrap-css' );
+    wp_enqueue_style( 'bootstrap-icons' );
+    wp_enqueue_style( 'flatpickr-css' );
+    wp_enqueue_style( 'lcm-tables' );
 
-		$div = $which === 'lead' ? 'lcm-lead-table' : 'lcm-campaign-table';
+    wp_enqueue_script( 'bootstrap-js' );
+    wp_enqueue_script( 'flatpickr-js' );
+    wp_enqueue_script( 'flatpickr-init' );
+
+    // ② Then enqueue the appropriate table script
+    if ( $which === 'lead' ) {
+        wp_enqueue_script( 'lcm-lead-table' );
+        wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
+    } else {
+        wp_enqueue_script( 'lcm-campaign-table' );
+        wp_localize_script( 'lcm-campaign-table', 'LCM', $vars );
+    }
 
 		ob_start(); ?>
 		 <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
