@@ -117,10 +117,10 @@ jQuery(function ($) {
                    ${opts(opt, val)}
                  </select></td>`;
       } else if (typ === "date") {
-        html += `<td><input type="text" class="form-control form-control-sm flatpickr-date"
+        html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
       } else if (typ === "time") {
-        html += `<td><input type="text" class="form-control form-control-sm flatpickr-time"
+        html += `<td><input type="time" class="form-control form-control-sm flatpickr-time"
                          data-name="lead_time" value="${val}"${dis}></td>`;
       } else {
         html += `<td><input type="text" class="form-control form-control-sm"
