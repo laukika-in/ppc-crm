@@ -91,15 +91,31 @@ jQuery(function ($) {
       const v = r[f] || "",
         dis = saved ? " disabled" : "";
       if (typ === "action") {
-        html += saved
-          ? `<td class="text-center">
-                   <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-save"></i></button>
-                   <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
-                 </td>`
-          : `<td class="text-center">
-                   <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
-                   <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash"></i></button>
-                 </td>`;
+        if (!saved && !IS_CLIENT) {
+          html += (
+            <td class="text-center">
+              <button class="btn btn-success btn-sm save-camp me-1">
+                <i class="bi bi-save"></i>
+              </button>
+              <button class="btn btn-warning btn-sm cancel-draft">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </td>
+          );
+        } else if (saved && !IS_CLIENT) {
+          html += (
+            <td class="text-center">
+              <button class="btn btn-secondary btn-sm edit-row me-1">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          );
+        } else {
+          html += <td></td>; // clients get no actions
+        }
       } else if (typ === "select") {
         html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
                   ${opts(opt, v)}

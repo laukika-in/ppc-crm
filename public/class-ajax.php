@@ -77,14 +77,14 @@ add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
 		
-		$user      = wp_get_current_user();
-			$user_id   = $user->ID;
-			$is_client = in_array( 'client', (array) $user->roles, true );
-		if ( $is_client ) {
-			$data['client_id'] = $user->ID;          // force client id
-		} else {
-			$data['client_id'] = absint( $_POST['client_id'] ?? 0 );
-		}
+	$user      = wp_get_current_user();
+		$user_id   = $user->ID;
+		$is_client = in_array( 'client', (array) $user->roles, true );
+	if ( $is_client ) {
+		$data['client_id'] = $user->ID;          // force client id
+	} else {
+		$data['client_id'] = absint( $_POST['client_id'] ?? 0 );
+	}
 
 		global $wpdb;
 		$wpdb->insert( $wpdb->prefix.'lcm_leads', $data );
@@ -185,17 +185,26 @@ public function get_campaigns() {
  $user      = wp_get_current_user();
     $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
- 	
+
     global $wpdb;
-    $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
-    $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
     $p  = max(1, (int)($_GET['page'] ?? 1));
     $pp = max(1, (int)($_GET['per_page'] ?? 10));
     $o  = ($p - 1) * $pp;
 
     $table = $wpdb->prefix . 'lcm_campaigns';
     $where = 'WHERE 1=1';
+
+    // Filter by role
+    if ($is_client) {
+        $where .= $wpdb->prepare(" AND client_id = %d", $user_id);
+    } elseif (!empty($_GET['client_id'])) {
+        $where .= $wpdb->prepare(" AND client_id = %d", absint($_GET['client_id']));
+    }
+
+    // Total count
     $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM $table $where");
+
+    // Campaign rows
     $rows = $wpdb->get_results(
         $wpdb->prepare("SELECT * FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $pp, $o),
         ARRAY_A
