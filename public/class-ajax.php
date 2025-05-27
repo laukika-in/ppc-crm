@@ -267,12 +267,13 @@ public function create_campaign() {
 public function update_campaign() {
     $this->verify();
 
-    $post_id = absint( $_POST['id'] ?? 0 );
-    if ( ! $post_id ) {
+    // 1) The incoming ID is your custom‐table row ID
+    $row_id = absint( $_POST['id'] ?? 0 );
+    if ( ! $row_id ) {
         wp_send_json_error( [ 'msg' => 'Missing campaign ID' ], 400 );
     }
 
-    // Same fields as create_campaign()
+    // 2) Gather and sanitize exactly the same fields as create_campaign()
     $fields = [
         'client_id','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
@@ -284,7 +285,7 @@ public function update_campaign() {
         $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
     }
 
-    // Force client_id for client role
+    // 3) Enforce client_id for client‐role users
     $user      = wp_get_current_user();
     $is_client = in_array( 'client', (array) $user->roles, true );
     if ( $is_client ) {
@@ -294,36 +295,33 @@ public function update_campaign() {
     }
 
     global $wpdb;
-	 // Persist to custom table
+    $table = $wpdb->prefix . 'lcm_campaigns';
+
+    // 4) Update the custom table row by its primary key (id)
     $wpdb->update(
-        $wpdb->prefix . 'lcm_campaigns',
+        $table,
         $data,
-        [ 'post_id' => $post_id ],
-        array_fill( 0, count( $data ), '%s' ),
+        [ 'id' => $row_id ],
+        // Formats: all TEXT except client_id (= %d)
+        array_merge( array_fill(0, count($data), '%s') ),
         [ '%d' ]
     );
 
-	// Also update the WP post title (UID)
-    $campaign = $wpdb->get_var( $wpdb->prepare(
-        "SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d",
-        $post_id
+    // 5) Fetch the linked WP post ID so we can update its title
+    $post_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id FROM {$table} WHERE id = %d",
+        $row_id
     ) );
-    if ( $campaign ) {
+    if ( $post_id ) {
         wp_update_post([
-            'ID'         => $campaign,
+            'ID'         => $post_id,
             'post_title' => sanitize_text_field( $_POST['adset'] ?? '' ),
         ]);
     }
 
-    // // Update the WP post title (adset)
-    // wp_update_post([
-    //     'ID'         => $post_id,
-    //     'post_title' => $data['adset'],
-    // ]);
-
-   
     wp_send_json_success();
 }
+
 
 /* ---------- Campaign: delete -------------------------------------- */
 public function delete_campaign(){
