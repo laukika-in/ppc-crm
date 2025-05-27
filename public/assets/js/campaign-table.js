@@ -56,9 +56,7 @@ jQuery(function ($) {
   const $filter = $("#lcm-filter-client");
 
   let page = 1;
-
-  let page = 1,
-    filterClient = IS_CLIENT ? CLIENT_ID : "";
+  filterClient = IS_CLIENT ? CLIENT_ID : "";
 
   // Header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
