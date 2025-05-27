@@ -210,6 +210,17 @@ public function register_assets() {
     <div class="d-flex justify-content-between mb-2">
         <button id="lcm-add-row-<?=esc_attr( $which );?>" class="btn btn-primary btn-sm"> + Add <?=ucfirst( $which );?>
         </button>
+ </button>
+            <?php if ( ! $is_client ) : ?>
+              <div class="lcm-filters">
+                <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
+                    <option value="">All Clients</option>
+                    <?php foreach ( $clients as $c ) : ?>
+                        <option value="<?=esc_attr( $c->ID );?>"><?=esc_html( $c->display_name );?></option>
+                    <?php endforeach; ?>
+                </select>
+                    </div>
+            <?php endif; ?>
 
         <div id="lcm-pager-<?=esc_attr( $which );?>" class="btn-group btn-group-sm"></div>
     </div>
