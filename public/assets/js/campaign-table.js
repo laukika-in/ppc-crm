@@ -121,10 +121,7 @@ jQuery(function ($) {
                  </td>`;
       } else if (type === "date") {
         // Use a text input for Flatpickr
-        html += `<td>
-                   <input type="text" class="form-control form-control-sm flatpickr-date"
-                          data-name="${field}" value="${val}"${disabled}>
-                 </td>`;
+        html += `<td><input type="date" class="form-control form-control-sm" data-name="${field}" value="${val}"${disabled}></td>`;
       } else if (type === "number") {
         html += `<td>
                    <input type="number" step="any" class="form-control form-control-sm"
