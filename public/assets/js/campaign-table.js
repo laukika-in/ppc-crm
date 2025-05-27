@@ -107,7 +107,7 @@ jQuery(function ($) {
                   ${opts(opt, v)}
                 </select></td>`;
       } else if (typ === "date") {
-        html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
+        html += `<td><input type="date" class="form-control form-control-sm"
                          data-name="campaign_date" value="${v}"${dis}></td>`;
       } else if (typ === "number") {
         html += `<td><input type="number" step="any" class="form-control form-control-sm"
