@@ -1,11 +1,13 @@
 jQuery(function ($) {
   window.LCM_initFlatpickr = function ($tr) {
     $tr.find('input[type="date"]').flatpickr({
-      dateFormat: "d-M-Y", // 2025-05-26
+      altFormat: "d-M-Y", // what user sees
+      dateFormat: "Y-m-d", // what gets into the <input> value
       allowInput: true,
     });
     $tr.find(".flatpickr-date").flatpickr({
-      dateFormat: "d-M-Y",
+      altFormat: "d-M-Y", // what user sees
+      dateFormat: "Y-m-d", // what gets into the <input> value
       allowInput: true,
     });
     $tr.find('input[type="time"]').flatpickr({
