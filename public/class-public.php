@@ -148,31 +148,35 @@ public function register_assets() {
             </table>
         </div>
     </div>
-    <!-- Shared delete modal (unchanged) -->
-    <div class="modal fade" id="lcmDelModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
-          <div class="modal-body">Are you sure you want to delete this row?</div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger btn-sm" id="lcm-confirm-del">Delete</button>
-          </div>
-        </div>
+<!-- Shared delete modal (unchanged) -->
+<div class="modal fade" id="lcmDelModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
+      <div class="modal-body">Are you sure you want to delete this row?</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="lcm-confirm-del">Delete</button>
       </div>
     </div>
+  </div>
+</div>
     <?php
     return ob_get_clean();
 }
 
-	public function shortcode_campaign_table() : string {
-	
-    $user   = wp_get_current_user();
-    $is_client = in_array( 'client', (array) $user->roles, true );
+	public function shortcode_campaign_table() {
+		return $this->render_table( 'campaign' );
+	}
 
-    /* dropdown sources */
-    $clients = get_users( [ 'role__in'=>['client'], 'fields'=>['ID','display_name'] ] );
-$vars = [
+	/* ------------------------------------------------------------------ */
+	private function render_table( string $which ) : string {
+
+		// Dropdown sources
+		$clients = get_users( [ 'role__in'=>['client'], 'fields'=>['ID','display_name'] ] );
+		$campaigns = get_posts( [ 'post_type'=>'lcm_campaign','numberposts'=>-1,'fields'=>'ids' ] );
+
+		$vars = [
       
         'ajax_url'         => admin_url( 'admin-ajax.php' ),
         'nonce'            => wp_create_nonce( 'lcm_ajax' ),
@@ -180,9 +184,10 @@ $vars = [
         'is_client'        => $is_client,
         'current_client_id'=> $user->ID,
         'clients'          => array_map( fn($u)=>[ $u->ID,$u->display_name ], $clients ),
-  			'adsets'   => array_map( fn($id)=>get_the_title($id), $campaigns ),
+			'adsets'   => array_map( fn($id)=>get_the_title($id), $campaigns ),
 		];
-    wp_enqueue_style( 'bootstrap-css' );
+
+		  wp_enqueue_style( 'bootstrap-css' );
     wp_enqueue_style( 'bootstrap-icons' );
     wp_enqueue_style( 'flatpickr-css' );
     wp_enqueue_style( 'lcm-tables' );
@@ -190,11 +195,22 @@ $vars = [
     wp_enqueue_script( 'bootstrap-js' );
     wp_enqueue_script( 'flatpickr-js' );
     wp_enqueue_script( 'flatpickr-init' );
-    wp_localize_script( 'lcm-campaign-table', 'LCM', $vars );
-    ob_start(); ?>
-     <div>
+
+    // ② Then enqueue the appropriate table script
+    if ( $which === 'lead' ) {
+        wp_enqueue_script( 'lcm-lead-table' );
+        wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
+    } else {
+        wp_enqueue_script( 'lcm-campaign-table' );
+        wp_localize_script( 'lcm-campaign-table', 'LCM', $vars );
+    }
+
+		$div = $which === 'lead' ? 'lcm-lead-table' : 'lcm-campaign-table';
+		ob_start(); ?>
+		 <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
+      <div>
     <div class="d-flex justify-content-between mb-2">
-        <button id="lcm-add-row-campaign" class="btn btn-primary btn-sm"> + Add campaign
+        <button id="lcm-add-row-<?=esc_attr( $which );?>" class="btn btn-primary btn-sm"> + Add <?=ucfirst( $which );?>
         </button>
  </button>
             <?php if ( ! $is_client ) : ?>
@@ -208,11 +224,11 @@ $vars = [
                     </div>
             <?php endif; ?>
 
-        <div id="lcm-pager-campaign" class="btn-group btn-group-sm"></div>
+        <div id="lcm-pager-<?=esc_attr( $which );?>" class="btn-group btn-group-sm"></div>
     </div>
 
     <div class="lcm-scroll">
-        <table id="lcm-campaign-table" class="table  lcm-table align-middle mb-0"  >
+        <table id="<?=esc_attr( $div );?>" class="table  lcm-table align-middle mb-0"  >
             <thead></thead>
             <tbody></tbody>
         </table>
@@ -235,5 +251,5 @@ $vars = [
 
 		<?php
 		return ob_get_clean();
-	} 
+	}
 }
