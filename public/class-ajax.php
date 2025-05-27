@@ -123,8 +123,8 @@ public function get_campaigns() {
     $this->verify();
     global $wpdb;
 
-    $user_id = get_current_user_id();
-    $is_client = current_user_can('client');
+$user      = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles, true );
 
     $p  = max(1, (int)($_GET['page'] ?? 1));
     $pp = max(1, (int)($_GET['per_page'] ?? 10));
@@ -155,7 +155,7 @@ public function get_campaigns() {
 public function create_campaign() {
     $this->verify();
     $user      = wp_get_current_user();
-    $is_client = in_array( 'client', (array) $user->roles );
+    $is_client = in_array( 'client', (array) $user->roles, true );
 
     // Gather & sanitize all fields, including campaign_date
     $fields = [
@@ -206,7 +206,7 @@ public function create_campaign() {
 public function update_campaign() {
     $this->verify();
     $user      = wp_get_current_user();
-    $is_client = in_array( 'client', (array) $user->roles );
+    $is_client = in_array( 'client', (array) $user->roles, true );
     $id        = absint( $_POST['id'] ?? 0 );
     if ( ! $id ) wp_send_json_error([ 'msg'=>'Missing ID' ], 400);
 

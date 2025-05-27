@@ -3,7 +3,7 @@
 Plugin Name: PPC-CRM
 Plugin URI:  https://example.com
 Description: Campaign + Lead manager with custom tables and no-admin access for Clients/PPC.
-Version:     0.3.09
+Version:     0.3.10
 Author:      Your Name
 License:     GPL-2.0+
 Text Domain: ppc-crm
