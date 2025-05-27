@@ -13,14 +13,19 @@ jQuery(function ($) {
     $tr.find('input[type="time"]').flatpickr({
       enableTime: true,
       noCalendar: true,
-      dateFormat: "h:i K", // 01:30 PM
+      altInput: true,
       time_24hr: false,
+      altFormat: "h:i K", // shows AM/PM
+      dateFormat: "H:i", // stores 24-hour HH:MM
       allowInput: true,
     });
     $tr.find(".flatpickr-time").flatpickr({
       enableTime: true,
       noCalendar: true,
-      dateFormat: "h:i K",
+      altInput: true,
+      time_24hr: false,
+      altFormat: "h:i K", // shows AM/PM
+      dateFormat: "H:i", // stores 24-hour HH:MM
       allowInput: true,
     });
   };
