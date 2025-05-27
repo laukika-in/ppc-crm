@@ -41,14 +41,8 @@ wp_enqueue_style(
 
 wp_enqueue_style( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css' );
 wp_enqueue_script( 'flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', [], null, true );
-wp_enqueue_script( 'flatpickr-init', plugin_dir_url( __FILE__ ) . 'assets/js/flatpickr-init.js', ['jquery','flatpickr'], null, true );
-wp_enqueue_script(
-  'lcm-lead-table',
-  $base . 'assets/js/lead-table.js',
-  [ 'jquery', 'flatpickr-init' ],
-  PPC_CRM_VERSION,
-  true
-);
+wp_enqueue_script( 'flatpickr-init', plugin_dir_url( __FILE__ ) . 'assets/js/flatpickr-init.js', ['jquery','flatpickr'], PPC_CRM_VERSION, true );
+
 		/* NEW Campaign grid */
 		wp_register_script(
 			'lcm-campaign-table',
