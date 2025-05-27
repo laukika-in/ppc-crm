@@ -306,7 +306,7 @@ public function update_campaign() {
 	// Also update the WP post title (UID)
     $campaign = $wpdb->get_var( $wpdb->prepare(
         "SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id=%d",
-        $id
+        $post_id
     ) );
     if ( $campaign ) {
         wp_update_post([
