@@ -82,7 +82,9 @@ jQuery(function ($) {
     cols.forEach(([f, _label, type, opt]) => {
       const v = r[f] || "";
       const dis = saved ? " disabled" : "";
-
+      if (f === "client_id" && LCM.is_client) {
+        html += `<td><input type="hidden" data-name="client_id" value="${v}"></td>`;
+      }
       if (type === "action") {
         html += saved
           ? `<td class="text-center"> 
@@ -152,6 +154,11 @@ jQuery(function ($) {
 
   /* ---------- add draft row -------------------------------------- */
   $("#lcm-add-row-campaign").on("click", () => {
+    const draft = {};
+    cols.forEach((c) => (draft[c[0]] = ""));
+    if (LCM.is_client) draft.client_id = LCM.current_client_id;
+
+    $tbody.prepend(rowHtml(draft));
     LCM_initFlatpickr($tbody.find("tr").first());
   });
 

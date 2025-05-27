@@ -120,48 +120,90 @@ wp_send_json_success( [ 'total' => $total ] );   // ← NEW
 }
 /* ---------- Campaign: fetch --------------------------------------- */
 public function get_campaigns() {
-	$this->verify();
-	global $wpdb;
-	$p  = max(1,intval($_GET['page']??1));
-	$pp = max(1,intval($_GET['per_page']??10));
-	$o  = ($p-1)*$pp;
+    $this->verify();
+    global $wpdb;
 
-	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
-	$rows =$wpdb->get_results($wpdb->prepare(
-		"SELECT * FROM {$wpdb->prefix}lcm_campaigns ORDER BY id DESC LIMIT %d OFFSET %d",$pp,$o
-	),ARRAY_A);
+    $user_id = get_current_user_id();
+    $is_client = current_user_can('client');
 
-	wp_send_json(['total'=>$total,'rows'=>$rows]);
+    $p  = max(1, (int)($_GET['page'] ?? 1));
+    $pp = max(1, (int)($_GET['per_page'] ?? 10));
+    $o  = ($p - 1) * $pp;
+
+    $table = $wpdb->prefix . 'lcm_campaigns';
+    $where = 'WHERE 1=1';
+
+    // Filter by role
+    if ($is_client) {
+        $where .= $wpdb->prepare(" AND client_id = %d", $user_id);
+    } elseif (!empty($_GET['client_id'])) {
+        $where .= $wpdb->prepare(" AND client_id = %d", absint($_GET['client_id']));
+    }
+
+    // Total count
+    $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM $table $where");
+
+    // Campaign rows
+    $rows = $wpdb->get_results(
+        $wpdb->prepare("SELECT * FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $pp, $o),
+        ARRAY_A
+    );
+
+    wp_send_json(['total' => $total, 'rows' => $rows]);
 }
+
 
 /* ---------- Campaign: create / update ----------------------------- */
-public function create_campaign(){
-	$this->verify();
-	global $wpdb;
+public function create_campaign() {
+    $this->verify();
 
-	$fields=[
-		'client_id','month','week','campaign_date','location','adset',
-		'leads','reach','impressions','cost_per_lead','amount_spent','cpm'
-	];
-	$d=[];
-	foreach($fields as $f){ $d[$f]=sanitize_text_field($_POST[$f]??''); }
+    $user   = wp_get_current_user();
+    $is_client = in_array('client', (array) $user->roles);
+    $fields = [
+        'client_id', 'month', 'week', 'campaign_date', 'location', 'adset',
+        'leads', 'reach', 'impressions', 'cost_per_lead', 'amount_spent', 'cpm',
+        'connected_number', 'not_connected', 'relevant', 'not_available',
+        'scheduled_store_visit', 'store_visit'
+    ];
 
-	if(!$d['adset']) wp_send_json_error(['msg'=>'Adset required'],400);
+    $data = [];
+    foreach ($fields as $f) {
+        $data[$f] = sanitize_text_field($_POST[$f] ?? '');
+    }
 
-	$post=get_page_by_title($d['adset'],OBJECT,'lcm_campaign');
-	if($post){
-		$d['post_id']=$post->ID;
-	}else{
-		$d['post_id']=wp_insert_post([
-			'post_type'=>'lcm_campaign','post_status'=>'publish','post_title'=>$d['adset']
-		],true);
-	}
+    // Title = adset
+    $title = $data['adset'] ?? '';
+    if (!$title) wp_send_json_error(['msg' => 'Adset required'], 400);
 
-	$d['not_available']=max(0,intval($d['leads'])-intval($_POST['connected'])-intval($_POST['not_connected'])-intval($_POST['relevant']));
+    // Force client ID for client role
+    if ($is_client) {
+        $data['client_id'] = $user->ID;
+    } else {
+        $data['client_id'] = absint($data['client_id']);
+        if (!$data['client_id']) {
+            wp_send_json_error(['msg' => 'Client is required'], 400);
+        }
+    }
 
-	$wpdb->replace($wpdb->prefix.'lcm_campaigns',$d);
-	wp_send_json_success();
+    // Insert post (for linking)
+    $post_id = wp_insert_post([
+        'post_type'   => 'lcm_campaign',
+        'post_status' => 'publish',
+        'post_title'  => $title
+    ], true);
+
+    if (is_wp_error($post_id)) {
+        wp_send_json_error(['msg' => $post_id->get_error_message()], 500);
+    }
+
+    $data['post_id'] = $post_id;
+
+    global $wpdb;
+    $wpdb->replace($wpdb->prefix . 'lcm_campaigns', $data);
+
+    wp_send_json_success();
 }
+
 
 /* ---------- Campaign: delete -------------------------------------- */
 public function delete_campaign(){
