@@ -203,6 +203,7 @@ public function register_assets() {
         wp_localize_script( 'lcm-campaign-table', 'LCM', $vars );
     }
 
+		$div = $which === 'lead' ? 'lcm-lead-table' : 'lcm-campaign-table';
 		ob_start(); ?>
 		 <!-- <div class="lcm-table-card p-3 shadow-sm mb-4"> -->
       <div>
