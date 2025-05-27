@@ -206,13 +206,13 @@ public function create_campaign() {
 
 public function update_campaign() {
     $this->verify();
-     $user      = wp_get_current_user();
-    $user_id   = $user->ID;
-    $is_client = in_array( 'client', (array) $user->roles, true );
-    $id        = absint( $_POST['id'] ?? 0 );
-    if ( ! $id ) wp_send_json_error([ 'msg'=>'Missing ID' ], 400);
 
-    // Same fields & sanitization
+    $post_id = absint( $_POST['id'] ?? 0 );
+    if ( ! $post_id ) {
+        wp_send_json_error( [ 'msg' => 'Missing campaign ID' ], 400 );
+    }
+
+    // Same fields as create_campaign()
     $fields = [
         'client_id','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
@@ -224,35 +224,32 @@ public function update_campaign() {
         $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
     }
 
-    if ( empty( $data['adset'] ) ) {
-        wp_send_json_error([ 'msg'=>'Adset required' ], 400);
-    }
-
-    // Force client for clients
+    // Force client_id for client role
+    $user      = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles, true );
     if ( $is_client ) {
         $data['client_id'] = $user->ID;
     } else {
         $data['client_id'] = absint( $data['client_id'] );
-        if ( ! $data['client_id'] ) {
-            wp_send_json_error([ 'msg'=>'Client is required' ], 400);
-        }
     }
 
-    // ④ Update both WP post title and custom table
+    // Update the WP post title (adset)
     wp_update_post([
-        'ID'         => $id,
+        'ID'         => $post_id,
         'post_title' => $data['adset'],
     ]);
 
+    // Persist to custom table
     global $wpdb;
     $wpdb->update(
         $wpdb->prefix . 'lcm_campaigns',
         $data,
-        [ 'post_id' => $id ]
+        [ 'post_id' => $post_id ]
     );
 
     wp_send_json_success();
 }
+
 
 
 /* ---------- Campaign: delete -------------------------------------- */
@@ -272,25 +269,64 @@ public function delete_campaign(){
 	wp_send_json_success(['total'=>$total]);
 }
 public function update_lead() {
+    $this->verify();
 
-	$this->verify();
-	global $wpdb;
+    $id = absint( $_POST['id'] ?? 0 );
+    if ( ! $id ) {
+        wp_send_json_error( [ 'msg' => 'Missing lead ID' ], 400 );
+    }
 
-	$id = absint( $_POST['id'] ?? 0 );
-	if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing id' ], 400 );
+    // Collect & sanitize exactly the same fields as create_lead()
+    $fields = [
+        'client_id','ad_name','adset','uid','lead_date','lead_time','day',
+        'phone_number','attempt','attempt_type','attempt_status',
+        'store_visit_status','remarks'
+    ];
+    $data = [];
+    foreach ( $fields as $f ) {
+        $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
+    }
 
-	$cols = [
-		'ad_name','adset','lead_date','lead_time','day','phone_number',
-		'attempt','attempt_type','attempt_status','store_visit_status','remarks'
-	];
-	$data = [];
-	foreach ( $cols as $c ) {
-		if ( isset( $_POST[$c] ) ) $data[$c] = sanitize_text_field( $_POST[$c] );
-	}
-	if ( empty( $data ) ) wp_send_json_success();  // nothing to update
+    // If client role, force client_id
+    $user      = wp_get_current_user();
+    $is_client = in_array( 'client', (array) $user->roles, true );
+    if ( $is_client ) {
+        $data['client_id'] = $user->ID;
+    } else {
+        $data['client_id'] = absint( $data['client_id'] );
+    }
 
-	$wpdb->update( $wpdb->prefix.'lcm_leads', $data, [ 'id'=>$id ] );
-	wp_send_json_success();
+    // Find campaign_id from adset if needed
+    if ( ! empty( $data['adset'] ) ) {
+        $camp = get_page_by_title( $data['adset'], OBJECT, 'lcm_campaign' );
+        if ( $camp ) {
+            $data['campaign_id'] = $camp->ID;
+        }
+    }
+
+    // Update WP post title to UID
+    $lead_post = get_post( $id );
+    if ( $lead_post ) {
+        wp_update_post([
+            'ID'         => $lead_post->ID,
+            'post_title' => $data['uid'],
+        ]);
+    }
+    // Persist to custom table
+    global $wpdb;
+    $wpdb->update(
+        $wpdb->prefix . 'lcm_leads',
+        $data,
+        [ 'post_id' => $lead_post->ID ]
+    );
+
+    // Recount parent campaign counters
+    if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
+        ( new PPC_CRM_Admin_UI )->recount_campaign_counters( $data['adset'] );
+    }
+
+    wp_send_json_success();
 }
+
  
 }
