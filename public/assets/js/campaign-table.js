@@ -116,6 +116,7 @@ jQuery(function ($) {
         html += `<td>
                    <input type="date" class="form-control form-control-sm" 
                           data-name="${field}" value="${val}"${dis}>
+                          
                  </td>`;
       } else if (type === "number") {
         html += `<td>
