@@ -3,14 +3,15 @@ jQuery(function ($) {
   const CLIENT_ID = LCM.current_client_id;
   const PER_PAGE = LCM.per_page;
 
+  // Column definitions
   const cols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     ["ad_name", "Ad Name", "text"],
     ["adset", "Adset", "select", LCM.adsets],
     ["uid", "UID", "text"],
-    ["lead_date", "Date", "date"], // date picker
-    ["lead_time", "Time", "time"], // time picker
+    ["lead_date", "Date", "date"],
+    ["lead_time", "Time", "time"],
     [
       "day",
       "Day",
@@ -57,10 +58,10 @@ jQuery(function ($) {
   let page = 1,
     filterClient = IS_CLIENT ? CLIENT_ID : "";
 
-  // 1) Render header
+  // Render header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
-  // 2) Helpers
+  // Helpers
   const opts = (arr, cur = "") =>
     "<option value=''></option>" +
     arr
@@ -72,6 +73,7 @@ jQuery(function ($) {
         }>${t}</option>`;
       })
       .join("");
+
   const collect = ($tr) => {
     const data = {};
     $tr.find("[data-name]").each(function () {
@@ -79,6 +81,7 @@ jQuery(function ($) {
     });
     return data;
   };
+
   function toggleDeps($tr) {
     const a = $tr.find("[data-name=attempt]").val();
     const t = $tr.find("[data-name=attempt_type]").val();
@@ -90,7 +93,7 @@ jQuery(function ($) {
       .prop("disabled", s !== "Store Visit Scheduled");
   }
 
-  // 3) Build row HTML
+  // Build a row
   function rowHtml(r = {}) {
     const saved = !!r.id;
     let html = `<tr data-id="${r.id || ""}"${
@@ -100,29 +103,26 @@ jQuery(function ($) {
       const val = r[f] || "",
         dis = saved ? " disabled" : "";
       if (typ === "action") {
-        if (!saved) {
-          html += `<td class="text-center">
-                  <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-save"></i></button>
-                  <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
-                 </td>`;
-        } else {
-          html += `<td class="text-center">
-                  <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-danger btn-sm del-row" data-id="${r.id}"><i class="bi bi-trash"></i></button>
-                 </td>`;
-        }
+        html += saved
+          ? `<td class="text-center">
+               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
+               <button class="btn btn-danger btn-sm del-row" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+             </td>`
+          : `<td class="text-center">
+               <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-save"></i></button>
+               <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
+             </td>`;
       } else if (typ === "select") {
         html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
-                  ${opts(opt, val)}
-                </select></td>`;
+                   ${opts(opt, val)}
+                 </select></td>`;
       } else if (typ === "date") {
         html += `<td><input type="text" class="form-control form-control-sm flatpickr-date"
-                         data-name="${f}" value="${val}"${dis}></td>`;
+                         data-name="lead_date" value="${val}"${dis}></td>`;
       } else if (typ === "time") {
         html += `<td><input type="text" class="form-control form-control-sm flatpickr-time"
-                         data-name="${f}" value="${val}"${dis}></td>`;
+                         data-name="lead_time" value="${val}"${dis}></td>`;
       } else {
-        // text
         html += `<td><input type="text" class="form-control form-control-sm"
                          data-name="${f}" value="${val}"${dis}></td>`;
       }
@@ -131,7 +131,7 @@ jQuery(function ($) {
     return html;
   }
 
-  // 4) Pager & Load
+  // Pager & Load
   function renderPager(total) {
     const pages = Math.max(1, Math.ceil(total / PER_PAGE));
     $pager.html(
@@ -140,10 +140,11 @@ jQuery(function ($) {
         return `<button class="btn btn-outline-secondary ${
           n === page ? "active" : ""
         }"
-                              data-p="${n}">${n}</button>`;
+                      data-p="${n}">${n}</button>`;
       }).join("")
     );
   }
+
   function load(p = 1) {
     const q = {
       action: "lcm_get_leads_json",
@@ -160,7 +161,7 @@ jQuery(function ($) {
   }
   $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
 
-  // 5) Filter (admin/PPC)
+  // Filter for PPC/Admin
   if (!IS_CLIENT) {
     $filter.on("change", function () {
       filterClient = this.value;
@@ -168,7 +169,7 @@ jQuery(function ($) {
     });
   }
 
-  // 6) Add draft
+  // Add draft
   $("#lcm-add-row-lead").on("click", () => {
     const d = {};
     cols.forEach((c) => (d[c[0]] = ""));
@@ -177,7 +178,7 @@ jQuery(function ($) {
     LCM_initFlatpickr($tbody.find("tr").first());
   });
 
-  // 7) Row-click => edit
+  // Row-click edit
   $tbody.on("click", "tr", function (e) {
     if ($(e.target).closest("button").length) return;
     const $tr = $(this);
@@ -185,7 +186,7 @@ jQuery(function ($) {
     $tr.find(".edit-row").trigger("click");
   });
 
-  // 8) Edit mode
+  // Edit mode
   $tbody.on("click", ".edit-row", function () {
     const $tr = $(this).closest("tr").addClass("lcm-editing");
     $tr.find("input,select").prop("disabled", false);
@@ -204,10 +205,10 @@ jQuery(function ($) {
     $(this).closest("tr").remove();
   });
 
-  // 9) Save draft
+  // Save draft
   $tbody.on("click", ".save-row", function () {
-    const $tr = $(this).closest("tr"),
-      data = collect($tr);
+    const $tr = $(this).closest("tr");
+    const data = collect($tr);
     if (IS_CLIENT) data.client_id = CLIENT_ID;
     if (!data.uid || !data.adset) {
       alert("UID & Adset required");
@@ -218,26 +219,26 @@ jQuery(function ($) {
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
-  // 10) Save edit
+  // Save edit
   $tbody.on("click", ".save-edit", function () {
-    const $tr = $(this).closest("tr"),
-      data = collect($tr);
+    const $tr = $(this).closest("tr");
+    const data = collect($tr);
     data.id = $tr.data("id");
     data.action = "lcm_update_lead";
     data.nonce = LCM.nonce;
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
-  // 11) Dependencies
+  // Dependencies
   $tbody.on(
     "change",
-    "select[data-name=attempt],select[data-name=attempt_type],select[data-name=attempt_status]",
+    "select[data-name=attempt], select[data-name=attempt_type], select[data-name=attempt_status]",
     function () {
       toggleDeps($(this).closest("tr"));
     }
   );
 
-  // 12) Date → Day
+  // Date → Day
   $tbody.on("change", ".flatpickr-date", function () {
     const d = new Date(this.value + "T12:00:00");
     if (!isNaN(d)) {
@@ -254,21 +255,25 @@ jQuery(function ($) {
     }
   });
 
-  // 13) Delete
+  // Delete
   let delId = 0;
   const modal = new bootstrap.Modal("#lcmDelModal");
   $tbody.on("click", ".del-row", function () {
-    delId = $(this).data("id");
+    delId = $(this).data("id") || 0;
     if (!delId) $(this).closest("tr").remove();
     else modal.show();
   });
   $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
-      { action: "lcm_delete_lead", nonce: LCM.nonce, id: delId },
+      {
+        action: "lcm_delete_lead",
+        nonce: LCM.nonce,
+        id: delId,
+      },
       (res) => {
-        const p = Math.max(1, Math.ceil(res.data.total / PER_PAGE));
-        if (page > p) page = p;
+        const pages = Math.max(1, Math.ceil(res.data.total / PER_PAGE));
+        if (page > pages) page = pages;
         load(page);
         modal.hide();
       },
@@ -276,6 +281,6 @@ jQuery(function ($) {
     );
   });
 
-  // init
+  // Initial load
   load(1);
 });

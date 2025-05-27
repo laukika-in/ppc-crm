@@ -3,6 +3,7 @@ jQuery(function ($) {
   const CLIENT_ID = LCM.current_client_id;
   const PER_PAGE = LCM.per_page;
 
+  // Define all columns
   const allCols = [
     ["_action", "Action", "action"],
     ["client_id", "Client", "select", LCM.clients],
@@ -42,17 +43,23 @@ jQuery(function ($) {
     ["scheduled_store_visit", "Sched Visit", "readonly"],
     ["store_visit", "Visit", "readonly"],
   ];
-  const cols = IS_CLIENT ? allCols.filter((c) => c[0] != "client_id") : allCols;
 
-  const $thead = $("#lcm-campaign-table thead"),
-    $tbody = $("#lcm-campaign-table tbody"),
-    $pager = $("#lcm-pager-campaign"),
-    $add = $("#lcm-add-row-campaign");
+  // Remove client_id column for Clients
+  const cols = IS_CLIENT
+    ? allCols.filter((c) => c[0] !== "client_id")
+    : allCols;
+
+  const $thead = $("#lcm-campaign-table thead");
+  const $tbody = $("#lcm-campaign-table tbody");
+  const $pager = $("#lcm-pager-campaign");
+  const $add = $("#lcm-add-row-campaign");
 
   let page = 1;
 
+  // Header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
+  // Helpers
   const opts = (arr, cur = "") =>
     "<option value=''></option>" +
     arr
@@ -65,22 +72,23 @@ jQuery(function ($) {
       })
       .join("");
   const collect = ($tr) => {
-    const d = {};
+    const data = {};
     $tr.find("[data-name]").each(function () {
-      d[this.dataset.name] = $(this).val();
+      data[this.dataset.name] = $(this).val();
     });
-    return d;
+    return data;
   };
 
+  // Build row
   function rowHtml(r = {}) {
     const saved = !!r.id;
     let html = `<tr data-id="${r.id || ""}"${
       saved ? "" : " class='table-warning'"
     }>`;
-    cols.forEach(([f, _l, type, opt]) => {
+    cols.forEach(([f, _l, typ, opt]) => {
       const v = r[f] || "",
         dis = saved ? " disabled" : "";
-      if (type === "action") {
+      if (typ === "action") {
         if (!saved && !IS_CLIENT) {
           html += `<td class="text-center">
                    <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-save"></i></button>
@@ -92,21 +100,18 @@ jQuery(function ($) {
                    <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash"></i></button>
                  </td>`;
         } else {
-          html += `<td></td>`;
+          html += `<td></td>`; // clients get no actions
         }
-      } else if (type === "select") {
-        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>${opts(
-          opt,
-          v
-        )}</select></td>`;
-      } else if (type === "date") {
+      } else if (typ === "select") {
+        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
+                  ${opts(opt, v)}
+                </select></td>`;
+      } else if (typ === "date") {
         html += `<td><input type="text" class="form-control form-control-sm flatpickr-date"
-                         data-name="${f}" value="${v}"${dis}></td>`;
-      } else if (type === "number") {
+                         data-name="campaign_date" value="${v}"${dis}></td>`;
+      } else if (typ === "number") {
         html += `<td><input type="number" step="any" class="form-control form-control-sm"
                          data-name="${f}" value="${v}"${dis}></td>`;
-      } else if (type === "readonly") {
-        html += `<td>${v}</td>`;
       } else {
         html += `<td><input type="text" class="form-control form-control-sm"
                          data-name="${f}" value="${v}"${dis}></td>`;
@@ -116,6 +121,7 @@ jQuery(function ($) {
     return html;
   }
 
+  // Pager & Load
   function renderPager(total) {
     const pages = Math.max(1, Math.ceil(total / PER_PAGE));
     $pager.html(
@@ -145,8 +151,10 @@ jQuery(function ($) {
   }
   $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
 
+  // Hide add for clients
   if (IS_CLIENT) $add.hide();
 
+  // Add draft
   $add.on("click", () => {
     const d = {};
     cols.forEach((c) => (d[c[0]] = ""));
@@ -155,6 +163,7 @@ jQuery(function ($) {
     LCM_initFlatpickr($tbody.find("tr").first());
   });
 
+  // Edit mode
   $tbody.on("click", ".edit-row", function () {
     const $tr = $(this).closest("tr").addClass("lcm-editing");
     $tr.find("input,select").prop("disabled", false);
@@ -172,9 +181,10 @@ jQuery(function ($) {
     $(this).closest("tr").remove();
   });
 
+  // Save draft
   $tbody.on("click", ".save-camp", function () {
-    const $tr = $(this).closest("tr"),
-      data = collect($tr);
+    const $tr = $(this).closest("tr");
+    const data = collect($tr);
     if (IS_CLIENT) data.client_id = CLIENT_ID;
     if (!data.adset) {
       alert("Adset required");
@@ -185,15 +195,17 @@ jQuery(function ($) {
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
+  // Save edit
   $tbody.on("click", ".save-edit", function () {
-    const $tr = $(this).closest("tr"),
-      data = collect($tr);
+    const $tr = $(this).closest("tr");
+    const data = collect($tr);
     data.id = $tr.data("id");
     data.action = "lcm_update_campaign";
     data.nonce = LCM.nonce;
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
+  // Delete
   let delId = 0;
   const modal = new bootstrap.Modal("#lcmDelModal");
   $tbody.on("click", ".del-camp", function () {
@@ -203,7 +215,11 @@ jQuery(function ($) {
   $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
-      { action: "lcm_delete_campaign", nonce: LCM.nonce, id: delId },
+      {
+        action: "lcm_delete_campaign",
+        nonce: LCM.nonce,
+        id: delId,
+      },
       (res) => {
         const p = Math.max(1, Math.ceil(res.data.total / PER_PAGE));
         if (page > p) page = p;
@@ -214,5 +230,6 @@ jQuery(function ($) {
     );
   });
 
+  // Init
   load(1);
 });
