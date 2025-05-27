@@ -82,9 +82,7 @@ jQuery(function ($) {
     cols.forEach(([f, _label, type, opt]) => {
       const v = r[f] || "";
       const dis = saved ? " disabled" : "";
-      if (f === "client_id" && LCM.is_client) {
-        html += `<td><input type="hidden" data-name="client_id" value="${v}"></td>`;
-      }
+
       if (type === "action") {
         html += saved
           ? `<td class="text-center"> 
@@ -96,6 +94,8 @@ jQuery(function ($) {
 <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-check-circle-fill"></i></button>
 <button class="btn btn-warning btn-sm cancel-edit ms-1"><i class="bi bi-x-lg"></i></button> 
              </td>`;
+      } else if (f === "client_id" && LCM.is_client) {
+        html += `<td><input type="hidden" data-name="client_id" value="${v}"></td>`;
       } else if (type === "select") {
         html += `<td><select class="form-select form-select-sm"
                              data-name="${f}"${dis}>${opts(
