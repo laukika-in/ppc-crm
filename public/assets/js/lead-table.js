@@ -114,8 +114,8 @@ jQuery(function ($) {
       if (typ === "action") {
         html += isSaved
           ? `<td class="text-center"> 
-               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>  
-<button class="btn btn-danger btn-sm del-row" data-id="${r.id}"><i class="bi bi-trash"></i></button>
+               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>  
+<button class="btn btn-danger btn-sm del-row" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
 
              </td>`
           : `<td class="text-center">                

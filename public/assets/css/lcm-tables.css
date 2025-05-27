@@ -48,7 +48,7 @@
 .lcm-table th {
   border: 1px solid #d6d6d6;
   border-collapse: collapse;
-  padding: 0.05rem;
+  padding: 0.35rem;
 }
 .lcm-table td {
   background: #f8f9fa;
@@ -79,13 +79,14 @@
 .lcm-table tbody tr.lcm-editing td {
   border: 1px solid #d1d5db;
   background: #ffffff;
-  padding: 3px 2px;
+  padding: 4px 2px;
 }
 
 /* ---------- buttons ------------------------------------------------ */
 .lcm-table .btn {
   line-height: 1;
-  padding: 0.15rem 0.45rem;
+  height: 30px;
+  width: 30px;
 }
 .lcm-table .btn-secondary {
   background: #64748b;
