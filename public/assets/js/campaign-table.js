@@ -4,7 +4,7 @@ jQuery(function ($) {
   const PER_PAGE = LCM.per_page;
 
   // Define all columns
-  const allCols = [
+  const cols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     [
@@ -44,16 +44,13 @@ jQuery(function ($) {
     ["store_visit", "Visit", "readonly"],
   ];
 
-  // Remove client_id column for Clients
-  const cols = IS_CLIENT
-    ? allCols.filter((c) => c[0] !== "client_id")
-    : allCols;
-
   const $thead = $("#lcm-campaign-table thead");
   const $tbody = $("#lcm-campaign-table tbody");
   const $pager = $("#lcm-pager-campaign");
   const $add = $("#lcm-add-row-campaign");
-
+  const $filter = $("#lcm-filter-client");
+  let page = 1,
+    filterClient = IS_CLIENT ? CLIENT_ID : "";
   let page = 1;
 
   // Header
@@ -89,12 +86,12 @@ jQuery(function ($) {
       const v = r[f] || "",
         dis = saved ? " disabled" : "";
       if (typ === "action") {
-        if (!saved && !IS_CLIENT) {
+        if (!saved && IS_CLIENT) {
           html += `<td class="text-center">
                    <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-save"></i></button>
                    <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
                  </td>`;
-        } else if (saved && !IS_CLIENT) {
+        } else if (saved && IS_CLIENT) {
           html += `<td class="text-center">
                    <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
                    <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash"></i></button>
@@ -142,8 +139,8 @@ jQuery(function ($) {
       page: p,
       per_page: PER_PAGE,
     };
-    if (IS_CLIENT) params.client_id = CLIENT_ID;
-    $.getJSON(LCM.ajax_url, params, (res) => {
+    if (filterClient) q.client_id = filterClient;
+    $.getJSON(LCM.ajax_url, q, (res) => {
       page = p;
       $tbody.html(res.rows.map(rowHtml).join(""));
       renderPager(res.total);
@@ -151,8 +148,13 @@ jQuery(function ($) {
   }
   $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
 
-  // Hide add for clients
-  if (IS_CLIENT) $add.hide();
+  // Filter for PPC/Admin
+  if (!IS_CLIENT) {
+    $filter.on("change", function () {
+      filterClient = this.value;
+      load(1);
+    });
+  }
 
   // Add draft
   $add.on("click", () => {
