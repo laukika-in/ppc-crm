@@ -1,12 +1,13 @@
+/* ==============================================================
+ *  CAMPAIGN DATA GRID
+ * ==============================================================*/
 jQuery(function ($) {
   const IS_CLIENT = !!LCM.is_client;
-  const CLIENT_ID = LCM.current_client_id;
   const PER_PAGE = LCM.per_page;
 
-  // Define all columns
-  const allCols = [
+  const cols = [
     ["_action", "Action", "action"],
-    ["client_id", "Client", "select", LCM.clients],
+    ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     [
       "month",
       "Month",
@@ -44,15 +45,9 @@ jQuery(function ($) {
     ["store_visit", "Visit", "readonly"],
   ];
 
-  // Remove client_id column for Clients
-  const cols = IS_CLIENT
-    ? allCols.filter((c) => c[0] !== "client_id")
-    : allCols;
-
   const $thead = $("#lcm-campaign-table thead");
   const $tbody = $("#lcm-campaign-table tbody");
   const $pager = $("#lcm-pager-campaign");
-  const $add = $("#lcm-add-row-campaign");
 
   let page = 1;
 
@@ -63,20 +58,14 @@ jQuery(function ($) {
   const opts = (arr, cur = "") =>
     "<option value=''></option>" +
     arr
-      .map((o) => {
-        const v = Array.isArray(o) ? o[0] : o,
-          t = Array.isArray(o) ? o[1] : o;
-        return `<option value="${v}"${
-          v == cur ? " selected" : ""
-        }>${t}</option>`;
-      })
+      .map((o) => `<option ${o == cur ? "selected" : ""}>${o}</option>`)
       .join("");
   const collect = ($tr) => {
-    const data = {};
+    const o = {};
     $tr.find("[data-name]").each(function () {
-      data[this.dataset.name] = $(this).val();
+      o[this.dataset.name] = $(this).val();
     });
-    return data;
+    return o;
   };
 
   // Build row
@@ -85,107 +74,93 @@ jQuery(function ($) {
     let html = `<tr data-id="${r.id || ""}"${
       saved ? "" : " class='table-warning'"
     }>`;
+
     cols.forEach(([f, _l, typ, opt]) => {
       const v = r[f] || "",
         dis = saved ? " disabled" : "";
+
       if (typ === "action") {
-        if (!saved && !IS_CLIENT) {
-          html += `<td class="text-center">
-                   <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-save"></i></button>
-                   <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
-                 </td>`;
-        } else if (saved && !IS_CLIENT) {
-          html += `<td class="text-center">
-                   <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil"></i></button>
-                   <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash"></i></button>
-                 </td>`;
-        } else {
-          html += `<td></td>`; // clients get no actions
-        }
+        html += saved
+          ? `<td class="text-center">
+               <button class="btn btn-secondary btn-sm edit-row me-1">✏️</button>
+               <button class="btn btn-danger   btn-sm del-camp" data-id="${r.id}">🗑</button>
+             </td>`
+          : `<td class="text-center">
+               <button class="btn btn-success btn-sm save-camp me-1">💾</button>
+               <button class="btn btn-warning btn-sm cancel-draft">✖</button>
+             </td>`;
       } else if (typ === "select") {
-        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
-                  ${opts(opt, v)}
-                </select></td>`;
+        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>${opts(
+          opt,
+          v
+        )}</select></td>`;
       } else if (typ === "date") {
-        html += `<td><input type="text" class="form-control form-control-sm flatpickr-date"
-                         data-name="campaign_date" value="${v}"${dis}></td>`;
+        html += `<td><input type="date" class="form-control form-control-sm" data-name="${f}" value="${v}"${dis}></td>`;
       } else if (typ === "number") {
-        html += `<td><input type="number" step="any" class="form-control form-control-sm"
-                         data-name="${f}" value="${v}"${dis}></td>`;
+        html += `<td><input type="number" step="any" class="form-control form-control-sm" data-name="${f}" value="${v}"${dis}></td>`;
+      } else if (typ === "readonly") {
+        html += `<td>${v}</td>`;
       } else {
-        html += `<td><input type="text" class="form-control form-control-sm"
-                         data-name="${f}" value="${v}"${dis}></td>`;
+        html += `<td><input type="text" class="form-control form-control-sm" data-name="${f}" value="${v}"${dis}></td>`;
       }
     });
-    html += "</tr>";
-    return html;
+
+    return html + "</tr>";
   }
 
   // Pager & Load
   function renderPager(total) {
     const pages = Math.max(1, Math.ceil(total / PER_PAGE));
     $pager.html(
-      Array.from({ length: pages }, (_, i) => {
-        const n = i + 1;
-        return `<button class="btn btn-outline-secondary ${
-          n === page ? "active" : ""
-        }"
-                      data-p="${n}">${n}</button>`;
-      }).join("")
+      Array.from(
+        { length: pages },
+        (_, i) =>
+          `<button class="btn btn-outline-secondary ${
+            i + 1 === page ? "active" : ""
+          }" data-p="${i + 1}">${i + 1}</button>`
+      ).join("")
     );
   }
 
   function load(p = 1) {
-    const params = {
-      action: "lcm_get_campaigns_json",
-      nonce: LCM.nonce,
-      page: p,
-      per_page: PER_PAGE,
-    };
-    if (IS_CLIENT) params.client_id = CLIENT_ID;
-    $.getJSON(LCM.ajax_url, params, (res) => {
-      page = p;
-      $tbody.html(res.rows.map(rowHtml).join(""));
-      renderPager(res.total);
-    });
+    $.getJSON(
+      LCM.ajax_url,
+      {
+        action: "lcm_get_campaigns_json",
+        nonce: LCM.nonce,
+        page: p,
+        per_page: PER_PAGE,
+      },
+      (res) => {
+        page = p;
+        $tbody.html(res.rows.map(rowHtml).join(""));
+        renderPager(res.total);
+      }
+    );
   }
   $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
 
-  // Hide add for clients
-  if (IS_CLIENT) $add.hide();
-
   // Add draft
-  $add.on("click", () => {
-    const d = {};
-    cols.forEach((c) => (d[c[0]] = ""));
-    if (IS_CLIENT) d.client_id = CLIENT_ID;
-    $tbody.prepend(rowHtml(d));
-    LCM_initFlatpickr($tbody.find("tr").first());
+  $("#lcm-add-row-campaign").on("click", () => {
+    $tbody.prepend(rowHtml({}));
   });
 
-  // Edit mode
-  $tbody.on("click", ".edit-row", function () {
-    const $tr = $(this).closest("tr").addClass("lcm-editing");
-    $tr.find("input,select").prop("disabled", false);
-    $(this)
-      .removeClass("edit-row btn-secondary")
-      .addClass("save-edit btn-success")
-      .html('<i class="bi bi-save"></i>')
-      .after(
-        '<button class="btn btn-warning btn-sm cancel-edit ms-1"><i class="bi bi-x-lg"></i></button>'
-      );
-    LCM_initFlatpickr($tr);
+  // Row-click → Edit
+  $tbody.on("click", "tr", function (e) {
+    if ($(e.target).closest(".btn").length) return;
+    const $tr = $(this);
+    if (!$tr.data("id") || $tr.hasClass("lcm-editing")) return;
+    $tr.find(".edit-row").trigger("click");
   });
-  $tbody.on("click", ".cancel-edit", () => load(page));
+
+  // Cancel draft
   $tbody.on("click", ".cancel-draft", function () {
     $(this).closest("tr").remove();
   });
 
   // Save draft
   $tbody.on("click", ".save-camp", function () {
-    const $tr = $(this).closest("tr");
-    const data = collect($tr);
-    if (IS_CLIENT) data.client_id = CLIENT_ID;
+    const data = collect($(this).closest("tr"));
     if (!data.adset) {
       alert("Adset required");
       return;
@@ -194,6 +169,22 @@ jQuery(function ($) {
     data.nonce = LCM.nonce;
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
+
+  // Enter edit mode
+  $tbody.on("click", ".edit-row", function () {
+    const $tr = $(this).closest("tr").addClass("lcm-editing");
+    $tr.find("input,select").prop("disabled", false);
+    $(this)
+      .removeClass("edit-row btn-secondary")
+      .addClass("save-edit btn-success")
+      .text("💾")
+      .after(
+        '<button class="btn btn-warning btn-sm cancel-edit ms-1">✖</button>'
+      );
+  });
+
+  // Cancel edit
+  $tbody.on("click", ".cancel-edit", () => load(page));
 
   // Save edit
   $tbody.on("click", ".save-edit", function () {
@@ -205,24 +196,35 @@ jQuery(function ($) {
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
-  // Delete
+  // Live N/A calculation
+  $tbody.on("input", "[data-name=leads]", function () {
+    const $tr = $(this).closest("tr");
+    const leads = +this.value || 0;
+    const conn = +$tr.find("td").eq(13).text() || 0;
+    const notc = +$tr.find("td").eq(14).text() || 0;
+    const rel = +$tr.find("td").eq(15).text() || 0;
+    $tr
+      .find("td")
+      .eq(16)
+      .text(Math.max(0, leads - conn - notc - rel));
+  });
+
+  // Delete with modal
   let delId = 0;
   const modal = new bootstrap.Modal("#lcmDelModal");
+
   $tbody.on("click", ".del-camp", function () {
     delId = $(this).data("id");
     modal.show();
   });
+
   $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
-      {
-        action: "lcm_delete_campaign",
-        nonce: LCM.nonce,
-        id: delId,
-      },
+      { action: "lcm_delete_campaign", nonce: LCM.nonce, id: delId },
       (res) => {
-        const p = Math.max(1, Math.ceil(res.data.total / PER_PAGE));
-        if (page > p) page = p;
+        const pages = Math.max(1, Math.ceil(res.data.total / PER_PAGE));
+        if (page > pages) page = pages;
         load(page);
         modal.hide();
       },
