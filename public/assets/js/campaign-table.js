@@ -4,7 +4,7 @@ jQuery(function ($) {
   const PER_PAGE = LCM.per_page;
 
   // Define all columns
-  const cols = [
+  const allCols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     [
@@ -43,6 +43,10 @@ jQuery(function ($) {
     ["scheduled_store_visit", "Sched Visit", "readonly"],
     ["store_visit", "Visit", "readonly"],
   ];
+  // Remove client_id column for Clients
+  const cols = IS_CLIENT
+    ? allCols.filter((c) => c[0] !== "client_id")
+    : allCols;
 
   const $thead = $("#lcm-campaign-table thead");
   const $tbody = $("#lcm-campaign-table tbody");
