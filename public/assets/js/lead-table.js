@@ -120,9 +120,9 @@ jQuery(function ($) {
           choices = ADSETS_BY_CLIENT[cid] || [];
         }
         html += `<td><select class="form-select form-select-sm"
-                                    data-name="${f}"${dis}>
-                                  ${opts(choices, v)}
-                                </select></td>`;
+                              data-name="${f}"${dis}>
+                            ${opts(choices, val)}
+                          </select></td>`;
       } else if (typ === "date") {
         html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
