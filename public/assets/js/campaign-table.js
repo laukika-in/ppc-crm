@@ -132,8 +132,8 @@ jQuery(function ($) {
   }
 
   function load(p = 1) {
-    const params = {
-      action: "lcm_get_campaigns_json",
+    const q = {
+      action: "lcm_get_leads_json",
       nonce: LCM.nonce,
       page: p,
       per_page: PER_PAGE,
