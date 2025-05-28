@@ -235,8 +235,7 @@ class PPC_CRM_Public {
           
                                <div class="lcm-filters">   
            
-
-<div class="row mb-3 lcm-filters">
+ 
   <?php if ( ! $is_client ) : ?>
   <div class="col-auto">
                     <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px"> 
