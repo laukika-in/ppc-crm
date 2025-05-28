@@ -66,22 +66,33 @@ jQuery(function ($) {
   let page = 1;
   filterClient = IS_CLIENT ? CLIENT_ID : "";
 
-  $filterMonth.on("change", () => {
-    filterMonth = $filterMonth.val();
+  $filterMonth.on("change", function () {
+    filterMonth = this.value;
+    setFilterActive("filter-month-group", !!filterMonth);
     load(1);
   });
-  $filterLocation.on("input", () => {
-    filterLocation = $filterLocation.val();
+
+  $filterLocation.on("input", function () {
+    filterLocation = this.value.trim();
+    setFilterActive("filter-location-group", !!filterLocation);
     load(1);
   });
-  $filterStore.on("change", () => {
-    filterStore = $filterStore.val();
+
+  $filterStore.on("change", function () {
+    filterStore = this.value;
+    setFilterActive("filter-store-group", !!filterStore);
     load(1);
   });
-  $filterConnected.on("change", () => {
-    filterConnected = $filterConnected.val();
+
+  $filterConnected.on("change", function () {
+    filterConnected = this.value;
+    setFilterActive("filter-connected-group", !!filterConnected);
     load(1);
   });
+
+  const $filterGroups = $(".lcm-filter-group");
+  const $clearButtons = $(".clear-filter");
+
   // Header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
@@ -286,6 +297,37 @@ jQuery(function ($) {
       }
     }
   });
+  function setFilterActive(groupId, isActive) {
+    const $g = $("#" + groupId);
+    $g.toggleClass("filter-active", isActive);
+  }
+  $clearButtons.on("click", function () {
+    const f = $(this).data("filter"); // “month”, “location”, etc.
+    switch (f) {
+      case "month":
+        filterMonth = "";
+        $("#lcm-filter-month-camp").val("");
+        setFilterActive("filter-month-group", false);
+        break;
+      case "location":
+        filterLocation = "";
+        $("#lcm-filter-location-camp").val("");
+        setFilterActive("filter-location-group", false);
+        break;
+      case "store":
+        filterStore = "";
+        $("#lcm-filter-store-camp").val("");
+        setFilterActive("filter-store-group", false);
+        break;
+      case "connected":
+        filterConnected = "";
+        $("#lcm-filter-connected-camp").val("");
+        setFilterActive("filter-connected-group", false);
+        break;
+    }
+    load(1);
+  });
+
   // Init
   load(1);
 });

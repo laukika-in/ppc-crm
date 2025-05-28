@@ -24,6 +24,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
+  gap: 20px;
 }
 .lcm-table thead th {
   position: sticky;
@@ -162,4 +163,19 @@
 .lcm-table thead th:nth-child(10),
 #lcm-campaign-table thead th:nth-child(8) {
   min-width: 70px;
+}
+
+/* hide all clear buttons by default */
+.lcm-filter-group .clear-filter {
+  display: none;
+}
+
+/* when active, highlight the group and show the clear button */
+.lcm-filter-group.filter-active .form-select,
+.lcm-filter-group.filter-active .form-control {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+.lcm-filter-group.filter-active .clear-filter {
+  display: block;
 }

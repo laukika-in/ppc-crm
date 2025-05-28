@@ -247,38 +247,59 @@ class PPC_CRM_Public {
                       </div> <?php endif; ?> 
                  
   <div class="col-auto">
-    <select id="lcm-filter-month-camp" class="form-select form-select-sm">
-      <option value="">All Months</option>
-      <?php foreach ( [
-        'January','February','March','April','May','June',
-        'July','August','September','October','November','December'
-      ] as $m ) : ?>
-        <option value="<?= esc_attr($m) ?>"><?= esc_html($m) ?></option>
-      <?php endforeach; ?>
-    </select>
+    <div class="input-group input-group-sm lcm-filter-group" id="filter-month-group">
+      <select id="lcm-filter-month-camp" class="form-select">
+        <option value="">All Months</option>
+        <?php foreach ( [ 'January','February','March','April','May','June','July','August','September','October','November','December' ] as $m ) : ?>
+          <option value="<?= esc_attr($m) ?>"><?= esc_html($m) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <button type="button"
+              class="btn btn-outline-secondary clear-filter"
+              data-filter="month"
+              title="Clear month filter">&times;</button>
+    </div>
   </div>
 
   <div class="col-auto">
-    <input id="lcm-filter-location-camp"
-           class="form-control form-control-sm"
-           type="text"
-           placeholder="Location" />
+    <div class="input-group input-group-sm lcm-filter-group" id="filter-location-group">
+      <input id="lcm-filter-location-camp"
+             class="form-control"
+             type="text"
+             placeholder="Location" />
+      <button type="button"
+              class="btn btn-outline-secondary clear-filter"
+              data-filter="location"
+              title="Clear location filter">&times;</button>
+    </div>
   </div>
 
   <div class="col-auto">
-    <select id="lcm-filter-store-camp" class="form-select form-select-sm">
-      <option value="">All Store Visits</option>
-      <option value="yes">Visited</option>
-      <option value="no">Not Visited</option>
-    </select>
+    <div class="input-group input-group-sm lcm-filter-group" id="filter-store-group">
+      <select id="lcm-filter-store-camp" class="form-select">
+        <option value="">All Store Visits</option>
+        <option value="yes">Visited</option>
+        <option value="no">Not Visited</option>
+      </select>
+      <button type="button"
+              class="btn btn-outline-secondary clear-filter"
+              data-filter="store"
+              title="Clear store-visit filter">&times;</button>
+    </div>
   </div>
 
   <div class="col-auto">
-    <select id="lcm-filter-connected-camp" class="form-select form-select-sm">
-      <option value="">All Connected</option>
-      <option value="yes">Has Connected Calls</option>
-      <option value="no">No Connected Calls</option>
-    </select>
+    <div class="input-group input-group-sm lcm-filter-group" id="filter-connected-group">
+      <select id="lcm-filter-connected-camp" class="form-select">
+        <option value="">All Connected</option>
+        <option value="yes">Has Connected Calls</option>
+        <option value="no">No Connected Calls</option>
+      </select>
+      <button type="button"
+              class="btn btn-outline-secondary clear-filter"
+              data-filter="connected"
+              title="Clear connected filter">&times;</button>
+    </div>
   </div>
 </div>
 
