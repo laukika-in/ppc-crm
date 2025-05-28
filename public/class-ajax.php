@@ -104,9 +104,11 @@ public function update_lead() {
 
     // Sanitize exactly the same fields as create_lead()
     $fields = [
-        'client_id','ad_name','adset','uid','lead_date','lead_time','day',
-        'phone_number','attempt','attempt_type','attempt_status',
-        'store_visit_status','remarks'
+         'client_id','ad_name','adset','uid','lead_date','lead_time','day',
+        'name','phone_number','alt_number','email','location',
+        'client_type','source','source_campaign','targeting','budget',
+        'product_interest','occasion',
+        'attempt','attempt_type','attempt_status','store_visit_status','remarks'
     ];
     $data = [];
     foreach ( $fields as $f ) {

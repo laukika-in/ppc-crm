@@ -165,6 +165,8 @@ jQuery(function ($) {
 
   // Add draft
   $add.on("click", () => {
+    $tbody.find(".cancel-edit").trigger("click");
+    $tbody.find(".cancel-draft").trigger("click");
     const d = {};
     cols.forEach((c) => (d[c[0]] = ""));
     if (IS_CLIENT) d.client_id = CLIENT_ID;
@@ -174,6 +176,8 @@ jQuery(function ($) {
 
   // Edit mode
   $tbody.on("click", ".edit-row", function () {
+    $tbody.find(".cancel-edit").trigger("click");
+    $tbody.find(".cancel-draft").trigger("click");
     const $tr = $(this).closest("tr").addClass("lcm-editing");
     $tr.find("input,select").prop("disabled", false);
     $(this)
@@ -237,6 +241,26 @@ jQuery(function ($) {
       },
       "json"
     );
+  });
+  // keyboard shortcuts: Enter = save, Escape = cancel
+  $tbody.on("keydown", "input, select", function (e) {
+    const $tr = $(this).closest("tr");
+    if (e.key === "Enter") {
+      // if it’s a draft
+      if (!$tr.data("id")) {
+        $tr.find(".save-row").trigger("click");
+      }
+      // if it’s an edit
+      else if ($tr.hasClass("lcm-editing")) {
+        $tr.find(".save-edit").trigger("click");
+      }
+    } else if (e.key === "Escape") {
+      if ($tr.hasClass("lcm-editing")) {
+        $tr.find(".cancel-edit").trigger("click");
+      } else {
+        $tr.find(".cancel-draft").trigger("click");
+      }
+    }
   });
 
   // Init
