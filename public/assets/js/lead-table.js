@@ -231,39 +231,20 @@ jQuery(function ($) {
   });
 
   // Edit mode
-
   $tbody.on("click", ".edit-row", function () {
-    // 1) Grab the row you clicked
-    const $tr = $(this).closest("tr");
-
-    // 2) Cancel any *other* open edits
-    $tbody
-      .find("tr.lcm-editing")
-      .not($tr)
-      .find(".cancel-edit")
-      .trigger("click");
-
-    // 3) Cancel any *other* draft rows
-    $tbody
-      .find("tr.table-warning")
-      .not($tr)
-      .find(".cancel-draft")
-      .trigger("click");
-
-    // 4) Turn THIS row into edit mode
-    $tr.addClass("lcm-editing").find("input,select").prop("disabled", false);
-
-    // 5) Swap buttons: ✏️ → 💾 & add ✖ cancel
+    $tbody.find(".cancel-edit").trigger("click");
+    $tbody.find(".cancel-draft").trigger("click");
+    const $tr = $(this).closest("tr").addClass("lcm-editing");
+    $tr.find("input,select").prop("disabled", false);
     $(this)
       .removeClass("edit-row btn-secondary")
       .addClass("save-edit btn-success")
-      .text("💾")
+      .html('<i class="bi bi-check-circle-fill"></i>')
       .after(
-        '<button class="btn btn-warning btn-sm cancel-edit ms-1">✖</button>'
+        '<button class="btn btn-warning btn-sm cancel-edit ms-1"><i class="bi bi-x-lg"></i></button>'
       );
-
-    // 6) Initialize Flatpickr, recalc any dynamic fields, etc.
     LCM_initFlatpickr($tr);
+    toggleDeps($tr);
   });
   $tbody.on("click", ".cancel-edit", () => load(page));
   $tbody.on("click", ".cancel-draft", function () {
