@@ -176,10 +176,24 @@ jQuery(function ($) {
 
   // Edit mode
   $tbody.on("click", ".edit-row", function () {
-    $tbody.find(".cancel-edit").trigger("click");
-    $tbody.find(".cancel-draft").trigger("click");
-    const $tr = $(this).closest("tr").addClass("lcm-editing");
+    // 1) Cancel any other editing row
+    $tbody.find("tr.lcm-editing").each(function () {
+      if (this !== $tr[0]) {
+        $(this).find(".cancel-edit").trigger("click");
+      }
+    });
+
+    // 2) Cancel any other draft row
+    $tbody.find("tr.table-warning").each(function () {
+      if (this !== $tr[0]) {
+        $(this).find(".cancel-draft").trigger("click");
+      }
+    });
+
+    // 3) Now enable this row
+    $tr.addClass("lcm-editing");
     $tr.find("input,select").prop("disabled", false);
+
     $(this)
       .removeClass("edit-row btn-secondary")
       .addClass("save-edit btn-success")
