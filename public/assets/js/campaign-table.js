@@ -165,14 +165,6 @@ jQuery(function ($) {
 
   // Add draft
   $add.on("click", () => {
-    $tbody.find("tr.lcm-editing").find(".cancel-edit").trigger("click");
-
-    // 2) cancel only the existing draft row
-    $tbody
-      .find("tr")
-      .filter((_, tr) => !$(tr).data("id"))
-      .find(".cancel-draft")
-      .trigger("click");
     const d = {};
     cols.forEach((c) => (d[c[0]] = ""));
     if (IS_CLIENT) d.client_id = CLIENT_ID;
@@ -182,42 +174,7 @@ jQuery(function ($) {
 
   // Edit mode
   $tbody.on("click", ".edit-row", function () {
-    // 1) cancel any other row currently in edit mode
-    $tbody
-      .find("tr.lcm-editing")
-      .not($thisRow)
-      .find(".cancel-edit")
-      .trigger("click");
-
-    // 2) cancel any draft row (no ID) that isn’t this one
-    $tbody
-      .find("tr")
-      .filter((_, tr) => !$(tr).data("id"))
-      .not($thisRow)
-      .find(".cancel-draft")
-      .trigger("click");
-
-    // 3) now put this row into edit mode
-    const $tr = $thisRow.addClass("lcm-editing");
-    const $thisRow = $(this).closest("tr");
-
-    // 1) cancel any other row currently in edit mode
-    $tbody
-      .find("tr.lcm-editing")
-      .not($thisRow)
-      .find(".cancel-edit")
-      .trigger("click");
-
-    // 2) cancel any draft row (no ID) that isn’t this one
-    $tbody
-      .find("tr")
-      .filter((_, tr) => !$(tr).data("id"))
-      .not($thisRow)
-      .find(".cancel-draft")
-      .trigger("click");
-
-    // 3) now put this row into edit mode
-    const $tr = $thisRow.addClass("lcm-editing");
+    const $tr = $(this).closest("tr").addClass("lcm-editing");
     $tr.find("input,select").prop("disabled", false);
     $(this)
       .removeClass("edit-row btn-secondary")

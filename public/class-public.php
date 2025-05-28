@@ -240,6 +240,42 @@ class PPC_CRM_Public {
                             <option value="<?= esc_attr( $c->ID ); ?>"><?= esc_html( $c->display_name ); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <div class="row mb-3 lcm-filters">
+  <div class="col-auto">
+    <select id="lcm-filter-month-camp" class="form-select form-select-sm">
+      <option value="">All Months</option>
+      <?php foreach ( [
+        'January','February','March','April','May','June',
+        'July','August','September','October','November','December'
+      ] as $m ) : ?>
+        <option value="<?= esc_attr($m) ?>"><?= esc_html($m) ?></option>
+      <?php endforeach; ?>
+    </select>
+  </div>
+
+  <div class="col-auto">
+    <input id="lcm-filter-location-camp"
+           class="form-control form-control-sm"
+           type="text"
+           placeholder="Location" />
+  </div>
+
+  <div class="col-auto">
+    <select id="lcm-filter-store-camp" class="form-select form-select-sm">
+      <option value="">All Store Visits</option>
+      <option value="yes">Visited</option>
+      <option value="no">Not Visited</option>
+    </select>
+  </div>
+
+  <div class="col-auto">
+    <select id="lcm-filter-connected-camp" class="form-select form-select-sm">
+      <option value="">All Connected</option>
+      <option value="yes">Has Connected Calls</option>
+      <option value="no">No Connected Calls</option>
+    </select>
+  </div>
+</div>
                 </div>
             <?php endif; ?>
 
