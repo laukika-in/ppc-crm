@@ -245,7 +245,7 @@ class PPC_CRM_Public {
                         <?php endforeach; ?>
                     </select>
                       </div> <?php endif; ?> 
-                </div>
+                 
   <div class="col-auto">
     <select id="lcm-filter-month-camp" class="form-select form-select-sm">
       <option value="">All Months</option>
