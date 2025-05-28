@@ -9,12 +9,12 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_nopriv_lcm_get_leads_json',  [ $this, 'forbid' ] );
 		add_action( 'wp_ajax_nopriv_lcm_create_lead',     [ $this, 'forbid' ] );
         add_action( 'wp_ajax_lcm_delete_lead', [ $this, 'delete_lead' ] );
-add_action( 'wp_ajax_nopriv_lcm_delete_lead', [ $this, 'forbid' ] );
-add_action( 'wp_ajax_lcm_get_campaigns_json', [ $this, 'get_campaigns' ] );
-add_action( 'wp_ajax_lcm_create_campaign',    [ $this, 'create_campaign' ] );
-add_action( 'wp_ajax_lcm_delete_campaign',    [ $this, 'delete_campaign' ] );
-add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
-add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
+		add_action( 'wp_ajax_nopriv_lcm_delete_lead', [ $this, 'forbid' ] );
+		add_action( 'wp_ajax_lcm_get_campaigns_json', [ $this, 'get_campaigns' ] );
+		add_action( 'wp_ajax_lcm_create_campaign',    [ $this, 'create_campaign' ] );
+		add_action( 'wp_ajax_lcm_delete_campaign',    [ $this, 'delete_campaign' ] );
+		add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
+		add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
 	}
 
@@ -59,8 +59,10 @@ add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
 		$fields = [
 			'client_id','ad_name','adset','uid','lead_date','lead_time','day',
-			'phone_number','attempt','attempt_type','attempt_status',
-			'store_visit_status','remarks'
+  'name','phone_number','alt_number','email','location',
+  'client_type','source','source_campaign','targeting','budget',
+  'product_interest','occasion',
+  'attempt','attempt_type','attempt_status','store_visit_status','remarks'
 		];
 		$data=[];
 		foreach($fields as $f){ $data[$f]=sanitize_text_field($_POST[$f]??''); }

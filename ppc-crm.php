@@ -1,13 +1,13 @@
 <?php
-/*
-Plugin Name: PPC-CRM
-Plugin URI:  https://example.com
-Description: Campaign + Lead manager with custom tables and no-admin access for Clients/PPC.
-Version:     0.3.403
-Author:      Your Name
-License:     GPL-2.0+
-Text Domain: ppc-crm
-*/
+/**
+ * Plugin Name:       PPC-CRM
+ * Description:       Campaign + Lead manager with custom tables and no-admin access for Clients/PPC.
+ * Plugin URI:        https://laukika.com/
+ * Author:            Laukika
+ * Version:           0.3.41
+ * Author URI:        https://laukika.com/
+ * Text Domain:       ppc-crm
+ */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! defined( 'PPC_CRM_VERSION' ) ) {
