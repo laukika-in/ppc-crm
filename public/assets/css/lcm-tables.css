@@ -21,6 +21,9 @@
 .lcm-filters {
   flex-grow: 1;
   margin: 0px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 .lcm-table thead th {
   position: sticky;

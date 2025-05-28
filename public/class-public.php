@@ -232,15 +232,21 @@ class PPC_CRM_Public {
                 + Add <?= ucfirst( $which ); ?>
             </button>
 
-            <?php if ( ! $is_client ) : ?>
-                               <div class="lcm-filters">
+          
+                               <div class="lcm-filters">   
+           
+
+<div class="row mb-3 lcm-filters">
+  <?php if ( ! $is_client ) : ?>
+  <div class="col-auto">
                     <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px"> 
                         <option value="">All Clients</option>
                         <?php foreach ( $clients as $c ) : ?>
                             <option value="<?= esc_attr( $c->ID ); ?>"><?= esc_html( $c->display_name ); ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <div class="row mb-3 lcm-filters">
+                      </div> <?php endif; ?> 
+                </div>
   <div class="col-auto">
     <select id="lcm-filter-month-camp" class="form-select form-select-sm">
       <option value="">All Months</option>
@@ -276,8 +282,6 @@ class PPC_CRM_Public {
     </select>
   </div>
 </div>
-                </div>
-            <?php endif; ?>
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
         </div>
