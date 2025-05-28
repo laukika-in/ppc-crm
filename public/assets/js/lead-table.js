@@ -231,34 +231,39 @@ jQuery(function ($) {
   });
 
   // Edit mode
+
   $tbody.on("click", ".edit-row", function () {
-    // 1) Cancel any other editing row
-    $tbody.find("tr.lcm-editing").each(function () {
-      if (this !== $tr[0]) {
-        $(this).find(".cancel-edit").trigger("click");
-      }
-    });
+    // 1) Grab the row you clicked
+    const $tr = $(this).closest("tr");
 
-    // 2) Cancel any other draft row
-    $tbody.find("tr.table-warning").each(function () {
-      if (this !== $tr[0]) {
-        $(this).find(".cancel-draft").trigger("click");
-      }
-    });
+    // 2) Cancel any *other* open edits
+    $tbody
+      .find("tr.lcm-editing")
+      .not($tr)
+      .find(".cancel-edit")
+      .trigger("click");
 
-    // 3) Now enable this row
-    $tr.addClass("lcm-editing");
-    $tr.find("input,select").prop("disabled", false);
+    // 3) Cancel any *other* draft rows
+    $tbody
+      .find("tr.table-warning")
+      .not($tr)
+      .find(".cancel-draft")
+      .trigger("click");
 
+    // 4) Turn THIS row into edit mode
+    $tr.addClass("lcm-editing").find("input,select").prop("disabled", false);
+
+    // 5) Swap buttons: ✏️ → 💾 & add ✖ cancel
     $(this)
       .removeClass("edit-row btn-secondary")
       .addClass("save-edit btn-success")
-      .html('<i class="bi bi-check-circle-fill"></i>')
+      .text("💾")
       .after(
-        '<button class="btn btn-warning btn-sm cancel-edit ms-1"><i class="bi bi-x-lg"></i></button>'
+        '<button class="btn btn-warning btn-sm cancel-edit ms-1">✖</button>'
       );
+
+    // 6) Initialize Flatpickr, recalc any dynamic fields, etc.
     LCM_initFlatpickr($tr);
-    toggleDeps($tr);
   });
   $tbody.on("click", ".cancel-edit", () => load(page));
   $tbody.on("click", ".cancel-draft", function () {
