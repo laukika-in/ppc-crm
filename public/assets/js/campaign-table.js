@@ -54,10 +54,34 @@ jQuery(function ($) {
   const $pager = $("#lcm-pager-campaign");
   const $add = $("#lcm-add-row-campaign");
   const $filter = $("#lcm-filter-client");
+  const $filterMonth = $("#lcm-filter-month-camp");
+  const $filterLocation = $("#lcm-filter-location-camp");
+  const $filterStore = $("#lcm-filter-store-camp");
+  const $filterConnected = $("#lcm-filter-connected-camp");
 
+  let filterMonth = "";
+  let filterLocation = "";
+  let filterStore = "";
+  let filterConnected = "";
   let page = 1;
   filterClient = IS_CLIENT ? CLIENT_ID : "";
 
+  $filterMonth.on("change", () => {
+    filterMonth = $filterMonth.val();
+    load(1);
+  });
+  $filterLocation.on("input", () => {
+    filterLocation = $filterLocation.val();
+    load(1);
+  });
+  $filterStore.on("change", () => {
+    filterStore = $filterStore.val();
+    load(1);
+  });
+  $filterConnected.on("change", () => {
+    filterConnected = $filterConnected.val();
+    load(1);
+  });
   // Header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
@@ -143,6 +167,10 @@ jQuery(function ($) {
       nonce: LCM.nonce,
       page: p,
       per_page: PER_PAGE,
+      month: filterMonth,
+      location: filterLocation,
+      store_visit: filterStore,
+      has_connected: filterConnected,
     };
     if (filterClient) params.client_id = filterClient;
     $.getJSON(LCM.ajax_url, params, (res) => {

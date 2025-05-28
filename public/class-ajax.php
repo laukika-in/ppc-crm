@@ -198,6 +198,33 @@ public function get_campaigns() {
     $table = $wpdb->prefix . 'lcm_campaigns';
     $where = 'WHERE 1=1';
 
+  // Month filter
+  if ( ! empty( $_GET['month'] ) ) {
+    $where .= $wpdb->prepare( " AND month = %s", sanitize_text_field( $_GET['month'] ) );
+  }
+
+  // Location filter (partial match)
+  if ( ! empty( $_GET['location'] ) ) {
+    $where .= $wpdb->prepare( " AND location LIKE %s", '%' . $wpdb->esc_like( $_GET['location'] ) . '%' );
+  }
+
+  // Store Visit filter
+  if ( ! empty( $_GET['store_visit'] ) ) {
+    if ( $_GET['store_visit'] === 'yes' ) {
+      $where .= " AND store_visit > 0";
+    } else {
+      $where .= " AND store_visit = 0";
+    }
+  }
+
+  // Connected filter
+  if ( ! empty( $_GET['has_connected'] ) ) {
+    if ( $_GET['has_connected'] === 'yes' ) {
+      $where .= " AND connected_number > 0";
+    } else {
+      $where .= " AND connected_number = 0";
+    }
+  }
     // Filter by role
     if ($is_client) {
         $where .= $wpdb->prepare(" AND client_id = %d", $user_id);
