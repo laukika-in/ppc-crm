@@ -398,77 +398,84 @@ if ( ! empty( $data['adset'] ) ) {
  * Re-count all “Connected / Not Connected / Relevant” totals
  * for a given Adset and push them into the Campaign row.
  */
-public function recount_campaign_counters( $adset ) {
-    global $wpdb;
+public  function recount_campaign_counters( $adset ) {
 
-    // 1) Count each attempt_type for this adset
-    $rows = $wpdb->get_results( $wpdb->prepare(
-      "SELECT attempt_type, COUNT(*) AS qty
-         FROM {$wpdb->prefix}lcm_leads
-        WHERE adset = %s
-        GROUP BY attempt_type",
-      $adset
-    ), ARRAY_A );
+	global $wpdb;
 
-    $notRelevant = 0;
-    $relevant    = 0;
-    $notConnected= 0;
+	/* ---------- 1) Initialise all tallies ---------- */
+	$totals = [
+		'connected_number'      => 0,  // Connected:Not Relevant
+		'not_connected'         => 0,  // Not Connected
+		'relevant'              => 0,  // Connected:Relevant
+		'scheduled_store_visit' => 0,  // Attempt Status = Store Visit Scheduled
+		'store_visit'           => 0,  // Store Visit Status = Show
+	];
 
-    foreach ( $rows as $r ) {
-      if ( $r['attempt_type'] === 'Connected:Relevant' ) {
-        $relevant = (int)$r['qty'];
-      }
-      if ( $r['attempt_type'] === 'Connected:Not Relevant' ) {
-        $notRelevant = (int)$r['qty'];
-      }
-      if ( $r['attempt_type'] === 'Not Connected' ) {
-        $notConnected = (int)$r['qty'];
-      }
-    }
+	/* ---------- 2) Attempt-type tallies ------------ */
+	$rows = $wpdb->get_results( $wpdb->prepare(
+		"SELECT attempt_type, COUNT(*) AS qty
+		   FROM {$wpdb->prefix}lcm_leads
+		  WHERE adset = %s
+		  GROUP BY attempt_type",
+		$adset
+	), ARRAY_A );
 
-    // Connected = both types summed
-    $connected = $relevant + $notRelevant;
+	foreach ( $rows as $r ) {
+		switch ( $r['attempt_type'] ) {
+			case 'Connected:Not Relevant':
+				$totals['connected_number'] = (int) $r['qty']; break;
+			case 'Not Connected':
+				$totals['not_connected']    = (int) $r['qty']; break;
+			case 'Connected:Relevant':
+				$totals['relevant']         = (int) $r['qty']; break;
+		}
+	}
 
-    // 2) Scheduled store visits
-    $scheduled = (int) $wpdb->get_var( $wpdb->prepare(
-      "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-         WHERE adset = %s AND attempt_status = 'Store Visit Scheduled'",
-      $adset
-    ) );
+	/* ---------- 3) Attempt Status = Store Visit Scheduled ---------- */
+	$totals['scheduled_store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+		  WHERE adset = %s AND attempt_status = 'Store Visit Scheduled'",
+		$adset
+	) );
 
-    // 3) Store visits actually shown
-    $shown = (int) $wpdb->get_var( $wpdb->prepare(
-      "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-         WHERE adset = %s AND store_visit_status = 'Show'",
-      $adset
-    ) );
+	/* ---------- 4) Store Visit Status = Show ---------- */
+	$totals['store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+		  WHERE adset = %s AND store_visit_status = 'Show'",
+		$adset
+	) );
 
-    // 4) Recalculate N/A
-    $leads_total = (int) $wpdb->get_var( $wpdb->prepare(
-      "SELECT leads FROM {$wpdb->prefix}lcm_campaigns
-         WHERE adset = %s LIMIT 1",
-      $adset
-    ) );
-    $na = max( 0, $leads_total - $connected - $notConnected - $relevant );
+	/* ---------- 5) Compute N/A = leads – (connected+not_connected+relevant) ---------- */
+	$leads_total = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT leads FROM {$wpdb->prefix}lcm_campaigns
+		  WHERE adset = %s LIMIT 1",
+		$adset
+	) );
 
-    // 5) Write back into campaigns table
-    $wpdb->update(
-      "{$wpdb->prefix}lcm_campaigns",
-      [
-        'connected_number'      => $connected,
-        'relevant'              => $relevant,
-        'not_relevant'          => $notRelevant,
-        'not_connected'         => $notConnected,
-        'scheduled_store_visit' => $scheduled,
-        'store_visit'           => $shown,
-        'not_available'         => $na,
-      ],
-      [ 'adset' => $adset ],
-      [ '%d','%d','%d','%d','%d','%d','%d' ],
-      [ '%s' ]
-    );
+	$totals['not_available'] = max(
+		0,
+		$leads_total
+		- $totals['connected_number']
+		- $totals['not_connected']
+		- $totals['relevant']
+	);
+
+	/* ---------- 6) Push everything into the Campaign row ---------- */
+	$wpdb->update(
+		$wpdb->prefix . 'lcm_campaigns',
+		[
+			'connected_number'      => $totals['connected_number'],
+			'not_connected'         => $totals['not_connected'],
+			'relevant'              => $totals['relevant'],
+			'scheduled_store_visit' => $totals['scheduled_store_visit'],
+			'store_visit'           => $totals['store_visit'],
+			'not_available'         => $totals['not_available'],
+		],
+		[ 'adset' => $adset ],
+		[ '%d','%d','%d','%d','%d','%d' ],
+		[ '%s' ]
+	);
 }
-
 
 
     /** Change “Add title” placeholder for each CPT */

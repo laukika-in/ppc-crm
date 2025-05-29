@@ -413,11 +413,11 @@ jQuery(function ($) {
   // Delete
   let delId = 0;
   const modal = new bootstrap.Modal("#lcmDelModal");
-    $tbody.on("click", ".del-row", function () {
-      delId = $(this).data("id") || 0;
-      if (!delId) $(this).closest("tr").remove();
-      else modal.show();
-    });
+  $tbody.on("click", ".del-row", function () {
+    delId = $(this).data("id") || 0;
+    if (!delId) $(this).closest("tr").remove();
+    else modal.show();
+  });
   $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
