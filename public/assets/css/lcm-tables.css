@@ -154,7 +154,8 @@
 
 #lcm-campaign-table thead th:nth-child(7),
 .lcm-table thead th:nth-child(12),
-.lcm-table thead th:nth-child(14) {
+.lcm-table thead th:nth-child(14),
+.lcm-table thead th:nth-child(22) {
   min-width: 200px;
 }
 .lcm-table thead th:nth-child(7),
