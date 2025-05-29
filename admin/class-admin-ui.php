@@ -457,44 +457,33 @@ public  function recount_campaign_counters( $adset ) {
 }
 
 /**
- * Re-count total Leads for a campaign (by Campaign Name if Google source,
- * or by Adset otherwise) and write into the `leads` column.
+ * Re-count total Leads = #Google‐leads (by campaign_name)
+ *                         + #non-Google leads (by adset)
  */
-public function recount_total_leads( string $source, string $adset, string $ad_name ) {
-    global $wpdb;
+public function recount_total_leads( string $campaign_name, string $adset ) {
+  global $wpdb;
+  $table = $wpdb->prefix . 'lcm_leads';
 
-    if ( $source === 'Google' ) {
-        // count all Google‐sourced rows for that campaign_name
-        $count = (int) $wpdb->get_var( $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-             WHERE source = 'Google' AND ad_name = %s",
-            $ad_name
-        ) );
-        // update campaign row by campaign_name
-        $wpdb->update(
-            "{$wpdb->prefix}lcm_campaigns",
-            [ 'leads' => $count ],
-            [ 'campaign_name' => $ad_name ],
-            [ '%d' ],
-            [ '%s' ]
-        );
+  // Google leads → match on campaign_name
+  $google = (int) $wpdb->get_var( $wpdb->prepare(
+    "SELECT COUNT(*) FROM $table WHERE source = 'Google' AND ad_name = %s",
+    $campaign_name
+  ) );
 
-    } else {
-        // count all non-Google rows for that adset
-        $count = (int) $wpdb->get_var( $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-             WHERE source <> 'Google' AND adset = %s",
-            $adset
-        ) );
-        // update campaign row by adset
-        $wpdb->update(
-            "{$wpdb->prefix}lcm_campaigns",
-            [ 'leads' => $count ],
-            [ 'adset' => $adset ],
-            [ '%d' ],
-            [ '%s' ]
-        );
-    }
+  // other leads → match on adset
+  $other  = (int) $wpdb->get_var( $wpdb->prepare(
+    "SELECT COUNT(*) FROM $table WHERE source <> 'Google' AND adset = %s",
+    $adset
+  ) );
+
+  // push sum into the campaign row
+  $wpdb->update(
+    $wpdb->prefix . 'lcm_campaigns',
+    [ 'leads' => $google + $other ],
+    [ 'campaign_name' => $campaign_name, 'adset' => $adset ],
+    [ '%d' ],
+    [ '%s','%s' ]
+  );
 }
 
     /** Change “Add title” placeholder for each CPT */

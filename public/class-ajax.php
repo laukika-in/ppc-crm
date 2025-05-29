@@ -101,15 +101,11 @@ class PPC_CRM_Ajax {
 
 		global $wpdb;
 		$wpdb->insert( $wpdb->prefix.'lcm_leads', $data );
-
-		if(class_exists('PPC_CRM_Admin_UI')){
-			(new PPC_CRM_Admin_UI)->recount_campaign_counters($data['adset']);
+		if ( class_exists('PPC_CRM_Admin_UI') ) {
+		$ui = new PPC_CRM_Admin_UI(); 
+		$ui->recount_campaign_counters( $data['adset'] ); 
+		$ui->recount_total_leads( $data['ad_name'], $data['adset'] );
 		}
-		if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-    $ui = new PPC_CRM_Admin_UI();
-    // source/adset/ad_name come from your $data array
-    $ui->recount_total_leads( $data['source'], $data['adset'], $data['ad_name'] );
-}
 		wp_send_json_success();
 	}
 
@@ -162,15 +158,11 @@ public function update_lead() {
             'post_title' => sanitize_text_field( $_POST['uid'] ?? '' ),
         ]);
     }
-
-    // Recount campaign counters
-    if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-        ( new PPC_CRM_Admin_UI )->recount_campaign_counters( $data['adset'] );
-    }
-if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-    $ui = new PPC_CRM_Admin_UI();
-    $ui->recount_total_leads( $data['source'], $data['adset'], $data['ad_name'] );
-}
+	if ( class_exists('PPC_CRM_Admin_UI') ) {
+		$ui = new PPC_CRM_Admin_UI(); 
+		$ui->recount_campaign_counters( $data['adset'] ); 
+		$ui->recount_total_leads( $data['ad_name'], $data['adset'] );
+		}
     wp_send_json_success();
 }
 
@@ -184,7 +176,7 @@ public function delete_lead() {
 
 	global $wpdb;
 	$lead = $wpdb->get_row( $wpdb->prepare(
-		"SELECT adset, post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
+		 "SELECT adset, ad_name, post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
 		$id
 	), ARRAY_A );
 
@@ -194,23 +186,14 @@ public function delete_lead() {
 	$wpdb->delete( $wpdb->prefix . 'lcm_leads', [ 'id' => $id ] );
 	wp_delete_post( $lead['post_id'], true );
 
-	/* Re-count campaign counters */
-	if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-		( new PPC_CRM_Admin_UI )->recount_campaign_counters( $lead['adset'] );
-	}
-	if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-    $ui = new PPC_CRM_Admin_UI();
-    // you still have $lead['adset'] and should fetch its source/ad_name first:
-    $row = $wpdb->get_row( $wpdb->prepare(
-        "SELECT source, adset, ad_name FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
-        $id
-    ), ARRAY_A );
-    if ( $row ) {
-        $ui->recount_total_leads( $row['source'], $row['adset'], $row['ad_name'] );
+     if ( class_exists('PPC_CRM_Admin_UI') ) {
+        $ui = new PPC_CRM_Admin_UI();
+        $ui->recount_campaign_counters( $lead['adset'] );
+        $ui->recount_total_leads( $lead['ad_name'], $lead['adset'] );
     }
-}
-$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
-wp_send_json_success( [ 'total' => $total ] );   // ← NEW
+
+    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
+    wp_send_json_success( [ 'total' => $total ] );   // ← NEW
  
 }
 /* ---------- Campaign: fetch --------------------------------------- */
