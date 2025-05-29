@@ -126,7 +126,6 @@ public static function version() : string {
 		dbDelta("
 			CREATE TABLE $campaigns (
 				id                     BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-				campaign_title		   VARCHAR(191) NOT NULL, 
 				campaign_name 		   VARCHAR(191) NOT NULL, 
 				post_id                BIGINT(20) UNSIGNED NOT NULL,
 				client_id              BIGINT(20) UNSIGNED NOT NULL,
@@ -143,7 +142,6 @@ public static function version() : string {
 				cpm                    DECIMAL(30,10) DEFAULT 0,
 				connected_number       INT UNSIGNED DEFAULT 0,
 				not_connected          INT UNSIGNED DEFAULT 0,
-				not_relevant    	   INT UNSIGNED DEFAULT 0,
 				relevant               INT UNSIGNED DEFAULT 0,
 				not_available          INT UNSIGNED DEFAULT 0,
 				scheduled_store_visit  INT UNSIGNED DEFAULT 0,
@@ -159,7 +157,6 @@ public static function version() : string {
 		dbDelta("
 			CREATE TABLE $leads (
 				id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-				lead_title      VARCHAR(191) NOT NULL,
 				post_id           BIGINT UNSIGNED NOT NULL,
 				client_id         BIGINT UNSIGNED NOT NULL,
 				ad_name           VARCHAR(191),
