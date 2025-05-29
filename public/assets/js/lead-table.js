@@ -101,34 +101,73 @@ jQuery(function ($) {
   const $filterBudget = $("#lcm-filter-budget");
   const $filterProduct = $("#lcm-filter-product");
 
-  et filterDateFrom      = "",
-    filterDateTo        = "",
-    filterAdNameVal     = "",
-    filterAdsetVal      = "",
-    filterDayVal        = "",
-    filterClientTypeVal = "",
-    filterSourceVal     = "",
-    filterAttemptVal    = "",
-    filterStoreVal      = "",
-    filterOccasionVal   = "",
-    filterTextVal       = "",
-    filterBudgetVal     = "",
-    filterProductVal    = "";
+  (filterDateFrom = ""),
+    (filterDateTo = ""),
+    (filterAdNameVal = ""),
+    (filterAdsetVal = ""),
+    (filterDayVal = ""),
+    (filterClientTypeVal = ""),
+    (filterSourceVal = ""),
+    (filterAttemptVal = ""),
+    (filterStoreVal = ""),
+    (filterOccasionVal = ""),
+    (filterTextVal = ""),
+    (filterBudgetVal = ""),
+    (filterProductVal = "");
 
-// on-change handlers (all reload page 1)
-$filterDateFrom.on("change", () => { filterDateFrom = $filterDateFrom.val(); load(1); });
-$filterDateTo.on("change",   () => { filterDateTo   = $filterDateTo.val();   load(1); });
-$filterAdName.on("change",   () => { filterAdNameVal = $filterAdName.val(); load(1); });
-$filterAdset.on("change",    () => { filterAdsetVal  = $filterAdset.val();  load(1); });
-$filterDay.on("change",      () => { filterDayVal    = $filterDay.val();    load(1); });
-$filterClientType.on("change", ()=>{ filterClientTypeVal = $filterClientType.val(); load(1); });
-$filterSource.on("change",   () => { filterSourceVal = $filterSource.val(); load(1); });
-$filterAttemptStatus.on("change", () => { filterAttemptVal = $filterAttemptStatus.val(); load(1); });
-$filterStoreVisit.on("change",    () => { filterStoreVal   = $filterStoreVisit.val();  load(1); });
-$filterOccasion.on("change",      () => { filterOccasionVal= $filterOccasion.val(); load(1); });
-$filterText.on("input",           () => { filterTextVal    = $filterText.val().trim(); load(1); });
-$filterBudget.on("input",         () => { filterBudgetVal  = $filterBudget.val().trim(); load(1); });
-$filterProduct.on("input",        () => { filterProductVal = $filterProduct.val().trim(); load(1); });
+  // on-change handlers (all reload page 1)
+  $filterDateFrom.on("change", () => {
+    filterDateFrom = $filterDateFrom.val();
+    load(1);
+  });
+  $filterDateTo.on("change", () => {
+    filterDateTo = $filterDateTo.val();
+    load(1);
+  });
+  $filterAdName.on("change", () => {
+    filterAdNameVal = $filterAdName.val();
+    load(1);
+  });
+  $filterAdset.on("change", () => {
+    filterAdsetVal = $filterAdset.val();
+    load(1);
+  });
+  $filterDay.on("change", () => {
+    filterDayVal = $filterDay.val();
+    load(1);
+  });
+  $filterClientType.on("change", () => {
+    filterClientTypeVal = $filterClientType.val();
+    load(1);
+  });
+  $filterSource.on("change", () => {
+    filterSourceVal = $filterSource.val();
+    load(1);
+  });
+  $filterAttemptStatus.on("change", () => {
+    filterAttemptVal = $filterAttemptStatus.val();
+    load(1);
+  });
+  $filterStoreVisit.on("change", () => {
+    filterStoreVal = $filterStoreVisit.val();
+    load(1);
+  });
+  $filterOccasion.on("change", () => {
+    filterOccasionVal = $filterOccasion.val();
+    load(1);
+  });
+  $filterText.on("input", () => {
+    filterTextVal = $filterText.val().trim();
+    load(1);
+  });
+  $filterBudget.on("input", () => {
+    filterBudgetVal = $filterBudget.val().trim();
+    load(1);
+  });
+  $filterProduct.on("input", () => {
+    filterProductVal = $filterProduct.val().trim();
+    load(1);
+  });
 
   // Render header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
@@ -235,19 +274,19 @@ $filterProduct.on("input",        () => { filterProductVal = $filterProduct.val(
       per_page: PER_PAGE,
     };
     if (filterClient) q.client_id = filterClient;
-    q.date_from         = filterDateFrom;
-q.date_to           = filterDateTo;
-q.ad_name           = filterAdNameVal;
-q.adset             = filterAdsetVal;
-q.day               = filterDayVal;
-q.client_type       = filterClientTypeVal;
-q.source            = filterSourceVal;
-q.attempt_status    = filterAttemptVal;
-q.store_visit_status= filterStoreVal;
-q.occasion          = filterOccasionVal;
-q.search            = filterTextVal;
-q.budget            = filterBudgetVal;
-q.product_interest  = filterProductVal;
+    q.date_from = filterDateFrom;
+    q.date_to = filterDateTo;
+    q.ad_name = filterAdNameVal;
+    q.adset = filterAdsetVal;
+    q.day = filterDayVal;
+    q.client_type = filterClientTypeVal;
+    q.source = filterSourceVal;
+    q.attempt_status = filterAttemptVal;
+    q.store_visit_status = filterStoreVal;
+    q.occasion = filterOccasionVal;
+    q.search = filterTextVal;
+    q.budget = filterBudgetVal;
+    q.product_interest = filterProductVal;
     $.getJSON(LCM.ajax_url, q, (res) => {
       page = p;
       $tbody.html(res.rows.map(rowHtml).join(""));
