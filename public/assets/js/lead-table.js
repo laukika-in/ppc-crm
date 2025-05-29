@@ -251,22 +251,6 @@ jQuery(function ($) {
                               data-name="${f}"${dis}>
                             ${opts(choices, val)}
                           </select></td>`;
-      } else if (f === "ad_name") {
-        // only allow if source === 'Google'
-        const choices =
-          r.source === "Google" ? ADNAMES_BY_CLIENT[cid] || [] : [];
-        html +=
-          `<td><select data-name="ad_name" class="form-select form-select-sm"${dis}>` +
-          opts(choices, val) +
-          `</select></td>`;
-      } else if (f === "adset") {
-        // only allow if source !== 'Google' (i.e. Meta)
-        const choices =
-          r.source === "Google" ? [] : ADSETS_BY_CLIENT[cid] || [];
-        html +=
-          `<td><select data-name="adset" class="form-select form-select-sm"${dis}>` +
-          opts(choices, val) +
-          `</select></td>`;
       } else if (typ === "date") {
         html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
