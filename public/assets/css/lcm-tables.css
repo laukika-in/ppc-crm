@@ -179,3 +179,6 @@
 .lcm-filter-group.filter-active .clear-filter {
   display: block;
 }
+.justify-content-between {
+  align-items: center;
+}
