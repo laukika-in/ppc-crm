@@ -133,9 +133,6 @@ if ( ! empty( $_GET['product_interest'] ) ) {
 
 		if(!$data['uid']||!$data['adset']) wp_send_json_error(['msg'=>'UID & Adset required'],400);
 
-		$camp=get_page_by_title($data['adset'],OBJECT,'lcm_campaign');
-		if(!$camp) wp_send_json_error(['msg'=>'Adset not found'],404);
-		$data['campaign_id']=$camp->ID;
 
 		$post_id=wp_insert_post([
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
