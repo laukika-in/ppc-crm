@@ -178,34 +178,45 @@ if ( ! $data['campaign_id'] ) {
 
     /* ---------- 3) Delete saved lead row ------------------------------- */
 public function delete_lead() {
+    $this->verify();
 
-	$this->verify();
+    $id = absint( $_POST['id'] ?? 0 );
+    if ( ! $id ) {
+        wp_send_json_error( [ 'msg' => 'Missing ID' ], 400 );
+    }
 
-	$id = absint( $_POST['id'] ?? 0 );
-	if ( ! $id ) wp_send_json_error( [ 'msg' => 'Missing ID' ], 400 );
+    global $wpdb;
+    // ① grab the campaign_id for this lead
+    $campaign_id = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT campaign_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
+        $id
+    ) );
 
-	global $wpdb;
-	$lead = $wpdb->get_row( $wpdb->prepare(
-		 "SELECT adset, ad_name, post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
-		$id
-	), ARRAY_A );
+    // ② fetch the WP post_id so we can delete it
+    $lead = $wpdb->get_row( $wpdb->prepare(
+        "SELECT post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
+        $id
+    ), ARRAY_A );
+    if ( ! $lead || empty( $lead['post_id'] ) ) {
+        wp_send_json_error( [ 'msg' => 'Lead not found' ], 404 );
+    }
 
-	if ( ! $lead ) wp_send_json_error( [ 'msg' => 'Lead not found' ], 404 );
+    // ③ remove from custom table & delete the post
+    $wpdb->delete( $wpdb->prefix . 'lcm_leads', [ 'id' => $id ] );
+    wp_delete_post( (int) $lead['post_id'], true );
 
-	/* Remove from custom table and wp_posts */
-	$wpdb->delete( $wpdb->prefix . 'lcm_leads', [ 'id' => $id ] );
-	wp_delete_post( $lead['post_id'], true );
-
+    // ④ re‐count now that it’s gone
     if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-    $ui = new PPC_CRM_Admin_UI();
-    $ui->recount_total_leads( $data['campaign_id'] );
-    $ui->recount_campaign_counters( $data['campaign_id'] );
+        $ui = new PPC_CRM_Admin_UI();
+        $ui->recount_total_leads( $campaign_id );
+        $ui->recount_campaign_counters( $campaign_id );
+    }
+
+    // ⑤ return updated total for pager
+    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
+    wp_send_json_success( [ 'total' => $total ] );
 }
 
-    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
-    wp_send_json_success( [ 'total' => $total ] );   // ← NEW
- 
-}
 /* ---------- Campaign: fetch --------------------------------------- */
 public function get_campaigns() {
     $this->verify();

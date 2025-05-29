@@ -32,19 +32,19 @@ jQuery(function ($) {
     ["campaign_date", "Date", "date"],
     ["location", "Location", "text"],
     ["adset", "Adset", "text"],
-    ["leads", "Leads", "number", "readonly"],
+    ["leads", "Leads", "readonly"],
     ["reach", "Reach", "number"],
     ["impressions", "Impr", "number"],
-    ["cost_per_lead", "CPL", "number", "readonly"],
+    ["cost_per_lead", "CPL", "readonly"],
     ["amount_spent", "Spent", "number"],
     ["cpm", "CPM", "number"],
-    ["connected_number", "Connected", "number", "readonly"],
-    ["relevant", "Relevant", "number", "readonly"],
-    ["not_connected", "Not Conn", "number", "readonly"],
-    ["not_relevant", "Not Relevant", "number", "readonly"],
-    ["not_available", "N/A", "number", "readonly"],
-    ["scheduled_store_visit", "Sched Visit", "number", "readonly"],
-    ["store_visit", "Visit", "number", "readonly"],
+    ["connected_number", "Connected", "readonly"],
+    ["relevant", "Relevant", "readonly"],
+    ["not_connected", "Not Conn", "readonly"],
+    ["not_relevant", "Not Relevant", "readonly"],
+    ["not_available", "N/A", "readonly"],
+    ["scheduled_store_visit", "Sched Visit", "readonly"],
+    ["store_visit", "Visit", "readonly"],
   ];
 
   // Remove client_id column for Clients
@@ -154,8 +154,8 @@ jQuery(function ($) {
                          data-name="${f}" value="${v}"${dis}></td>`;
       } else if (typ === "readonly") {
         html += `<td>
-                 <input type="number" step="any"
-                        class="form-control form-control-sm lcm-readonly "
+                 <input type="text"
+                        class="form-control lcm-readonly form-control-sm"
                         data-name="${f}"
                         value="${v}"
                         disabled />
