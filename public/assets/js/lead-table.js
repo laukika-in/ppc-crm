@@ -455,25 +455,6 @@ jQuery(function ($) {
       }
     }
   });
-
-  // Whenever PPC/Admin selects a Client, refresh both Adset and Ad Name dropdowns
-  $tbody.on("change", "select[data-name=client_id]", function () {
-    const $tr = $(this).closest("tr");
-    const cid = $(this).val() || "";
-
-    // 1) rebuild Adset list
-    const adsetChoices = ADSETS_BY_CLIENT[cid] || [];
-    $tr
-      .find("select[data-name=adset]")
-      .html("<option value=''></option>" + opts(adsetChoices));
-
-    // 2) rebuild Ad Name (Campaign Name) list
-    const adnameChoices = ADNAMES_BY_CLIENT[cid] || [];
-    $tr
-      .find("select[data-name=ad_name]")
-      .html("<option value=''></option>" + opts(adnameChoices));
-  });
-
   // Initial load
   load(1);
 });
