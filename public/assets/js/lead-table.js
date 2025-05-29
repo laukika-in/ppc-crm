@@ -10,7 +10,24 @@ jQuery(function ($) {
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     ["lead_title", "Lead Title", "text"],
-    ["ad_name", "Ad Name", "select", []],
+    [
+      "source",
+      "Source",
+      "select",
+      [
+        "Google",
+        "Meta",
+        "WhatsApp",
+        "LinkedIn",
+        "Twitter",
+        "TikTok",
+        "Email",
+        "Referral",
+        "Organic",
+        "Other",
+      ],
+    ],
+    ["ad_name", "Campaign Name", "select", []],
     ["adset", "Adset", "select", LCM.adsets],
     ["uid", "UID", "text"],
     ["lead_date", "Date", "date"],
@@ -35,23 +52,7 @@ jQuery(function ($) {
     ["email", "Email", "text"],
     ["location", "Location", "text"],
     ["client_type", "Client Type", "select", ["New Client", "Existing Client"]],
-    [
-      "source",
-      "Source",
-      "select",
-      [
-        "Google",
-        "Meta",
-        "WhatsApp",
-        "LinkedIn",
-        "Twitter",
-        "TikTok",
-        "Email",
-        "Referral",
-        "Organic",
-        "Other",
-      ],
-    ],
+
     ["source_campaign", "Source of Campaign", "text"],
     ["targeting", "Targeting", "text"],
     ["budget", "Budget", "text"],
@@ -389,7 +390,7 @@ jQuery(function ($) {
       alert("Campaign Name is required for Google leads");
       return;
     }
-    if (data.source !== "Google" && !data.adset) {
+    if (data.source !== "Meta" && !data.adset) {
       alert("Adset is required for Meta (and other) leads");
       return;
     }
