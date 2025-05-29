@@ -140,9 +140,7 @@ $post_id = wp_insert_post([
   'post_status' => 'publish',
   'post_title'  => $data['lead_title'],
 ], true);
-		$camp=get_page_by_title($data['adset'],OBJECT,'lcm_campaign');
-		if(!$camp) wp_send_json_error(['msg'=>'Adset not found'],404);
-		$data['campaign_id']=$camp->ID;
+		  
 
 		 
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
