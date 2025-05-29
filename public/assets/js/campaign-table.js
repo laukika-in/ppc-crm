@@ -39,10 +39,10 @@ jQuery(function ($) {
     ["amount_spent", "Spent", "number"],
     ["cpm", "CPM", "number"],
     ["connected_number", "Connected", "readonly"],
-    ["not_connected", "Not Conn", "readonly"],
     ["relevant", "Relevant", "readonly"],
-    ["not_available", "N/A", "readonly"],
+    ["not_connected", "Not Conn", "readonly"],
     ["not_relevant", "Not Relevant", "readonly"],
+    ["not_available", "N/A", "readonly"],
     ["scheduled_store_visit", "Sched Visit", "readonly"],
     ["store_visit", "Visit", "readonly"],
   ];
