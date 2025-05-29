@@ -66,9 +66,7 @@ class PPC_CRM_Ajax {
 		];
 		$data=[];
 		foreach($fields as $f){ $data[$f]=sanitize_text_field($_POST[$f]??''); }
-
-		if(!$data['uid']||!$data['adset']) wp_send_json_error(['msg'=>'UID & Adset required'],400);
-
+ 
 
 		if ( $data['source'] === 'Google' ) {
 			$camp = get_page_by_title( $data['ad_name'], OBJECT, 'lcm_campaign' );
