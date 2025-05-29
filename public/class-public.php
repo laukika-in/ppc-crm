@@ -146,20 +146,20 @@ foreach ( $rows2 as $r ) {
         ob_start(); ?>
         <div class="d-flex justify-content-between mb-2">
             <button id="lcm-add-row-lead" class="btn btn-primary btn-sm">+ Add Lead</button>
-            
+           
 
       <div class="lcm-filters">
-        
        
-        <?php if ( ! $is_client ) : ?> <div class="col-auto">
-                     <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
+        <?php if ( ! $is_client ) : ?>  <div class="col-auto">
+                    <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px">
                         <option value="">All Clients</option>
                         <?php foreach ( $clients as $c ) : ?>
                             <option value="<?= esc_attr( $c->ID ); ?>"><?= esc_html( $c->display_name ); ?></option>
                         <?php endforeach; ?>
-                    </select>  </div>
-            <?php endif; ?>
-       
+                    </select>
+                 </div>
+          <?php endif; ?>
+     
         <!-- Date range -->
         <div class="col-auto">
           <div class="input-group input-group-sm">

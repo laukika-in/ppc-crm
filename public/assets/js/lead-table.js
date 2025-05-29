@@ -9,7 +9,7 @@ jQuery(function ($) {
   const cols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
-
+    ["lead_title", "Lead Title", "text"],
     ["ad_name", "Ad Name", "select", []],
     ["adset", "Adset", "select", LCM.adsets],
     ["uid", "UID", "text"],
@@ -371,7 +371,6 @@ jQuery(function ($) {
     }
     data.action = "lcm_create_lead";
     data.nonce = LCM.nonce;
-    
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
@@ -414,11 +413,11 @@ jQuery(function ($) {
   // Delete
   let delId = 0;
   const modal = new bootstrap.Modal("#lcmDelModal");
-  $tbody.on("click", ".del-row", function () {
-    delId = $(this).data("id") || 0;
-    if (!delId) $(this).closest("tr").remove();
-    else modal.show();
-  });
+    $tbody.on("click", ".del-row", function () {
+      delId = $(this).data("id") || 0;
+      if (!delId) $(this).closest("tr").remove();
+      else modal.show();
+    });
   $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
@@ -456,6 +455,25 @@ jQuery(function ($) {
       }
     }
   });
+
+  // Whenever PPC/Admin selects a Client, refresh both Adset and Ad Name dropdowns
+  $tbody.on("change", "select[data-name=client_id]", function () {
+    const $tr = $(this).closest("tr");
+    const cid = $(this).val() || "";
+
+    // 1) rebuild Adset list
+    const adsetChoices = ADSETS_BY_CLIENT[cid] || [];
+    $tr
+      .find("select[data-name=adset]")
+      .html("<option value=''></option>" + opts(adsetChoices));
+
+    // 2) rebuild Ad Name (Campaign Name) list
+    const adnameChoices = ADNAMES_BY_CLIENT[cid] || [];
+    $tr
+      .find("select[data-name=ad_name]")
+      .html("<option value=''></option>" + opts(adnameChoices));
+  });
+
   // Initial load
   load(1);
 });
