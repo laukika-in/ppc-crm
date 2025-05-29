@@ -234,7 +234,7 @@ public function get_campaigns() {
 
     // Campaign rows
     $rows = $wpdb->get_results(
-        $wpdb->prepare("SELECT * FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $pp, $o),
+        $wpdb->prepare("SELECT *,not_relevant FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $pp, $o),
         ARRAY_A
     );
 
