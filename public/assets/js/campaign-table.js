@@ -35,7 +35,7 @@ jQuery(function ($) {
     ["leads", "Leads", "number", "readonly"],
     ["reach", "Reach", "number"],
     ["impressions", "Impr", "number"],
-    ["cost_per_lead", "CPL", "number"],
+    ["cost_per_lead", "CPL", "number", "readonly"],
     ["amount_spent", "Spent", "number"],
     ["cpm", "CPM", "number"],
     ["connected_number", "Connected", "readonly"],
@@ -152,6 +152,14 @@ jQuery(function ($) {
       } else if (typ === "number") {
         html += `<td><input type="number" step="any" class="form-control form-control-sm"
                          data-name="${f}" value="${v}"${dis}></td>`;
+      } else if (typ === "readonly") {
+        html += `<td>
+                 <input type="text"
+                        class="form-control form-control-sm"
+                        data-name="${f}"
+                        value="${v}"
+                        disabled />
+               </td>`;
       } else {
         html += `<td><input type="text" class="form-control form-control-sm"
                          data-name="${f}" value="${v}"${dis}></td>`;

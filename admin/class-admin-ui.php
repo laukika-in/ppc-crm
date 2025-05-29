@@ -444,6 +444,16 @@ public function recount_campaign_counters( int $campaign_id ) {
            AND store_visit_status = 'Show'",
         $campaign_id
     ) );
+
+    $row = $wpdb->get_row( $wpdb->prepare(
+        "SELECT amount_spent, leads FROM {$wpdb->prefix}lcm_campaigns WHERE post_id = %d",
+        $campaign_id
+    ), ARRAY_A );
+
+    $amount_spent = floatval( $row['amount_spent'] );
+    $leads        = intval(   $row['leads'] );
+    $cpl          = $leads > 0 ? ( $amount_spent / $leads ) : 0;
+
     // 3) Combined connected = both “Connected” types
     $connected_total = $connected_not_rel + $connected_rel;
 
@@ -457,18 +467,19 @@ public function recount_campaign_counters( int $campaign_id ) {
 
     // 5) Push all fields back into campaigns table (matched by post_id)
     $wpdb->update(
-        $wpdb->prefix . 'lcm_campaigns',
+             "{$wpdb->prefix}lcm_campaigns",
         [
-            'leads'              => $total_leads,
-            'connected_number'   => $connected_total,
-            'not_connected'      => $not_connected,
-            'relevant'           => $connected_rel,
+            'leads'                  => $total_leads,
+            'connected_number'       => $connected_total,
+            'not_connected'          => $not_connected,
+            'relevant'               => $connected_rel,
             'scheduled_store_visit'  => $scheduled_store_visit,
             'store_visit'            => $store_visit,
-            'not_available'      => $not_available,
+            'not_available'          => $not_available,
+            'cost_per_lead'          => $cpl,
         ],
         [ 'post_id' => $campaign_id ],
-        [ '%d','%d','%d','%d','%d','%d','%d' ],
+        [ '%d','%d','%d','%d','%d','%d','%d','%f' ],
         [ '%d' ]
     );
 }
