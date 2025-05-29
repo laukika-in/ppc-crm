@@ -4,11 +4,7 @@
  * Description:       Campaign + Lead manager with custom tables and no-admin access for Clients/PPC.
  * Plugin URI:        https://laukika.com/
  * Author:            Laukika
-<<<<<<< HEAD
- * Version:           0.3.69
-=======
- * Version:           0.3.61
->>>>>>> parent of db4a57c (Update ppc-crm.php)
+ * Version:           0.3.70
  * Author URI:        https://laukika.com/
  * Text Domain:       ppc-crm
  */
