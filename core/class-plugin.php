@@ -126,6 +126,7 @@ public static function version() : string {
 		dbDelta("
 			CREATE TABLE $campaigns (
 				id                     BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+				campaign_title		   VARCHAR(191) NOT NULL, 
 				campaign_name 		   VARCHAR(191) NOT NULL, 
 				post_id                BIGINT(20) UNSIGNED NOT NULL,
 				client_id              BIGINT(20) UNSIGNED NOT NULL,
@@ -157,6 +158,7 @@ public static function version() : string {
 		dbDelta("
 			CREATE TABLE $leads (
 				id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				lead_title      VARCHAR(191) NOT NULL,
 				post_id           BIGINT UNSIGNED NOT NULL,
 				client_id         BIGINT UNSIGNED NOT NULL,
 				ad_name           VARCHAR(191),
