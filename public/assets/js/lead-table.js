@@ -28,7 +28,7 @@ jQuery(function ($) {
       ],
     ],
     ["ad_name", "Campaign Name", "select", []],
-    ["adset", "Adset", "select", LCM.adsets],
+    ["adset", "Adset", "select", "select", []],
     ["uid", "UID", "text"],
     ["lead_date", "Date", "date"],
     ["lead_time", "Time", "time"],
@@ -345,16 +345,12 @@ jQuery(function ($) {
     // rebuild Campaign Name dropdown
     const $adName = $tr.find("select[data-name=ad_name]");
     const adNames = src === "Google" ? ADNAMES_BY_CLIENT[cid] || [] : [];
-    $adName
-      .html("<option></option>" + opts(adNames))
-      .prop("disabled", src !== "Google");
+    $adName.html(opts(adNames, "")).prop("disabled", src !== "Google");
 
     // rebuild Adset dropdown
     const $adSet = $tr.find("select[data-name=adset]");
     const adSets = src === "Google" ? [] : ADSETS_BY_CLIENT[cid] || [];
-    $adSet
-      .html("<option></option>" + opts(adSets))
-      .prop("disabled", src === "Google");
+    $adSet.html(opts(adSets, "")).prop("disabled", src === "Google");
   });
 
   // Row-click edit
@@ -495,15 +491,13 @@ jQuery(function ($) {
 
     // 1) rebuild Adset list
     const adsetChoices = ADSETS_BY_CLIENT[cid] || [];
-    $tr
-      .find("select[data-name=adset]")
-      .html("<option value=''></option>" + opts(adsetChoices));
+    $tr.find("select[data-name=adset]").html(opts(ADSETS_BY_CLIENT[cid], ""));
 
     // 2) rebuild Ad Name (Campaign Name) list
     const adnameChoices = ADNAMES_BY_CLIENT[cid] || [];
     $tr
       .find("select[data-name=ad_name]")
-      .html("<option value=''></option>" + opts(adnameChoices));
+      .html(opts(ADNAMES_BY_CLIENT[cid], ""));
   });
 
   // Initial load
