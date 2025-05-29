@@ -9,7 +9,8 @@ jQuery(function ($) {
   const cols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
-    ["ad_name", "Ad Name", "text"],
+
+    ["ad_name", "Ad Name", "select", []],
     ["adset", "Adset", "select", LCM.adsets],
     ["uid", "UID", "text"],
     ["lead_date", "Date", "date"],
