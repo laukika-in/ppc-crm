@@ -380,11 +380,12 @@ public  function recount_campaign_counters( $adset ) {
         'not_available'         => 0,
 	];
 
+$key_field = $source === 'Google' ? 'campaign_name' : 'adset';
 	/* ---------- 2) Attempt-type tallies ------------ */
 	$rows = $wpdb->get_results( $wpdb->prepare(
 		"SELECT attempt_type, COUNT(*) AS qty
 		   FROM {$wpdb->prefix}lcm_leads
-		  WHERE adset = %s
+		  WHERE {$key_field} = %s
 		  GROUP BY attempt_type",
 		$adset
 	), ARRAY_A );
@@ -410,7 +411,7 @@ public  function recount_campaign_counters( $adset ) {
     /* 4) Scheduled store visit */
     $totals['scheduled_store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-          WHERE adset = %s
+          WHERE {$key_field} = %s
             AND attempt_status = 'Store Visit Scheduled'",
         $adset
     ) );
@@ -418,7 +419,7 @@ public  function recount_campaign_counters( $adset ) {
     /* 5) Store visit = Show */
     $totals['store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-          WHERE adset = %s
+          WHERE {$key_field} = %s
             AND store_visit_status = 'Show'",
         $adset
     ) );
@@ -426,7 +427,7 @@ public  function recount_campaign_counters( $adset ) {
     /* 6) Compute N/A = leads – (connected + not_connected + relevant) */
     $leads_total = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT leads FROM {$wpdb->prefix}lcm_campaigns
-          WHERE adset = %s LIMIT 1",
+          WHERE {$key_field} = %s LIMIT 1",
         $adset
     ) );
     $totals['not_available'] = max(

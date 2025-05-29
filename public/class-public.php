@@ -101,6 +101,8 @@ class PPC_CRM_Public {
         
         $campaigns = get_posts( [ 'post_type' => 'lcm_campaign', 'numberposts' => -1, 'fields' => 'ids' ] );
       global $wpdb;
+
+
       $rows = $wpdb->get_results(
         "SELECT client_id, adset FROM {$wpdb->prefix}lcm_campaigns WHERE adset<>''",
         ARRAY_A
@@ -109,14 +111,16 @@ class PPC_CRM_Public {
       foreach ( $rows as $r ) {
         $adsets_by_client[ $r['client_id'] ][] = $r['adset'];
       }
-$rows2 = $wpdb->get_results(
-  "SELECT client_id, campaign_name FROM {$wpdb->prefix}lcm_campaigns WHERE campaign_name<>''",
-  ARRAY_A
-);
-$adnames_by_client = [];
-foreach ( $rows2 as $r ) {
-  $adnames_by_client[ $r['client_id'] ][] = $r['campaign_name'];
-}
+
+
+      $rows2 = $wpdb->get_results(
+        "SELECT client_id, campaign_name FROM {$wpdb->prefix}lcm_campaigns WHERE campaign_name<>''",
+        ARRAY_A
+      );
+      $adnames_by_client = [];
+      foreach ( $rows2 as $r ) {
+        $adnames_by_client[ $r['client_id'] ][] = $r['campaign_name'];
+      }
       // Localize variables for JS
         $vars = [
             'ajax_url'          => admin_url( 'admin-ajax.php' ),
@@ -125,8 +129,8 @@ foreach ( $rows2 as $r ) {
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
-  'adsets_by_client'   => $adsets_by_client,   
-    'adnames_by_client' => $adnames_by_client, 
+            'adsets_by_client'    => $adsets_by_client,   
+            'adnames_by_client'   => $adnames_by_client,
         ];
 
         // Enqueue styles & scripts
@@ -311,7 +315,7 @@ foreach ( $rows2 as $r ) {
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
-            'adsets'            => array_map( fn($id) => get_the_title($id), $campaigns ),
+            //'adsets'            => array_map( fn($id) => get_the_title($id), $campaigns ),
         ];
 
         // Enqueue assets
