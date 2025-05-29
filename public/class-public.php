@@ -125,7 +125,8 @@ foreach ( $rows2 as $r ) {
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
-
+  'adsets_by_client'   => $adsets_by_client,   
+    'adnames_by_client' => $adnames_by_client, 
         ];
 
         // Enqueue styles & scripts
