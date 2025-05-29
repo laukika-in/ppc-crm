@@ -455,7 +455,6 @@ jQuery(function ($) {
       }
     }
   });
-
   // Initial load
   load(1);
 });
