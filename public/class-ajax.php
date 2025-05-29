@@ -252,8 +252,7 @@ public function create_campaign() {
     // Gather & sanitize all fields, including campaign_date
     $fields = [
         'client_id','campaign_name','month','week','campaign_date','location','adset',
-        'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
-        'connected_number','not_connected','relevant','not_available',
+        'leads','reach','impressions','cost_per_lead','amount_spent','cpm',       
         'scheduled_store_visit','store_visit'
     ];
     $data = [];
@@ -308,7 +307,6 @@ public function update_campaign() {
     $fields = [
         'client_id','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
-        'connected_number','not_connected','relevant','not_available',
         'scheduled_store_visit','store_visit'
     ];
     $data = [];

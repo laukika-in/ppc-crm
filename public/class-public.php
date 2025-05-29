@@ -109,7 +109,14 @@ class PPC_CRM_Public {
       foreach ( $rows as $r ) {
         $adsets_by_client[ $r['client_id'] ][] = $r['adset'];
       }
-
+$rows2 = $wpdb->get_results(
+  "SELECT client_id, ad_name FROM {$wpdb->prefix}lcm_campaigns WHERE ad_name<>''",
+  ARRAY_A
+);
+$adnames_by_client = [];
+foreach ( $rows2 as $r ) {
+  $adnames_by_client[ $r['client_id'] ][] = $r['ad_name'];
+}
         // Localize variables for JS
         $vars = [
             'ajax_url'          => admin_url( 'admin-ajax.php' ),
@@ -119,6 +126,7 @@ class PPC_CRM_Public {
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
   'adsets_by_client'   => $adsets_by_client,   
+    'adnames_by_client' => $adnames_by_client, 
         ];
 
         // Enqueue styles & scripts
