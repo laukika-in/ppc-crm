@@ -80,9 +80,9 @@
 }
 
 .lcm-table tbody tr.lcm-editing td {
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  padding: 4px 2px;
+  border: 1px solid #d1d5db00;
+  background: #b8e9ff;
+  padding: 6px 2px;
 }
 
 /* ---------- buttons ------------------------------------------------ */
@@ -133,7 +133,7 @@
 .form-select-sm,
 .form-control-sm {
   border-radius: 8px;
-  background-color: #d6d6d6;
+  background-color: #ffffff;
   border: none;
   height: 100%;
   margin: 0px;
