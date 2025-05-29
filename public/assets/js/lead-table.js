@@ -56,7 +56,20 @@ jQuery(function ($) {
     ["targeting", "Targeting", "text"],
     ["budget", "Budget", "text"],
     ["product_interest", "Product Looking To Buy", "text"],
-    ["occasion", "Occasion", "text"],
+    [
+      "occasion",
+      "Occasion",
+      "select",
+      [
+        "Anniversary",
+        "Birthday",
+        "Casual Occasion",
+        "Engagement/Wedding",
+        "Gifting",
+        "Others",
+        "N/A",
+      ],
+    ],
     ["attempt", "Attempt", "select", [1, 2, 3, 4, 5, 6]],
     [
       "attempt_type",
