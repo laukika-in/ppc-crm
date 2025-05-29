@@ -460,31 +460,56 @@ public  function recount_campaign_counters( $adset ) {
  * Re-count total Leads = #Google‐leads (by campaign_name)
  *                         + #non-Google leads (by adset)
  */
+/**
+ * Re-count total Leads for this Campaign:
+ *   - Google leads (link by ad_name = campaign_name)
+ *   - non-Google leads (link by adset)
+ */
 public function recount_total_leads( string $campaign_name, string $adset ) {
-  global $wpdb;
-  $table = $wpdb->prefix . 'lcm_leads';
+    global $wpdb;
+    $camp_tbl = $wpdb->prefix . 'lcm_campaigns';
+    $lead_tbl = $wpdb->prefix . 'lcm_leads';
 
-  // Google leads → match on campaign_name
-  $google = (int) $wpdb->get_var( $wpdb->prepare(
-    "SELECT COUNT(*) FROM $table WHERE source = 'Google' AND ad_name = %s",
-    $campaign_name
-  ) );
+    // 1) fetch the true campaign row (so empty adset or campaign_name is filled in)
+    $camp_row = $wpdb->get_row( $wpdb->prepare(
+        "SELECT id, campaign_name, adset
+           FROM $camp_tbl
+          WHERE campaign_name = %s OR adset = %s
+          LIMIT 1",
+        $campaign_name,
+        $adset
+    ), ARRAY_A );
 
-  // other leads → match on adset
-  $other  = (int) $wpdb->get_var( $wpdb->prepare(
-    "SELECT COUNT(*) FROM $table WHERE source <> 'Google' AND adset = %s",
-    $adset
-  ) );
+    if ( ! $camp_row ) {
+        return;
+    }
 
-  // push sum into the campaign row
-  $wpdb->update(
-    $wpdb->prefix . 'lcm_campaigns',
-    [ 'leads' => $google + $other ],
-    [ 'campaign_name' => $campaign_name, 'adset' => $adset ],
-    [ '%d' ],
-    [ '%s','%s' ]
-  );
+    $camp_id       = (int) $camp_row['id'];
+    $canon_name    = $camp_row['campaign_name'];
+    $canon_adset   = $camp_row['adset'];
+
+    // 2) count Google leads by ad_name
+    $google_count = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM $lead_tbl WHERE source = 'Google' AND ad_name = %s",
+        $canon_name
+    ) );
+
+    // 3) count all other leads by adset
+    $other_count  = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM $lead_tbl WHERE source <> 'Google' AND adset = %s",
+        $canon_adset
+    ) );
+
+    // 4) write back the sum into this campaign’s `leads` column
+    $wpdb->update(
+        $camp_tbl,
+        [ 'leads' => $google_count + $other_count ],
+        [ 'id'    => $camp_id ],
+        [ '%d' ],    // value format
+        [ '%d' ]     // where format
+    );
 }
+
 
     /** Change “Add title” placeholder for each CPT */
 public function title_placeholder( $text, $post ) {

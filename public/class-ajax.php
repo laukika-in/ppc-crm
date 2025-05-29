@@ -114,8 +114,7 @@ public function update_lead() {
 
     $id = absint( $_POST['id'] ?? 0 );
     if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing lead ID' ], 400 );
-
-    // Sanitize exactly the same fields as create_lead()
+ 
     $fields = [
          'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
         'name','phone_number','alt_number','email','location',
