@@ -110,14 +110,14 @@ class PPC_CRM_Public {
         $adsets_by_client[ $r['client_id'] ][] = $r['adset'];
       }
 $rows2 = $wpdb->get_results(
-  "SELECT client_id, ad_name FROM {$wpdb->prefix}lcm_campaigns WHERE ad_name<>''",
+  "SELECT client_id, campaign_name FROM {$wpdb->prefix}lcm_campaigns WHERE campaign_name<>''",
   ARRAY_A
 );
 $adnames_by_client = [];
 foreach ( $rows2 as $r ) {
-  $adnames_by_client[ $r['client_id'] ][] = $r['ad_name'];
+  $adnames_by_client[ $r['client_id'] ][] = $r['campaign_name'];
 }
-        // Localize variables for JS
+      // Localize variables for JS
         $vars = [
             'ajax_url'          => admin_url( 'admin-ajax.php' ),
             'nonce'             => wp_create_nonce( 'lcm_ajax' ),

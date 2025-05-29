@@ -9,7 +9,7 @@ jQuery(function ($) {
   const cols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
-    ["ad_name", "Ad Name", "select", []],
+    ["ad_name", "Ad Name", "text"],
     ["adset", "Adset", "select", LCM.adsets],
     ["uid", "UID", "text"],
     ["lead_date", "Date", "date"],
@@ -150,6 +150,7 @@ jQuery(function ($) {
           const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
           choices = ADNAMES_BY_CLIENT[cid] || [];
         }
+
         html += `<td><select class="form-select form-select-sm"
                               data-name="${f}"${dis}>
                             ${opts(choices, val)}
