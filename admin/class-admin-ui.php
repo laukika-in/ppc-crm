@@ -429,7 +429,21 @@ public function recount_campaign_counters( int $campaign_id ) {
                 break;
         }
     }
+     // 4) Count “Store Visit Scheduled”
+    $scheduled_store_visit = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+         WHERE campaign_id = %d
+           AND attempt_status = 'Store Visit Scheduled'",
+        $campaign_id
+    ) );
 
+    // 5) Count actual Store Visits (“Show”)
+    $store_visit = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+         WHERE campaign_id = %d
+           AND store_visit_status = 'Show'",
+        $campaign_id
+    ) );
     // 3) Combined connected = both “Connected” types
     $connected_total = $connected_not_rel + $connected_rel;
 
@@ -449,10 +463,12 @@ public function recount_campaign_counters( int $campaign_id ) {
             'connected_number'   => $connected_total,
             'not_connected'      => $not_connected,
             'relevant'           => $connected_rel,
+            'scheduled_store_visit'  => $scheduled_store_visit,
+            'store_visit'            => $store_visit,
             'not_available'      => $not_available,
         ],
         [ 'post_id' => $campaign_id ],
-        [ '%d','%d','%d','%d','%d' ],
+        [ '%d','%d','%d','%d','%d','%d','%d' ],
         [ '%d' ]
     );
 }
