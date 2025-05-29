@@ -58,7 +58,7 @@ class PPC_CRM_Ajax {
 		$this->verify();
 
 		$fields = [
-			'client_id','ad_name','adset','uid','lead_date','lead_time','day',
+			'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
   'name','phone_number','alt_number','email','location',
   'client_type','source','source_campaign','targeting','budget',
   'product_interest','occasion',
