@@ -57,6 +57,7 @@ class PPC_CRM_Ajax {
 
 		$this->verify();
 
+    global $wpdb;
 		$fields = [
 			'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
   'name','phone_number','alt_number','email','location',
@@ -68,7 +69,75 @@ class PPC_CRM_Ajax {
 		foreach($fields as $f){ $data[$f]=sanitize_text_field($_POST[$f]??''); }
  
 
-		if ( $data['source'] === 'Google' ) {
+                    if ( $data['source'] === 'Google' ) {
+            $camp_id = $wpdb->get_var( $wpdb->prepare(
+                "SELECT post_id
+                FROM {$wpdb->prefix}lcm_campaigns
+                WHERE campaign_name = %s
+                LIMIT 1",
+                $data['ad_name']
+            ) );
+
+            // Meta & everything else → by the ‘adset’ column
+            } else {
+            $camp_id = $wpdb->get_var( $wpdb->prepare(
+                "SELECT post_id
+                FROM {$wpdb->prefix}lcm_campaigns
+                WHERE adset = %s
+                LIMIT 1",
+                $data['adset']
+            ) );
+            }
+
+            if ( ! $camp_id ) {
+            wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
+            }
+
+            $data['campaign_id'] = (int) $camp_id;
+
+		$post_id=wp_insert_post([
+			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
+		],true);
+		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
+		$data['post_id']=$post_id;
+		
+	$user      = wp_get_current_user();
+		$user_id   = $user->ID;
+		$is_client = in_array( 'client', (array) $user->roles, true );
+	if ( $is_client ) {
+		$data['client_id'] = $user->ID;          // force client id
+	} else {
+		$data['client_id'] = absint( $_POST['client_id'] ?? 0 );
+	}
+
+		$wpdb->insert( $wpdb->prefix.'lcm_leads', $data );
+		if ( class_exists('PPC_CRM_Admin_UI') ) {
+		$ui = new PPC_CRM_Admin_UI(); 
+		$ui->recount_campaign_counters( $data['adset'] ); 
+		$ui->recount_total_leads( $data['ad_name'], $data['adset'] );
+		}
+		wp_send_json_success();
+	}
+
+public function update_lead() {
+    $this->verify();
+
+		global $wpdb;
+    $id = absint( $_POST['id'] ?? 0 );
+    if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing lead ID' ], 400 );
+ 
+    $fields = [
+         'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
+        'name','phone_number','alt_number','email','location',
+        'client_type','source','source_campaign','targeting','budget',
+        'product_interest','occasion',
+        'attempt','attempt_type','attempt_status','store_visit_status','remarks'
+    ];
+    $data = [];
+    foreach ( $fields as $f ) {
+        $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
+    }
+if ( $data['source'] === 'Google' ) {
   $camp_id = $wpdb->get_var( $wpdb->prepare(
     "SELECT post_id
        FROM {$wpdb->prefix}lcm_campaigns
@@ -93,50 +162,6 @@ if ( ! $camp_id ) {
 }
 
 $data['campaign_id'] = (int) $camp_id;
-
-		$post_id=wp_insert_post([
-			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
-		],true);
-		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
-		$data['post_id']=$post_id;
-		
-	$user      = wp_get_current_user();
-		$user_id   = $user->ID;
-		$is_client = in_array( 'client', (array) $user->roles, true );
-	if ( $is_client ) {
-		$data['client_id'] = $user->ID;          // force client id
-	} else {
-		$data['client_id'] = absint( $_POST['client_id'] ?? 0 );
-	}
-
-		global $wpdb;
-		$wpdb->insert( $wpdb->prefix.'lcm_leads', $data );
-		if ( class_exists('PPC_CRM_Admin_UI') ) {
-		$ui = new PPC_CRM_Admin_UI(); 
-		$ui->recount_campaign_counters( $data['adset'] ); 
-		$ui->recount_total_leads( $data['ad_name'], $data['adset'] );
-		}
-		wp_send_json_success();
-	}
-
-public function update_lead() {
-    $this->verify();
-
-    $id = absint( $_POST['id'] ?? 0 );
-    if ( ! $id ) wp_send_json_error( [ 'msg'=>'Missing lead ID' ], 400 );
- 
-    $fields = [
-         'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
-        'name','phone_number','alt_number','email','location',
-        'client_type','source','source_campaign','targeting','budget',
-        'product_interest','occasion',
-        'attempt','attempt_type','attempt_status','store_visit_status','remarks'
-    ];
-    $data = [];
-    foreach ( $fields as $f ) {
-        $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
-    }
-
     // If client role, force client_id
     $user      = wp_get_current_user();
     $is_client = in_array( 'client', (array) $user->roles, true );
