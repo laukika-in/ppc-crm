@@ -69,16 +69,30 @@ class PPC_CRM_Ajax {
  
 
 		if ( $data['source'] === 'Google' ) {
-			$camp = get_page_by_title( $data['ad_name'], OBJECT, 'lcm_campaign' );
-		} else {
-			$camp = get_page_by_title( $data['adset'], OBJECT, 'lcm_campaign' );
-		}
+  $camp_id = $wpdb->get_var( $wpdb->prepare(
+    "SELECT post_id
+       FROM {$wpdb->prefix}lcm_campaigns
+      WHERE campaign_name = %s
+      LIMIT 1",
+    $data['ad_name']
+  ) );
 
-		if ( ! $camp ) {
-			wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
-		}
-		$data['campaign_id'] = $camp->ID; 
+// Meta & everything else → by the ‘adset’ column
+} else {
+  $camp_id = $wpdb->get_var( $wpdb->prepare(
+    "SELECT post_id
+       FROM {$wpdb->prefix}lcm_campaigns
+      WHERE adset = %s
+      LIMIT 1",
+    $data['adset']
+  ) );
+}
 
+if ( ! $camp_id ) {
+  wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
+}
+
+$data['campaign_id'] = (int) $camp_id;
 
 		$post_id=wp_insert_post([
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
