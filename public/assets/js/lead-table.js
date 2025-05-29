@@ -341,7 +341,11 @@ jQuery(function ($) {
     const cid = IS_CLIENT
       ? CLIENT_ID
       : $tr.find("select[data-name=client_id]").val() || "";
-
+    if (!src) {
+      $adName.prop("disabled", true).html(opts([], ""));
+      $adSet.prop("disabled", true).html(opts([], ""));
+      return;
+    }
     // rebuild Campaign Name dropdown
     const $adName = $tr.find("select[data-name=ad_name]");
     const adNames = src === "Google" ? ADNAMES_BY_CLIENT[cid] || [] : [];
@@ -351,6 +355,17 @@ jQuery(function ($) {
     const $adSet = $tr.find("select[data-name=adset]");
     const adSets = src === "Google" ? [] : ADSETS_BY_CLIENT[cid] || [];
     $adSet.html(opts(adSets, "")).prop("disabled", src === "Google");
+    if (src === "Google") {
+      // 2) Google → only Campaign Name (ad_name)
+      $adSet.prop("disabled", true).html(opts([], ""));
+      const adNames = ADNAMES_BY_CLIENT[cid] || [];
+      $adName.prop("disabled", false).html(opts(adNames, ""));
+    } else {
+      // 3) Meta & others → only Adset
+      $adName.prop("disabled", true).html(opts([], ""));
+      const adSets = ADSETS_BY_CLIENT[cid] || [];
+      $adSet.prop("disabled", false).html(opts(adSets, ""));
+    }
   });
 
   // Row-click edit
