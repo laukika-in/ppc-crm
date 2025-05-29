@@ -130,21 +130,16 @@ if ( ! empty( $_GET['product_interest'] ) ) {
 		];
 		$data=[];
 		foreach($fields as $f){ $data[$f]=sanitize_text_field($_POST[$f]??''); }
-// 2) Validate
-if ( empty( $data['lead_title'] ) ) {
-  wp_send_json_error([ 'msg'=>'Lead Title is required' ], 400);
-} 
-// 3) Insert WP post using lead_title
-$post_id = wp_insert_post([
-  'post_type'   => 'lcm_lead',
-  'post_status' => 'publish',
-  'post_title'  => $data['lead_title'],
-], true);
+
+		if(!$data['uid']||!$data['adset']) wp_send_json_error(['msg'=>'UID & Adset required'],400);
+
 		$camp=get_page_by_title($data['adset'],OBJECT,'lcm_campaign');
 		if(!$camp) wp_send_json_error(['msg'=>'Adset not found'],404);
 		$data['campaign_id']=$camp->ID;
 
-		 
+		$post_id=wp_insert_post([
+			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
+		],true);
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
 		
@@ -165,9 +160,6 @@ $post_id = wp_insert_post([
 		}
 		wp_send_json_success();
 	}
-
-
-	
 public function update_lead() {
     $this->verify();
 
@@ -212,10 +204,10 @@ public function update_lead() {
         $id
     ) );
     if ( $lead ) {
-       wp_update_post([
-  'ID'         => $lead_post->ID,
-  'post_title' => sanitize_text_field( $_POST['lead_title'] ?? '' ),
-]);
+        wp_update_post([
+            'ID'         => $lead,
+            'post_title' => sanitize_text_field( $_POST['uid'] ?? '' ),
+        ]);
     }
 
     // Recount campaign counters
@@ -258,7 +250,7 @@ wp_send_json_success( [ 'total' => $total ] );   // ← NEW
 public function get_campaigns() {
     $this->verify();
 
- 	$user      = wp_get_current_user();
+ $user      = wp_get_current_user();
     $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
 
@@ -323,7 +315,7 @@ public function create_campaign() {
     $is_client = in_array( 'client', (array) $user->roles, true );
     // Gather & sanitize all fields, including campaign_date
     $fields = [
-        'client_id','campaign_title','campaign_name','month','week','campaign_date','location','adset',
+        'client_id','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',       
         'scheduled_store_visit','store_visit'
     ];
@@ -332,10 +324,11 @@ public function create_campaign() {
         $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
     }
 
-  
-if ( empty( $data['campaign_title'] ) ) {
-  wp_send_json_error([ 'msg'=>'Campaign Title is required' ], 400);
-}
+    // Force title = adset
+    if ( empty( $data['adset'] ) ) {
+        wp_send_json_error([ 'msg'=>'Adset required' ], 400);
+    }
+
     // ① Force or validate client_id
     if ( $is_client ) {
         $data['client_id'] = $user->ID;
@@ -350,7 +343,7 @@ if ( empty( $data['campaign_title'] ) ) {
     $post_id = wp_insert_post([
         'post_type'   => 'lcm_campaign',
         'post_status' => 'publish',
-        'post_title'  => $data['campaign_title'],
+        'post_title'  => $data['campaign_name'],
     ], true);
 
     if ( is_wp_error( $post_id ) ) {
@@ -376,7 +369,7 @@ public function update_campaign() {
 
     // 2) Gather and sanitize exactly the same fields as create_campaign()
     $fields = [
-        'client_id','campaign_title','campaign_name','month','week','campaign_date','location','adset',
+        'client_id','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
         'scheduled_store_visit','store_visit'
     ];
@@ -415,7 +408,7 @@ public function update_campaign() {
     if ( $post_id ) {
         wp_update_post([
             'ID'         => $post_id,
-            'post_title' => sanitize_text_field( $_POST['campaign_title'] ?? '' ),
+            'post_title' => sanitize_text_field( $_POST['campaign_name'] ?? '' ),
         ]);
     }
 
