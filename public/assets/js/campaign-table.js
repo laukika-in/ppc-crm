@@ -155,7 +155,7 @@ jQuery(function ($) {
       } else if (typ === "readonly") {
         html += `<td>
                  <input type="number" step="any"
-                        class="form-control lcm-readonly form-control-sm"
+                        class="form-control form-control-sm lcm-readonly "
                         data-name="${f}"
                         value="${v}"
                         disabled />
