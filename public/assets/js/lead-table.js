@@ -237,34 +237,36 @@ jQuery(function ($) {
                <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-check-circle-fill"></i></button>
                <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
              </td>`;
-      } else if (typ === "select" && (f === "ad_name" || f === "adset")) {
-        // determine client ID
-        const cid = IS_CLIENT ? CLIENT_ID : r.client_id || "";
-        let choices = [],
-          disabled = "";
-
-        if (f === "ad_name") {
-          // only if Google
-          if (r.source === "Google") {
-            choices = ADNAMES_BY_CLIENT[cid] || [];
-          }
-          // disable unless Google
-          disabled = saved || r.source !== "Google" ? " disabled" : "";
-        } else {
-          // adset
-          // only if NOT Google
-          if (r.source !== "Google") {
-            choices = ADSETS_BY_CLIENT[cid] || [];
-          }
-          // disable if Google
-          disabled = saved || r.source === "Google" ? " disabled" : "";
+      } else if (typ === "select") {
+        let choices = opt;
+        if (f === "adset") {
+          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
+          choices = ADSETS_BY_CLIENT[cid] || [];
+        } else if (f === "ad_name") {
+          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
+          choices = ADNAMES_BY_CLIENT[cid] || [];
         }
 
-        html += `<td>
-    <select class="form-select form-select-sm" data-name="${f}"${disabled}>
-      ${opts(choices, val)}
-    </select>
-  </td>`;
+        html += `<td><select class="form-select form-select-sm"
+                              data-name="${f}"${dis}>
+                            ${opts(choices, val)}
+                          </select></td>`;
+      } else if (f === "ad_name") {
+        // only allow if source === 'Google'
+        const choices =
+          r.source === "Google" ? ADNAMES_BY_CLIENT[cid] || [] : [];
+        html +=
+          `<td><select data-name="ad_name" class="form-select form-select-sm"${dis}>` +
+          opts(choices, val) +
+          `</select></td>`;
+      } else if (f === "adset") {
+        // only allow if source !== 'Google' (i.e. Meta)
+        const choices =
+          r.source === "Google" ? [] : ADSETS_BY_CLIENT[cid] || [];
+        html +=
+          `<td><select data-name="adset" class="form-select form-select-sm"${dis}>` +
+          opts(choices, val) +
+          `</select></td>`;
       } else if (typ === "date") {
         html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
