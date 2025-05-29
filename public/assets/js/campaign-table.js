@@ -225,7 +225,9 @@ jQuery(function ($) {
   // Edit mode
   $tbody.on("click", ".edit-row", function () {
     const $tr = $(this).closest("tr").addClass("lcm-editing");
-    $tr.find("input,select").prop("disabled", false);
+    $tr
+      .find("input:not(.lcm-readonly), select:not(.lcm-readonly)")
+      .prop("disabled", false);
     $(this)
       .removeClass("edit-row btn-secondary")
       .addClass("save-edit btn-success")
