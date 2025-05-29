@@ -156,6 +156,104 @@ foreach ( $rows2 as $r ) {
                     </select>
                 </div>
             <?php endif; ?>
+
+      <div class="lcm-filters">
+        <!-- Date range -->
+        <div class="col-auto">
+          <div class="input-group input-group-sm">
+            <input id="lcm-filter-date-from" type="date" class="form-control" placeholder="From date">
+            <input id="lcm-filter-date-to"   type="date" class="form-control" placeholder="To date">
+          </div>
+        </div>
+
+        <!-- Ad Name & Adset -->
+        <div class="col-auto">
+          <select id="lcm-filter-adname" class="form-select form-select-sm">
+            <option value="">All Campaigns</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <select id="lcm-filter-adset" class="form-select form-select-sm">
+            <option value="">All Adsets</option>
+          </select>
+        </div>
+
+        <!-- Day of week -->
+        <div class="col-auto">
+          <select id="lcm-filter-day" class="form-select form-select-sm">
+            <option value="">All Days</option>
+            <?php foreach (["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"] as $d): ?>
+              <option value="<?= esc_attr($d) ?>"><?= esc_html($d) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <!-- Client Type -->
+        <div class="col-auto">
+          <select id="lcm-filter-client-type" class="form-select form-select-sm">
+            <option value="">All Client Types</option>
+            <option value="New Client">New Client</option>
+            <option value="Existing Client">Existing Client</option>
+          </select>
+        </div>
+
+        <!-- Source -->
+        <div class="col-auto">
+          <select id="lcm-filter-source" class="form-select form-select-sm">
+            <option value="">All Sources</option>
+            <?php foreach (["Google","Meta","WhatsApp","LinkedIn","Twitter","TikTok","Email","Referral","Organic","Other"] as $src): ?>
+              <option value="<?= esc_attr($src) ?>"><?= esc_html($src) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <!-- Attempt Status -->
+        <div class="col-auto">
+          <select id="lcm-filter-attempt-status" class="form-select form-select-sm">
+            <option value="">All Call Results</option>
+            <?php foreach ([
+              "Connected:Not Relevant","Connected:Relevant","Not Connected",
+              "Call Rescheduled","Just browsing","Not Interested",
+              "Ringing / No Response","Store Visit Scheduled","Wrong Number / Invalid Number"
+            ] as $st): ?>
+              <option value="<?= esc_attr($st) ?>"><?= esc_html($st) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <!-- Store Visit Status -->
+        <div class="col-auto">
+          <select id="lcm-filter-store-visit-status" class="form-select form-select-sm">
+            <option value="">All Store Visits</option>
+            <option value="Show">Show</option>
+            <option value="No Show">No Show</option>
+          </select>
+        </div>
+
+        <!-- Occasion -->
+        <div class="col-auto">
+          <select id="lcm-filter-occasion" class="form-select form-select-sm">
+            <option value="">All Occasions</option>
+            <?php foreach (["anniversary","birthday","casual occasion","engagement/wedding","gifting","N/A"] as $oc): ?>
+              <option value="<?= esc_attr($oc) ?>"><?= esc_html($oc) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <!-- Text Search -->
+        <div class="col-auto">
+          <input id="lcm-filter-text" type="text" class="form-control form-control-sm" placeholder="Search name/phone/email">
+        </div>
+
+        <!-- Budget & Product Interest -->
+        <div class="col-auto">
+          <input id="lcm-filter-budget" type="text" class="form-control form-control-sm" placeholder="Budget contains…">
+        </div>
+        <div class="col-auto">
+          <input id="lcm-filter-product" type="text" class="form-control form-control-sm" placeholder="Product interest…">
+        </div>
+      </div>
+
             <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
         </div>
 
