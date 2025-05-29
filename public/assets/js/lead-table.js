@@ -237,19 +237,34 @@ jQuery(function ($) {
                <button class="btn btn-success btn-sm save-row me-1"><i class="bi bi-check-circle-fill"></i></button>
                <button class="btn btn-warning btn-sm cancel-draft"><i class="bi bi-x-lg"></i></button>
              </td>`;
-      } else if (typ === "select") {
-        let choices = opt;
-        if (f === "adset") {
-          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
-          choices = ADSETS_BY_CLIENT[cid] || [];
-        } else if (f === "ad_name") {
-          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
-          choices = ADNAMES_BY_CLIENT[cid] || [];
+      } else if (typ === "select" && (f === "ad_name" || f === "adset")) {
+        // determine client ID
+        const cid = IS_CLIENT ? CLIENT_ID : r.client_id || "";
+        let choices = [],
+          disabled = "";
+
+        if (f === "ad_name") {
+          // only if Google
+          if (r.source === "Google") {
+            choices = ADNAMES_BY_CLIENT[cid] || [];
+          }
+          // disable unless Google
+          disabled = saved || r.source !== "Google" ? " disabled" : "";
+        } else {
+          // adset
+          // only if NOT Google
+          if (r.source !== "Google") {
+            choices = ADSETS_BY_CLIENT[cid] || [];
+          }
+          // disable if Google
+          disabled = saved || r.source === "Google" ? " disabled" : "";
         }
-        html += `<td><select class="form-select form-select-sm"
-                              data-name="${f}"${dis}>
-                            ${opts(choices, val)}
-                          </select></td>`;
+
+        html += `<td>
+    <select class="form-select form-select-sm" data-name="${f}"${disabled}>
+      ${opts(choices, val)}
+    </select>
+  </td>`;
       } else if (typ === "date") {
         html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
@@ -332,20 +347,26 @@ jQuery(function ($) {
     const optsHtml = opts(ADSETS_BY_CLIENT[cid] || [], "");
     $ad.html("<option value=''></option>" + optsHtml);
   });
+
+  // When source changes, refresh ad_name & adset lists
   $tbody.on("change", "select[data-name=source]", function () {
-    const $tr = $(this).closest("tr"),
-      src = this.value,
-      cid = $tr.find("select[data-name=client_id]").val() || "";
-    // rebuild ad_name if Google
+    const $tr = $(this).closest("tr");
+    const src = this.value;
+    const cid = IS_CLIENT
+      ? CLIENT_ID
+      : $tr.find("select[data-name=client_id]").val() || "";
+
+    // rebuild Campaign Name dropdown
+    const $adName = $tr.find("select[data-name=ad_name]");
     const adNames = src === "Google" ? ADNAMES_BY_CLIENT[cid] || [] : [];
-    $tr
-      .find("select[data-name=ad_name]")
+    $adName
       .html("<option></option>" + opts(adNames))
       .prop("disabled", src !== "Google");
-    // rebuild adset if Meta (anything else)
+
+    // rebuild Adset dropdown
+    const $adSet = $tr.find("select[data-name=adset]");
     const adSets = src === "Google" ? [] : ADSETS_BY_CLIENT[cid] || [];
-    $tr
-      .find("select[data-name=adset]")
+    $adSet
       .html("<option></option>" + opts(adSets))
       .prop("disabled", src === "Google");
   });
@@ -390,7 +411,7 @@ jQuery(function ($) {
       alert("Campaign Name is required for Google leads");
       return;
     }
-    if (data.source !== "Meta" && !data.adset) {
+    if (data.source == "Meta" && !data.adset) {
       alert("Adset is required for Meta (and other) leads");
       return;
     }
