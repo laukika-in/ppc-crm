@@ -373,7 +373,19 @@ public function update_campaign() {
             'post_title' => sanitize_text_field( $_POST['campaign_name'] ?? '' ),
         ]);
     }
+if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
+    // figure out the WP post ID for this campaign row:
+    $campaign_post_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id = %d",
+        $row_id
+    ) );
 
+    $ui = new PPC_CRM_Admin_UI();
+    // re-count total leads (will also write into 'leads' column)
+    $ui->recount_total_leads( $campaign_post_id );
+    // re-count all the call/result counters + CPL
+    $ui->recount_campaign_counters( $campaign_post_id );
+}
     wp_send_json_success();
 }
 
