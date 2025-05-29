@@ -258,7 +258,7 @@ wp_send_json_success( [ 'total' => $total ] );   // ← NEW
 public function get_campaigns() {
     $this->verify();
 
- $user      = wp_get_current_user();
+ 	$user      = wp_get_current_user();
     $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
 
