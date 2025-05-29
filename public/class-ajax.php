@@ -323,7 +323,7 @@ public function create_campaign() {
     $is_client = in_array( 'client', (array) $user->roles, true );
     // Gather & sanitize all fields, including campaign_date
     $fields = [
-        'client_id','campaign_name','month','week','campaign_date','location','adset',
+        'client_id','campaign_title','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',       
         'scheduled_store_visit','store_visit'
     ];
@@ -376,7 +376,7 @@ public function update_campaign() {
 
     // 2) Gather and sanitize exactly the same fields as create_campaign()
     $fields = [
-        'client_id','campaign_name','month','week','campaign_date','location','adset',
+        'client_id','campaign_title','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
         'scheduled_store_visit','store_visit'
     ];

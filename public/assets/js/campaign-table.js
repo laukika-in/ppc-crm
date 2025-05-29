@@ -42,6 +42,7 @@ jQuery(function ($) {
     ["not_connected", "Not Conn", "readonly"],
     ["relevant", "Relevant", "readonly"],
     ["not_available", "N/A", "readonly"],
+    ["not_relevant", "Not Relevant", "readonly"],
     ["scheduled_store_visit", "Sched Visit", "readonly"],
     ["store_visit", "Visit", "readonly"],
   ];

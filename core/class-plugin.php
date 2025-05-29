@@ -143,6 +143,7 @@ public static function version() : string {
 				cpm                    DECIMAL(30,10) DEFAULT 0,
 				connected_number       INT UNSIGNED DEFAULT 0,
 				not_connected          INT UNSIGNED DEFAULT 0,
+				not_relevant    	   INT UNSIGNED DEFAULT 0,
 				relevant               INT UNSIGNED DEFAULT 0,
 				not_available          INT UNSIGNED DEFAULT 0,
 				scheduled_store_visit  INT UNSIGNED DEFAULT 0,
