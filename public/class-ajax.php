@@ -72,9 +72,7 @@ class PPC_CRM_Ajax {
 
 		if ( $data['source'] === 'Google' ) {
 			$camp = get_page_by_title( $data['ad_name'], OBJECT, 'lcm_campaign' );
-		} else if ( $data['source'] === 'Google' ) {
-			$camp = get_page_by_title( $data['adset'], OBJECT, 'lcm_campaign' );
-		}else {
+		} else {
 			$camp = get_page_by_title( $data['adset'], OBJECT, 'lcm_campaign' );
 		}
 
