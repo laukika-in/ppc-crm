@@ -67,33 +67,27 @@ class PPC_CRM_Ajax {
 		];
 		$data=[];
 		foreach($fields as $f){ $data[$f]=sanitize_text_field($_POST[$f]??''); }
- 
-
-                    if ( $data['source'] === 'Google' ) {
-            $camp_id = $wpdb->get_var( $wpdb->prepare(
-                "SELECT post_id
-                FROM {$wpdb->prefix}lcm_campaigns
-                WHERE campaign_name = %s
-                LIMIT 1",
-                $data['ad_name']
-            ) );
-
-            // Meta & everything else → by the ‘adset’ column
-            } else {
-            $camp_id = $wpdb->get_var( $wpdb->prepare(
-                "SELECT post_id
-                FROM {$wpdb->prefix}lcm_campaigns
-                WHERE adset = %s
-                LIMIT 1",
-                $data['adset']
-            ) );
-            }
-
-            if ( ! $camp_id ) {
-            wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
-            }
-
-            $data['campaign_id'] = (int) $camp_id;
+ if ( $data['source'] === 'Google' ) {
+    $camp_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id
+           FROM {$wpdb->prefix}lcm_campaigns
+          WHERE campaign_title = %s
+          LIMIT 1",
+        $data['ad_name']
+    ) );
+} else {
+    $camp_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id
+           FROM {$wpdb->prefix}lcm_campaigns
+          WHERE adset = %s
+          LIMIT 1",
+        $data['adset']
+    ) );
+}
+if ( ! $camp_id ) {
+    wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
+}
+$data['campaign_id'] = (int) $camp_id;
 
 		$post_id=wp_insert_post([
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
@@ -138,29 +132,25 @@ public function update_lead() {
         $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
     }
 if ( $data['source'] === 'Google' ) {
-  $camp_id = $wpdb->get_var( $wpdb->prepare(
-    "SELECT post_id
-       FROM {$wpdb->prefix}lcm_campaigns
-      WHERE campaign_name = %s
-      LIMIT 1",
-    $data['ad_name']
-  ) );
-
-// Meta & everything else → by the ‘adset’ column
+    $camp_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id
+           FROM {$wpdb->prefix}lcm_campaigns
+          WHERE campaign_title = %s
+          LIMIT 1",
+        $data['ad_name']
+    ) );
 } else {
-  $camp_id = $wpdb->get_var( $wpdb->prepare(
-    "SELECT post_id
-       FROM {$wpdb->prefix}lcm_campaigns
-      WHERE adset = %s
-      LIMIT 1",
-    $data['adset']
-  ) );
+    $camp_id = $wpdb->get_var( $wpdb->prepare(
+        "SELECT post_id
+           FROM {$wpdb->prefix}lcm_campaigns
+          WHERE adset = %s
+          LIMIT 1",
+        $data['adset']
+    ) );
 }
-
 if ( ! $camp_id ) {
-  wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
+    wp_send_json_error([ 'msg' => 'Campaign not found' ], 404);
 }
-
 $data['campaign_id'] = (int) $camp_id;
     // If client role, force client_id
     $user      = wp_get_current_user();
