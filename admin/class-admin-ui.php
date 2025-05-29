@@ -361,149 +361,99 @@ private function sanitize_array( $array ) : array {
         }
     }
  
-/**
- * Re-count all tallies for a given campaign (by its post_id).
+ /**
+ * Re‐count just the total number of leads for a given campaign.
+ *
+ * @param int $campaign_id The post ID of the campaign (campaign_id in lcm_leads).
  */
-public function recount_campaign_counters( $campaign_id ) {
+public function recount_total_leads( int $campaign_id ) {
     global $wpdb;
 
-    // 1) Build base totals
-    $totals = [
-        'connected_number'      => 0,
-        'not_connected'         => 0,
-        'relevant'              => 0,
-        'scheduled_store_visit' => 0,
-        'store_visit'           => 0,
-        'leads'                 => 0,
-        'not_available'         => 0,
-    ];
-
-    // 2) Count by attempt_type
-    $rows = $wpdb->get_results( $wpdb->prepare(
-        "SELECT attempt_type, COUNT(*) AS qty
-           FROM {$wpdb->prefix}lcm_leads
-          WHERE campaign_id = %d
-          GROUP BY attempt_type",
-        $campaign_id
-    ), ARRAY_A );
-
-    foreach ( $rows as $r ) {
-        switch ( $r['attempt_type'] ) {
-            case 'Connected:Not Relevant':
-                $totals['connected_number'] += (int) $r['qty'];
-                break;
-            case 'Connected:Relevant':
-                $totals['connected_number'] += (int) $r['qty'];
-                $totals['relevant']          = (int) $r['qty'];
-                break;
-            case 'Not Connected':
-                $totals['not_connected']     = (int) $r['qty'];
-                break;
-        }
-    }
-
-    // 3) Scheduled store visits
-    $totals['scheduled_store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
+    // Count all leads linked to this campaign_id
+    $total_leads = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-          WHERE campaign_id = %d
-            AND attempt_status = 'Store Visit Scheduled'",
+         WHERE campaign_id = %d",
         $campaign_id
     ) );
 
-    // 4) Actual store visits
-    $totals['store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-          WHERE campaign_id = %d
-            AND store_visit_status = 'Show'",
-        $campaign_id
-    ) );
-
-    // 5) Total leads
-    $totals['leads'] = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
-          WHERE campaign_id = %d",
-        $campaign_id
-    ) );
-
-    // 6) N/A = everyone else
-    $totals['not_available'] = max(
-        0,
-        $totals['leads']
-        - $totals['connected_number']
-        - $totals['not_connected']
-        - $totals['relevant']
-    );
-
-    // 7) Persist to campaigns table
+    // Update the 'leads' column in your campaigns table (mapped by post_id)
     $wpdb->update(
         $wpdb->prefix . 'lcm_campaigns',
-        [
-            'leads'                 => $totals['leads'],
-            'connected_number'      => $totals['connected_number'],
-            'not_connected'         => $totals['not_connected'],
-            'relevant'              => $totals['relevant'],
-            'scheduled_store_visit' => $totals['scheduled_store_visit'],
-            'store_visit'           => $totals['store_visit'],
-            'not_available'         => $totals['not_available'],
-        ],
+        [ 'leads' => $total_leads ],
         [ 'post_id' => $campaign_id ],
-        [ '%d','%d','%d','%d','%d','%d','%d' ],
+        [ '%d' ],
         [ '%d' ]
     );
 }
 
-
 /**
- * Re-count total Leads = #Google‐leads (by campaign_name)
- *                         + #non-Google leads (by adset)
+ * Re‐count all call‐result tallies for a given campaign.
+ *
+ * @param int $campaign_id The post ID of the campaign (campaign_id in lcm_leads).
  */
-/**
- * Re-count total Leads for this Campaign:
- *   - Google leads (link by ad_name = campaign_name)
- *   - non-Google leads (link by adset)
- */
-public function recount_total_leads( string $campaign_name, string $adset ) {
+public function recount_campaign_counters( int $campaign_id ) {
     global $wpdb;
-    $camp_tbl = $wpdb->prefix . 'lcm_campaigns';
-    $lead_tbl = $wpdb->prefix . 'lcm_leads';
 
-    // 1) fetch the true campaign row (so empty adset or campaign_name is filled in)
-    $camp_row = $wpdb->get_row( $wpdb->prepare(
-        "SELECT id, campaign_name, adset
-           FROM $camp_tbl
-          WHERE campaign_name = %s OR adset = %s
-          LIMIT 1",
-        $campaign_name,
-        $adset
+    // 1) Total leads
+    $total_leads = (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+         WHERE campaign_id = %d",
+        $campaign_id
+    ) );
+
+    // 2) Group by attempt_type for the three key statuses
+    $rows = $wpdb->get_results( $wpdb->prepare(
+        "SELECT attempt_type, COUNT(*) AS qty
+           FROM {$wpdb->prefix}lcm_leads
+          WHERE campaign_id = %d
+            AND attempt_type IN ('Connected:Not Relevant','Connected:Relevant','Not Connected')
+          GROUP BY attempt_type",
+        $campaign_id
     ), ARRAY_A );
 
-    if ( ! $camp_row ) {
-        return;
+    // initialize counters
+    $connected_not_rel = 0;
+    $connected_rel     = 0;
+    $not_connected     = 0;
+
+    foreach ( $rows as $r ) {
+        switch ( $r['attempt_type'] ) {
+            case 'Connected:Not Relevant':
+                $connected_not_rel = (int) $r['qty'];
+                break;
+            case 'Connected:Relevant':
+                $connected_rel     = (int) $r['qty'];
+                break;
+            case 'Not Connected':
+                $not_connected     = (int) $r['qty'];
+                break;
+        }
     }
 
-    $camp_id       = (int) $camp_row['id'];
-    $canon_name    = $camp_row['campaign_name'];
-    $canon_adset   = $camp_row['adset'];
+    // 3) Combined connected = both “Connected” types
+    $connected_total = $connected_not_rel + $connected_rel;
 
-    // 2) count Google leads by ad_name
-    $google_count = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM $lead_tbl WHERE source = 'Google' AND ad_name = %s",
-        $canon_name
-    ) );
+    // 4) N/A = any lead without one of those three statuses
+    $not_available = max( 0,
+        $total_leads
+        - $connected_not_rel
+        - $connected_rel
+        - $not_connected
+    );
 
-    // 3) count all other leads by adset
-    $other_count  = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COUNT(*) FROM $lead_tbl WHERE source <> 'Google' AND adset = %s",
-        $canon_adset
-    ) );
-
-    // 4) write back the sum into this campaign’s `leads` column
+    // 5) Push all fields back into campaigns table (matched by post_id)
     $wpdb->update(
-        $camp_tbl,
-        [ 'leads' => $google_count + $other_count ],
-        [ 'id'    => $camp_id ],
-        [ '%d' ],    // value format
-        [ '%d' ]     // where format
+        $wpdb->prefix . 'lcm_campaigns',
+        [
+            'leads'              => $total_leads,
+            'connected_number'   => $connected_total,
+            'not_connected'      => $not_connected,
+            'relevant'           => $connected_rel,
+            'not_available'      => $not_available,
+        ],
+        [ 'post_id' => $campaign_id ],
+        [ '%d','%d','%d','%d','%d' ],
+        [ '%d' ]
     );
 }
 
