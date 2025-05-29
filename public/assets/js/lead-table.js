@@ -238,15 +238,17 @@ jQuery(function ($) {
              </td>`;
       } else if (typ === "select") {
         let choices = opt;
-        if (f === "ad_name") {
-          choices = r.source === "Google" ? ADNAMES_BY_CLIENT[cid] || [] : [];
-        } else if (f === "adset") {
-          choices = r.source === "Google" ? [] : ADSETS_BY_CLIENT[cid] || [];
+        if (f === "adset") {
+          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
+          choices = ADSETS_BY_CLIENT[cid] || [];
+        } else if (f === "ad_name") {
+          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
+          choices = ADNAMES_BY_CLIENT[cid] || [];
         }
         html += `<td><select class="form-select form-select-sm"
-                                data-name="${f}"${dis}>
-                        ${opts(choices, val)}
-                      </select></td>`;
+                              data-name="${f}"${dis}>
+                            ${opts(choices, val)}
+                          </select></td>`;
       } else if (typ === "date") {
         html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
                          data-name="lead_date" value="${val}"${dis}></td>`;
