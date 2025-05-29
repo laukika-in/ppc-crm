@@ -371,6 +371,8 @@ jQuery(function ($) {
     }
     data.action = "lcm_create_lead";
     data.nonce = LCM.nonce;
+    console.log("LCM.ajax_url =", LCM && LCM.ajax_url);
+
     $.post(LCM.ajax_url, data, () => load(page), "json");
   });
 
