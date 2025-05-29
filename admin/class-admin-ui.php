@@ -380,7 +380,7 @@ public  function recount_campaign_counters( $adset ) {
         'not_available'         => 0,
 	];
 
-$key_field = $source === 'Google' ? 'campaign_name' : 'adset';
+	$key_field = $source === 'Google' ? 'campaign_name' : 'adset';
 	/* ---------- 2) Attempt-type tallies ------------ */
 	$rows = $wpdb->get_results( $wpdb->prepare(
 		"SELECT attempt_type, COUNT(*) AS qty
@@ -456,6 +456,46 @@ $key_field = $source === 'Google' ? 'campaign_name' : 'adset';
     );
 }
 
+/**
+ * Re-count total Leads for a campaign (by Campaign Name if Google source,
+ * or by Adset otherwise) and write into the `leads` column.
+ */
+public function recount_total_leads( string $source, string $adset, string $ad_name ) {
+    global $wpdb;
+
+    if ( $source === 'Google' ) {
+        // count all Google‐sourced rows for that campaign_name
+        $count = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+             WHERE source = 'Google' AND ad_name = %s",
+            $ad_name
+        ) );
+        // update campaign row by campaign_name
+        $wpdb->update(
+            "{$wpdb->prefix}lcm_campaigns",
+            [ 'leads' => $count ],
+            [ 'campaign_name' => $ad_name ],
+            [ '%d' ],
+            [ '%s' ]
+        );
+
+    } else {
+        // count all non-Google rows for that adset
+        $count = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+             WHERE source <> 'Google' AND adset = %s",
+            $adset
+        ) );
+        // update campaign row by adset
+        $wpdb->update(
+            "{$wpdb->prefix}lcm_campaigns",
+            [ 'leads' => $count ],
+            [ 'adset' => $adset ],
+            [ '%d' ],
+            [ '%s' ]
+        );
+    }
+}
 
     /** Change “Add title” placeholder for each CPT */
 public function title_placeholder( $text, $post ) {

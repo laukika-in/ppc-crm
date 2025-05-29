@@ -32,7 +32,7 @@ jQuery(function ($) {
     ["campaign_date", "Date", "date"],
     ["location", "Location", "text"],
     ["adset", "Adset", "text"],
-    ["leads", "Leads", "number"],
+    ["leads", "Leads", "number", "readonly"],
     ["reach", "Reach", "number"],
     ["impressions", "Impr", "number"],
     ["cost_per_lead", "CPL", "number"],
