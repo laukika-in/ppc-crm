@@ -126,6 +126,7 @@ public static function version() : string {
 		dbDelta("
 			CREATE TABLE $campaigns (
 				id                     BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+				campaign_name 		   VARCHAR(191) NOT NULL, 
 				post_id                BIGINT(20) UNSIGNED NOT NULL,
 				client_id              BIGINT(20) UNSIGNED NOT NULL,
 				month                  VARCHAR(20) NOT NULL,

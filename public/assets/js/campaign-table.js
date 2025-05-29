@@ -27,6 +27,7 @@ jQuery(function ($) {
       ],
     ],
     ["week", "Week", "text"],
+    ["campaign_name", "Campaign Name", "text"],
     ["campaign_date", "Date", "date"],
     ["location", "Location", "text"],
     ["adset", "Adset", "text"],

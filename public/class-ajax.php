@@ -251,7 +251,7 @@ public function create_campaign() {
     $is_client = in_array( 'client', (array) $user->roles, true );
     // Gather & sanitize all fields, including campaign_date
     $fields = [
-        'client_id','month','week','campaign_date','location','adset',
+        'client_id','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
         'connected_number','not_connected','relevant','not_available',
         'scheduled_store_visit','store_visit'
@@ -280,7 +280,7 @@ public function create_campaign() {
     $post_id = wp_insert_post([
         'post_type'   => 'lcm_campaign',
         'post_status' => 'publish',
-        'post_title'  => $data['adset'],
+        'post_title'  => $data['campaign_name'],
     ], true);
 
     if ( is_wp_error( $post_id ) ) {
@@ -306,7 +306,7 @@ public function update_campaign() {
 
     // 2) Gather and sanitize exactly the same fields as create_campaign()
     $fields = [
-        'client_id','month','week','campaign_date','location','adset',
+        'client_id','campaign_name','month','week','campaign_date','location','adset',
         'leads','reach','impressions','cost_per_lead','amount_spent','cpm',
         'connected_number','not_connected','relevant','not_available',
         'scheduled_store_visit','store_visit'
@@ -346,7 +346,7 @@ public function update_campaign() {
     if ( $post_id ) {
         wp_update_post([
             'ID'         => $post_id,
-            'post_title' => sanitize_text_field( $_POST['adset'] ?? '' ),
+            'post_title' => sanitize_text_field( $_POST['campaign_name'] ?? '' ),
         ]);
     }
 
