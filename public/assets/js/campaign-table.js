@@ -7,7 +7,6 @@ jQuery(function ($) {
   const allCols = [
     ...(!IS_CLIENT ? [["_action", "Action", "action"]] : []),
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
-    ["campaign_title", "Campaign Title", "text"],
     [
       "month",
       "Month",
@@ -39,9 +38,8 @@ jQuery(function ($) {
     ["amount_spent", "Spent", "number"],
     ["cpm", "CPM", "number"],
     ["connected_number", "Connected", "readonly"],
-    ["relevant", "Relevant", "readonly"],
     ["not_connected", "Not Conn", "readonly"],
-    ["not_relevant", "Not Relevant", "readonly"],
+    ["relevant", "Relevant", "readonly"],
     ["not_available", "N/A", "readonly"],
     ["scheduled_store_visit", "Sched Visit", "readonly"],
     ["store_visit", "Visit", "readonly"],
