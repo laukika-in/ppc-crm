@@ -113,7 +113,7 @@ class PPC_CRM_Ajax {
 		$wpdb->insert( $wpdb->prefix.'lcm_leads', $data );
 		if ( class_exists('PPC_CRM_Admin_UI') ) {
 		$ui = new PPC_CRM_Admin_UI(); 
-		$ui->recount_campaign_counters( $data['ad_name'], $data['adset'] ); 
+		 $ui->recount_campaign_counters( $data['campaign_id'] );
 		$ui->recount_total_leads( $data['ad_name'], $data['adset'] );
 		}
 		wp_send_json_success();
@@ -194,7 +194,7 @@ $data['campaign_id'] = (int) $camp_id;
     }
 	if ( class_exists('PPC_CRM_Admin_UI') ) {
 		$ui = new PPC_CRM_Admin_UI(); 
-		$ui->recount_campaign_counters( $data['ad_name'], $data['adset'] );
+		 $ui->recount_campaign_counters( $data['campaign_id'] );
 		$ui->recount_total_leads( $data['ad_name'], $data['adset'] );
 		}
     wp_send_json_success();
@@ -222,7 +222,7 @@ public function delete_lead() {
 
      if ( class_exists('PPC_CRM_Admin_UI') ) {
         $ui = new PPC_CRM_Admin_UI();
-        $ui->recount_campaign_counters( $data['ad_name'], $data['adset'] );
+        $ui->recount_campaign_counters( $data['campaign_id'] );
         $ui->recount_total_leads( $lead['ad_name'], $lead['adset'] );
     }
 
