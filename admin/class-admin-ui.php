@@ -362,23 +362,23 @@ private function sanitize_array( $array ) : array {
     }
  
 /**
- * Re-count all tallies for a given campaign (by post_id).
+ * Re-count all tallies for a given campaign (by its post_id).
  */
 public function recount_campaign_counters( $campaign_id ) {
     global $wpdb;
 
-    // Prepare the output array
+    // 1) Build base totals
     $totals = [
-        'connected_number'      => 0,  // Connected:Not Relevant
-        'not_connected'         => 0,  // Not Connected
-        'relevant'              => 0,  // Connected:Relevant
-        'scheduled_store_visit' => 0,  // Attempt Status = Store Visit Scheduled
-        'store_visit'           => 0,  // Store Visit Status = Show
-        'not_available'         => 0,  // N/A
-        'leads'                 => 0,  // total leads
+        'connected_number'      => 0,
+        'not_connected'         => 0,
+        'relevant'              => 0,
+        'scheduled_store_visit' => 0,
+        'store_visit'           => 0,
+        'leads'                 => 0,
+        'not_available'         => 0,
     ];
 
-    // 1) Group by attempt_type
+    // 2) Count by attempt_type
     $rows = $wpdb->get_results( $wpdb->prepare(
         "SELECT attempt_type, COUNT(*) AS qty
            FROM {$wpdb->prefix}lcm_leads
@@ -390,18 +390,19 @@ public function recount_campaign_counters( $campaign_id ) {
     foreach ( $rows as $r ) {
         switch ( $r['attempt_type'] ) {
             case 'Connected:Not Relevant':
-                $totals['connected_number'] = (int) $r['qty'];
-                break;
-            case 'Not Connected':
-                $totals['not_connected']    = (int) $r['qty'];
+                $totals['connected_number'] += (int) $r['qty'];
                 break;
             case 'Connected:Relevant':
-                $totals['relevant']         = (int) $r['qty'];
+                $totals['connected_number'] += (int) $r['qty'];
+                $totals['relevant']          = (int) $r['qty'];
+                break;
+            case 'Not Connected':
+                $totals['not_connected']     = (int) $r['qty'];
                 break;
         }
     }
 
-    // 2) Scheduled Store Visit
+    // 3) Scheduled store visits
     $totals['scheduled_store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
           WHERE campaign_id = %d
@@ -409,7 +410,7 @@ public function recount_campaign_counters( $campaign_id ) {
         $campaign_id
     ) );
 
-    // 3) Store Visit
+    // 4) Actual store visits
     $totals['store_visit'] = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
           WHERE campaign_id = %d
@@ -417,14 +418,14 @@ public function recount_campaign_counters( $campaign_id ) {
         $campaign_id
     ) );
 
-    // 4) Total leads
+    // 5) Total leads
     $totals['leads'] = (int) $wpdb->get_var( $wpdb->prepare(
         "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
           WHERE campaign_id = %d",
         $campaign_id
     ) );
 
-    // 5) N/A = total – (conn + not_conn + relevant)
+    // 6) N/A = everyone else
     $totals['not_available'] = max(
         0,
         $totals['leads']
@@ -433,7 +434,7 @@ public function recount_campaign_counters( $campaign_id ) {
         - $totals['relevant']
     );
 
-    // 6) Write it all back to your campaigns table
+    // 7) Persist to campaigns table
     $wpdb->update(
         $wpdb->prefix . 'lcm_campaigns',
         [
