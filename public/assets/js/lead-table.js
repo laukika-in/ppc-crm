@@ -365,10 +365,7 @@ jQuery(function ($) {
     const $tr = $(this).closest("tr");
     const data = collect($tr);
     if (IS_CLIENT) data.client_id = CLIENT_ID;
-    if (!data.uid || !data.adset) {
-      alert("UID & Adset required");
-      return;
-    }
+
     data.action = "lcm_create_lead";
     data.nonce = LCM.nonce;
     $.post(LCM.ajax_url, data, () => load(page), "json");
@@ -413,11 +410,11 @@ jQuery(function ($) {
   // Delete
   let delId = 0;
   const modal = new bootstrap.Modal("#lcmDelModal");
-    $tbody.on("click", ".del-row", function () {
-      delId = $(this).data("id") || 0;
-      if (!delId) $(this).closest("tr").remove();
-      else modal.show();
-    });
+  $tbody.on("click", ".del-row", function () {
+    delId = $(this).data("id") || 0;
+    if (!delId) $(this).closest("tr").remove();
+    else modal.show();
+  });
   $("#lcm-confirm-del").on("click", function () {
     $.post(
       LCM.ajax_url,
