@@ -215,7 +215,7 @@ jQuery(function ($) {
     });
   }
   // Hide add for clients
-  if (IS_CLIENT) $add.hide();
+  //if (IS_CLIENT) $add.hide();
 
   // Add draft
   $add.on("click", () => {
