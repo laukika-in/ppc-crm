@@ -2,20 +2,22 @@
 if (!defined('ABSPATH')) exit;
 global $wpdb;
 
+// Get campaign and month
 $campaign_id = absint($_GET['campaign_id'] ?? 0);
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
-$year = substr($current_month, 0, 4);
-$month = substr($current_month, 5, 2);
+$year = intval(substr($current_month, 0, 4));
+$month = intval(substr($current_month, 5, 2));
 
 if (!$campaign_id) {
-  echo "<div class='notice notice-error'>Invalid Campaign</div>";
-  return;
+    echo "<div class='notice notice-error'>Invalid Campaign ID.</div>";
+    return;
 }
 
-$results = $wpdb->get_results($wpdb->prepare("
+// Query grouped by lead_date
+$rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
-        COUNT(*) AS total_leads,
+        COUNT(*) AS total,
         SUM(reach) AS reach,
         SUM(impressions) AS impressions,
         SUM(amount_spent) AS amount_spent,
@@ -36,7 +38,7 @@ $results = $wpdb->get_results($wpdb->prepare("
 ?>
 
 <div class="wrap">
-  <h2>📅 Campaign Details - <?= date("F Y", strtotime("$current_month-01")) ?></h2>
+  <h2>📊 Campaign Daily Metrics – <?= date("F Y", strtotime($current_month . "-01")) ?></h2>
 
   <form method="get" class="row g-3 align-items-center mb-3">
     <input type="hidden" name="page" value="campaign-detail">
@@ -52,9 +54,9 @@ $results = $wpdb->get_results($wpdb->prepare("
     </div>
   </form>
 
-  <?php if (!$results): ?>
-    <div class="notice notice-warning">No data found for this campaign in <?= date("F Y", strtotime("$current_month-01")) ?>.</div>
-  <?php else: ?>
+  <?php if (empty($rows)) : ?>
+    <div class="alert alert-warning">No leads found for this campaign in <?= date("F Y", strtotime($current_month . "-01")) ?>.</div>
+  <?php else : ?>
     <div class="table-responsive lcm-scroll">
       <table class="table table-bordered table-striped table-sm lcm-table mb-0" style="min-width:1200px;">
         <thead>
@@ -67,34 +69,31 @@ $results = $wpdb->get_results($wpdb->prepare("
             <th>Not Connected</th>
             <th>Relevant</th>
             <th>N/A</th>
-            <th>Sched Visit</th>
+            <th>Scheduled Visit</th>
             <th>Store Visit</th>
             <th>View Leads</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($results as $row): ?>
+          <?php foreach ($rows as $r) : ?>
             <tr>
-              <td><?= esc_html($row->date) ?></td>
-              <td><?= intval($row->reach) ?></td>
-              <td><?= intval($row->impressions) ?></td>
-              <td><?= floatval($row->amount_spent) ?></td>
-              <td><?= intval($row->connected) ?></td>
-              <td><?= intval($row->not_connected) ?></td>
-              <td><?= intval($row->relevant) ?></td>
-              <td><?= intval($row->not_available) ?></td>
-              <td><?= intval($row->scheduled_visit) ?></td>
-              <td><?= intval($row->store_visit) ?></td>
+              <td><?= esc_html($r->date) ?></td>
+              <td><?= intval($r->reach) ?></td>
+              <td><?= intval($r->impressions) ?></td>
+              <td><?= floatval($r->amount_spent) ?></td>
+              <td><?= intval($r->connected) ?></td>
+              <td><?= intval($r->not_connected) ?></td>
+              <td><?= intval($r->relevant) ?></td>
+              <td><?= intval($r->not_available) ?></td>
+              <td><?= intval($r->scheduled_visit) ?></td>
+              <td><?= intval($r->store_visit) ?></td>
               <td>
-                <a class="btn btn-sm btn-secondary"
-                   href="<?= admin_url('admin.php?page=ppc-leads&campaign_id=' . $campaign_id . '&lead_date=' . $row->date); ?>">
-                   View
-                </a>
+                <a href="<?= admin_url('admin.php?page=ppc-leads&campaign_id=' . $campaign_id . '&lead_date=' . $r->date); ?>" class="btn btn-sm btn-outline-primary">View</a>
               </td>
             </tr>
-          <?php endforeach; ?>
+          <?php endforeach ?>
         </tbody>
       </table>
     </div>
-  <?php endif; ?>
+  <?php endif ?>
 </div>
