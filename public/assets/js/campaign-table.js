@@ -97,7 +97,11 @@ jQuery(function ($) {
   const $clearButtons = $(".clear-filter");
 
   // Header
-  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
+  $thead.html(
+    "<tr>" +
+      cols.map((c) => `<th>${c[1]}</th>`).join("") +
+      "<th>Details</th></tr>"
+  );
 
   // Helpers
   const opts = (arr, cur = "") =>
@@ -141,6 +145,13 @@ jQuery(function ($) {
                  </td>`;
         } else {
           html += `<td></td>`; // clients get no actions
+        }
+        if (typ === "action") {
+          if (r.post_id) {
+            html += `<td><a class="btn btn-sm btn-info" href="/campaign-detail?campaign_id=${r.post_id}">View</a></td>`;
+          } else {
+            html += "<td></td>"; // empty for unsaved rows
+          }
         }
       } else if (typ === "select") {
         html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
