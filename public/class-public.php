@@ -447,7 +447,7 @@ class PPC_CRM_Public {
     }
     public function render_campaign_detail() {
     ob_start();
-    include plugin_dir_path(__FILE__) . 'pages/page-campaign-detail.php';
+    include  'page-campaign-detail.php';
     return ob_get_clean();
 }
 
