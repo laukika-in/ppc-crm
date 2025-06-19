@@ -349,19 +349,19 @@ class PPC_CRM_Public {
           
                                <div class="lcm-filters">   
            
-              
-                <?php if ( ! $is_client ) : ?>
-                <div class="col-auto">
-                    <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px"> 
-                        <option value="">All Clients</option>
-                        <?php foreach ( $clients as $c ) : ?>
-                            <option value="<?= esc_attr( $c->ID ); ?>"><?= esc_html( $c->display_name ); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                      </div> <?php endif; ?> 
-                 
-          <div class="col-auto">
-            <div class="input-group input-group-sm lcm-filter-group" id="filter-month-group">
+ 
+            <?php if ( ! $is_client ) : ?>
+            <div class="col-auto">
+                            <select id="lcm-filter-client" class="form-select form-select-sm me-2" style="max-width:220px"> 
+                                <option value="">All Clients</option>
+                                <?php foreach ( $clients as $c ) : ?>
+                                    <option value="<?= esc_attr( $c->ID ); ?>"><?= esc_html( $c->display_name ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                              </div> <?php endif; ?> 
+                        
+              <div class="col-auto">
+              <div class="input-group input-group-sm lcm-filter-group" id="filter-month-group">
               <select id="lcm-filter-month-camp" class="form-select">
                 <option value="">All Months</option>
                 <?php foreach ( [ 'January','February','March','April','May','June','July','August','September','October','November','December' ] as $m ) : ?>
@@ -388,34 +388,34 @@ class PPC_CRM_Public {
             </div>
           </div>
 
-        <div class="col-auto">
-          <div class="input-group input-group-sm lcm-filter-group" id="filter-store-group">
-            <select id="lcm-filter-store-camp" class="form-select">
-              <option value="">All Store Visits</option>
-              <option value="yes">Visited</option>
-              <option value="no">Not Visited</option>
-            </select>
-            <button type="button"
-                    class="btn btn-outline-secondary clear-filter"
-                    data-filter="store"
-                    title="Clear store-visit filter">&times;</button>
+          <div class="col-auto">
+            <div class="input-group input-group-sm lcm-filter-group" id="filter-store-group">
+              <select id="lcm-filter-store-camp" class="form-select">
+                <option value="">All Store Visits</option>
+                <option value="yes">Visited</option>
+                <option value="no">Not Visited</option>
+              </select>
+              <button type="button"
+                      class="btn btn-outline-secondary clear-filter"
+                      data-filter="store"
+                      title="Clear store-visit filter">&times;</button>
+            </div>
           </div>
-        </div>
 
-        <div class="col-auto">
-          <div class="input-group input-group-sm lcm-filter-group" id="filter-connected-group">
-            <select id="lcm-filter-connected-camp" class="form-select">
-              <option value="">All Connected</option>
-              <option value="yes">Has Connected Calls</option>
-              <option value="no">No Connected Calls</option>
-            </select>
-            <button type="button"
-                    class="btn btn-outline-secondary clear-filter"
-                    data-filter="connected"
-                    title="Clear connected filter">&times;</button>
+          <div class="col-auto">
+            <div class="input-group input-group-sm lcm-filter-group" id="filter-connected-group">
+              <select id="lcm-filter-connected-camp" class="form-select">
+                <option value="">All Connected</option>
+                <option value="yes">Has Connected Calls</option>
+                <option value="no">No Connected Calls</option>
+              </select>
+              <button type="button"
+                      class="btn btn-outline-secondary clear-filter"
+                      data-filter="connected"
+                      title="Clear connected filter">&times;</button>
+            </div>
           </div>
         </div>
-      </div>
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
         </div>
@@ -447,7 +447,7 @@ class PPC_CRM_Public {
     }
     public function render_campaign_detail() {
     ob_start();
-    include 'page-campaign-detail.php';
+    include plugin_dir_path(__FILE__) . 'pages/page-campaign-detail.php';
     return ob_get_clean();
 }
 

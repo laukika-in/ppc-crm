@@ -237,7 +237,10 @@ public function get_campaigns() {
   if ( ! empty( $_GET['month'] ) ) {
     $where .= $wpdb->prepare( " AND month = %s", sanitize_text_field( $_GET['month'] ) );
   }
-
+    $lead_date = sanitize_text_field($_GET['lead_date'] ?? '');
+    if ($lead_date) {
+        $where .= $wpdb->prepare(" AND lead_date = %s", $lead_date);
+    }
   // Location filter (partial match)
   if ( ! empty( $_GET['location'] ) ) {
     $where .= $wpdb->prepare( " AND location LIKE %s", '%' . $wpdb->esc_like( $_GET['location'] ) . '%' );
@@ -384,19 +387,19 @@ public function update_campaign() {
             'post_title' => sanitize_text_field( $_POST['campaign_name'] ?? '' ),
         ]);
     }
-if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-    // figure out the WP post ID for this campaign row:
-    $campaign_post_id = $wpdb->get_var( $wpdb->prepare(
-        "SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id = %d",
-        $row_id
-    ) );
+    if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
+        // figure out the WP post ID for this campaign row:
+        $campaign_post_id = $wpdb->get_var( $wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->prefix}lcm_campaigns WHERE id = %d",
+            $row_id
+        ) );
 
-    $ui = new PPC_CRM_Admin_UI();
-    // re-count total leads (will also write into 'leads' column)
-    $ui->recount_total_leads( $campaign_post_id );
-    // re-count all the call/result counters + CPL
-    $ui->recount_campaign_counters( $campaign_post_id );
-}
+        $ui = new PPC_CRM_Admin_UI();
+        // re-count total leads (will also write into 'leads' column)
+        $ui->recount_total_leads( $campaign_post_id );
+        // re-count all the call/result counters + CPL
+        $ui->recount_campaign_counters( $campaign_post_id );
+    }
     wp_send_json_success();
 }
 

@@ -14,18 +14,18 @@ jQuery(function ($) {
       enableTime: true,
       noCalendar: true,
       altInput: true,
-      time_24hr: false,
+      time_24hr: true,
       altFormat: "h:i K", // shows AM/PM
-      dateFormat: "h:i K", // stores 24-hour HH:MM
+      dateFormat: "H:i", // stores 24-hour HH:MM
       allowInput: true,
     });
     $tr.find(".flatpickr-time").flatpickr({
       enableTime: true,
       noCalendar: true,
       altInput: true,
-      time_24hr: false,
+      time_24hr: true,
       altFormat: "h:i K", // shows AM/PM
-      dateFormat: "h:i K", // stores 24-hour HH:MM
+      dateFormat: "H:i", // stores 24-hour HH:MM
       allowInput: true,
     });
   };
