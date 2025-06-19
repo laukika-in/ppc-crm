@@ -5,7 +5,9 @@ jQuery(function ($) {
 
   // Define all columns
   const allCols = [
-    ...(!IS_CLIENT ? [["_action", "Action", "action"]] : []),
+    ...(!IS_CLIENT
+      ? [["_action", "Action", "action"]]
+      : [["_action", "Action", "action"]]),
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     ["campaign_title", "Campaign Title", "text"],
     [
