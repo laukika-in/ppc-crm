@@ -97,11 +97,7 @@ jQuery(function ($) {
   const $clearButtons = $(".clear-filter");
 
   // Header
-  $thead.html(
-    "<tr>" +
-      cols.map((c) => `<th>${c[1]}</th>`).join("") +
-      "<th>Details</th></tr>"
-  );
+  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
   // Helpers
   const opts = (arr, cur = "") =>
@@ -140,7 +136,7 @@ jQuery(function ($) {
                    
                    <button><a class="btn btn-sm btn-info" href="/campaign-detail?campaign_id=${r.id}">View</a></button>
                  </td>`;
-        } else if (saved && !IS_CLIENT) {
+        } else if (saved) {
           html += `<td class="text-center">
                    <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
                    <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
