@@ -143,9 +143,8 @@ jQuery(function ($) {
                    <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
                    <button class="btn btn-danger btn-sm del-camp" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
                  </td>`;
-        }
-        if (r.post_id) {
-          html += `<td><a class="btn btn-sm btn-info" href="/campaign-detail?campaign_id=${r.post_id}">View</a></td>`;
+        } else if (r.post_id) {
+          html += `<button><a class="btn btn-sm btn-info" href="/campaign-detail?campaign_id=${r.post_id}">View</a></button>`;
         } else {
           html += `<td></td>`; // clients get no actions
         }
