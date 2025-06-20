@@ -16,13 +16,7 @@ $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
         COUNT(*) AS total,
-        SUM(connected_number) AS connected,
-        SUM(not_connected) AS not_connected,
-        SUM(relevant) AS relevant,
-        SUM(not_relevant) AS not_relevant,
-        SUM(not_available) AS not_available,
-        SUM(scheduled_store_visit) AS scheduled_visit,
-        SUM(store_visit) AS store_visit
+       
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
       AND MONTH(lead_date) = %d
@@ -72,13 +66,13 @@ $rows = $wpdb->get_results($wpdb->prepare("
             <tr>
               <td><?= esc_html($r->date) ?></td>
               <td><?= intval($r->total) ?></td>
-              <td><?= intval($r->connected) ?></td>
+              <!-- <td><?= intval($r->connected) ?></td>
               <td><?= intval($r->not_connected) ?></td>
               <td><?= intval($r->relevant) ?></td>
               <td><?= intval($r->not_relevant) ?></td>
               <td><?= intval($r->not_available) ?></td>
               <td><?= intval($r->scheduled_visit) ?></td>
-              <td><?= intval($r->store_visit) ?></td>
+              <td><?= intval($r->store_visit) ?></td> -->
             </tr>
           <?php endforeach ?>
         </tbody>
