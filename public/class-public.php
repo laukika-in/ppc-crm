@@ -98,7 +98,11 @@ class PPC_CRM_Public {
             PPC_CRM_VERSION,
             true
         );
-
+        wp_enqueue_script('campaign-detail-js');
+        wp_localize_script('campaign-detail-js', 'ajax_data', [
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('lcm_ajax')
+        ]);
     }
 
     /**
