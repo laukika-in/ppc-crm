@@ -86,16 +86,16 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
     </div>
   </form>
 <div class="card mt-4">
-  <div class="card-header">📊 Daily Campaign Tracker (Editable)</div>
+  <div class="card-header">Daily Campaign Tracker</div>
   <div class="card-body p-0">
-    <table class="table table-bordered table-sm mb-0">
-      <thead class="table-light">
+    <table class="table table-sm mb-0">
+      <thead>
         <tr>
-          <th style="width: 20%">Date</th>
-          <th style="width: 20%">Reach</th>
-          <th style="width: 20%">Impressions</th>
-          <th style="width: 20%">Amount Spent (₹)</th>
-          <th style="width: 20%"></th>
+          <th>Date</th>
+          <th>Reach</th>
+          <th>Impressions</th>
+          <th>Amount Spent (₹)</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="tracker-body">

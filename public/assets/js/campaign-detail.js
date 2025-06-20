@@ -47,7 +47,7 @@ jQuery(function ($) {
       LCMTracker.ajax_url,
       {
         action: "lcm_save_daily_tracker_row",
-        campaign_id: LCMTracker.campaign_id,
+        campaign_id: CID,
         track_date,
         reach,
         impressions: imp,
