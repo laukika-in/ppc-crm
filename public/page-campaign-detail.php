@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) exit;
 global $wpdb;
 
-$campaign_post_id = absint($_GET['campaign_id'] ?? 0);
+$campaign_id = absint($_GET['campaign_id'] ?? 0);
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
 $from = sanitize_text_field($_GET['from'] ?? '');
 $to = sanitize_text_field($_GET['to'] ?? '');
@@ -10,13 +10,13 @@ $to = sanitize_text_field($_GET['to'] ?? '');
 $year = intval(substr($current_month, 0, 4));
 $month = intval(substr($current_month, 5, 2));
 
-if (!$campaign_post_id) {
+if (!$campaign_id) {
     echo "<div class='notice notice-error'>Invalid Campaign ID.</div>";
     return;
 }
 
 // Build WHERE clause
-$where = $wpdb->prepare("campaign_id = %d", $campaign_post_id);
+$where = $wpdb->prepare("campaign_id = %d", $campaign_id);
 
 if ($from && $to) {
     $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
@@ -46,8 +46,8 @@ $tracker_rows = $wpdb->get_results(
   $wpdb->prepare(
     "SELECT id, track_date, reach, impressions, amount_spent
      FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-     WHERE campaign_post_id = %d",
-    $campaign_post_id
+     WHERE campaign_id = %d",
+    $campaign_id
   )
 );
 
@@ -84,7 +84,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
   <!-- Filters -->
   <form method="get" class="row g-2 align-items-center mb-3">
     <input type="hidden" name="page" value="campaign-detail">
-    <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_post_id); ?>">
+    <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_id); ?>">
     <div class="col-auto">
       <label for="month" class="form-label">Month:</label>
       <input type="month" id="month" name="month" class="form-control" value="<?= esc_attr($current_month); ?>">

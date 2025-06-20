@@ -479,8 +479,8 @@ public function get_daily_tracker_rows() {
   check_ajax_referer('lcm_ajax', 'nonce');
   global $wpdb;
 
-  $campaign_post_id = absint($_GET['campaign_id'] ?? 0);
-  if (!$campaign_post_id) {
+  $campaign_id = absint($_GET['campaign_id'] ?? 0);
+  if (!$campaign_id) {
     wp_send_json_error('Invalid campaign ID');
   }
 
@@ -489,7 +489,7 @@ public function get_daily_tracker_rows() {
       "SELECT id, track_date, reach, impressions, amount_spent
        FROM {$wpdb->prefix}lcm_campaign_daily_tracker
        WHERE campaign_id = %d",
-      $campaign_post_id
+      $campaign_id
     )
   );
 
