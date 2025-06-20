@@ -159,21 +159,18 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
 
               <td><?= esc_html($r->date) ?></td>
               <td><?= intval($r->total_leads) ?></td>
-              <td contenteditable class="editable" data-field="reach"><?= esc_html($reach) ?></td>
-              <td contenteditable class="editable" data-field="impressions"><?= esc_html($imp) ?></td>
-              <td contenteditable class="editable" data-field="amount_spent"><?= esc_html($spent) ?></td>
+              <td><input type="number" class="form-control form-control-sm reach-input" data-type="reach" value="<?= esc_attr($reach) ?>"></td>
+<td><input type="number" class="form-control form-control-sm impressions-input" data-type="impressions" value="<?= esc_attr($imp) ?>"></td>
+<td><input type="number" class="form-control form-control-sm spent-input" data-type="amount_spent" value="<?= esc_attr($spent) ?>"></td>
+
               <td><?= $con ?></td>
               <td><?= $rel ?></td>
               <td><?= $nrel ?></td>
               <td><?= $ncon ?></td>
               <td><?= max(0, $na) ?></td>
               <td><?= intval($r->scheduled_visit) ?></td>
-              <td><?= intval($r->store_visit) ?></td>
-                <!-- Reach, Impressions, Spent editable fields -->
- <td><input type="number" class="form-control form-control-sm reach-input" value="<?= intval($reach) ?>"></td>
-<td><input type="number" class="form-control form-control-sm impressions-input" value="<?= intval($imp) ?>"></td>
-<td><input type="number" class="form-control form-control-sm spent-input" value="<?= floatval($spent) ?>"></td>
-<td><button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
+              <td><?= intval($r->store_visit) ?></td> 
+        <td><button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
 
   
             </tr>
