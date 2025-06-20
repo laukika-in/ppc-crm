@@ -454,14 +454,14 @@ public function delete_campaign(){
   } elseif ($campaign_post_id && $log_date) {
     // Insert new row
     $inserted = $wpdb->insert(
-      $wpdb->prefix . 'lcm_campaign_daily_tracker',
-      [
-        'campaign_post_id' => $campaign_post_id,
-        'log_date' => $log_date,
-        'reach' => $reach,
-        'impressions' => $impressions,
-        'amount_spent' => $spent
-      ]
+        $wpdb->prefix . 'lcm_campaign_daily_tracker',
+        [
+            'campaign_id'   => $campaign_post_id,
+            'track_date'    => $log_date,
+            'reach'         => $reach,
+            'impressions'   => $impressions,
+            'amount_spent'  => $spent
+        ]
     );
 
     if (!$inserted) {
