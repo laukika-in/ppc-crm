@@ -16,12 +16,13 @@ $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
         COUNT(*) AS total_leads,
-        SUM(CASE WHEN attempt_status = 'Connected' THEN 1 ELSE 0 END) AS connected,
-        SUM(CASE WHEN attempt_status = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-        SUM(CASE WHEN final_type = 'Relevant' THEN 1 ELSE 0 END) AS relevant,
-        SUM(CASE WHEN final_type = 'Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-        SUM(CASE WHEN store_visit_status = 'Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Visited' THEN 1 ELSE 0 END) AS store_visit
+        SUM(CASE WHEN LOWER(attempt_status) = 'connected' THEN 1 ELSE 0 END) AS connected,
+SUM(CASE WHEN LOWER(attempt_status) = 'not connected' THEN 1 ELSE 0 END) AS not_connected,
+SUM(CASE WHEN LOWER(final_type) = 'relevant' THEN 1 ELSE 0 END) AS relevant,
+SUM(CASE WHEN LOWER(final_type) = 'not relevant' THEN 1 ELSE 0 END) AS not_relevant,
+SUM(CASE WHEN LOWER(store_visit_status) = 'scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+SUM(CASE WHEN LOWER(store_visit_status) = 'visited' THEN 1 ELSE 0 END) AS store_visit
+
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
       AND MONTH(lead_date) = %d
