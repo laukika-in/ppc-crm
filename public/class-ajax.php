@@ -16,8 +16,8 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
 		add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
-    add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
-    add_action('wp_ajax_lcm_save_daily_tracker_row', [$this, 'save_daily_tracker_row']);
+        add_action('wp_ajax_lcm_get_daily_tracker', [$this, 'get_daily_tracker']);
+        add_action('wp_ajax_lcm_save_daily_tracker_row', [$this, 'save_daily_tracker_row']);
 	}
 
 	private function verify() {
@@ -437,44 +437,44 @@ public function delete_campaign(){
         wp_send_json_success($rows);
     }
 
-    public function save_daily_tracker_row() {
-        check_ajax_referer('lcm_nonce');
+public function save_daily_tracker_row() {
+    check_ajax_referer('lcm_nonce');
 
-        global $wpdb;
-        $data = [
-            'campaign_id'    => intval($_POST['campaign_id']),
-            'date'           => sanitize_text_field($_POST['date']),
-            'reach'          => intval($_POST['reach']),
-            'impressions'    => intval($_POST['impressions']),
-            'amount_spent'   => floatval($_POST['amount_spent'])
-        ];
+    global $wpdb;
+    $data = [
+        'campaign_id'    => intval($_POST['campaign_id']),
+        'date'           => sanitize_text_field($_POST['date']),
+        'reach'          => intval($_POST['reach']),
+        'impressions'    => intval($_POST['impressions']),
+        'amount_spent'   => floatval($_POST['amount_spent'])
+    ];
 
-        $table = $wpdb->prefix . 'lcm_campaign_daily_tracker';
-        $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE campaign_id = %d AND date = %s", $data['campaign_id'], $data['date']));
+    $table = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+    $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE campaign_id = %d AND date = %s", $data['campaign_id'], $data['date']));
 
-        if ($existing) {
-            $wpdb->update($table, $data, ['id' => $existing]);
-        } else {
-            $wpdb->insert($table, $data);
-        }
-
-        // Recalculate totals for main campaign table
-        $totals = $wpdb->get_row($wpdb->prepare("
-            SELECT
-                SUM(reach) AS total_reach,
-                SUM(impressions) AS total_impressions,
-                SUM(amount_spent) AS total_spent
-            FROM $table
-            WHERE campaign_id = %d
-        ", $data['campaign_id']), ARRAY_A);
-
-        $campaign_table = $wpdb->prefix . 'lcm_campaigns';
-        $wpdb->update($campaign_table, [
-            'reach'        => intval($totals['total_reach']),
-            'impressions'  => intval($totals['total_impressions']),
-            'amount_spent' => floatval($totals['total_spent'])
-        ], ['post_id' => $data['campaign_id']]);
-
-        wp_send_json_success([ 'message' => 'Saved and updated totals.' ]);
+    if ($existing) {
+        $wpdb->update($table, $data, ['id' => $existing]);
+    } else {
+        $wpdb->insert($table, $data);
     }
+
+    // Recalculate totals for main campaign table
+    $totals = $wpdb->get_row($wpdb->prepare("
+        SELECT
+            SUM(reach) AS total_reach,
+            SUM(impressions) AS total_impressions,
+            SUM(amount_spent) AS total_spent
+        FROM $table
+        WHERE campaign_id = %d
+    ", $data['campaign_id']), ARRAY_A);
+
+    $campaign_table = $wpdb->prefix . 'lcm_campaigns';
+    $wpdb->update($campaign_table, [
+        'reach'        => intval($totals['total_reach']),
+        'impressions'  => intval($totals['total_impressions']),
+        'amount_spent' => floatval($totals['total_spent'])
+    ], ['post_id' => $data['campaign_id']]);
+
+    wp_send_json_success([ 'message' => 'Saved and updated totals.' ]);
+}
 }
