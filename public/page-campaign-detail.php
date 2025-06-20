@@ -20,8 +20,8 @@ $rows = $wpdb->get_results($wpdb->prepare("
         COUNT(*) AS total
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
-    AND MONTH(lead_date) = %d
-    AND YEAR(lead_date) = %d
+      AND MONTH(lead_date) = %d
+      AND YEAR(lead_date) = %d
     GROUP BY lead_date
     ORDER BY lead_date DESC
 ", $campaign_post_id, $month, $year));
