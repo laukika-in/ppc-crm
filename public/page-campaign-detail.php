@@ -12,29 +12,16 @@ if (!$campaign_post_id) {
     return;
 }
 
+// Correct SQL using real field values
 $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
         COUNT(*) AS total_leads,
-
-        -- Connected = Relevant + Not Relevant
-        SUM(CASE WHEN attempt_status IN ('Connected:Relevant', 'Connected:Not Relevant') THEN 1 ELSE 0 END) AS connected,
-
-        -- Relevant
-        SUM(CASE WHEN attempt_status = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-
-        -- Not Relevant
-        SUM(CASE WHEN attempt_status = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-
-        -- Not Connected
-        SUM(CASE WHEN attempt_status = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-
-        -- Store Visit Scheduled
-        SUM(CASE WHEN store_visit_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-
-        -- Store Visit = Show or No Show
-        SUM(CASE WHEN store_visit_status IN ('Show', 'No Show') THEN 1 ELSE 0 END) AS store_visit
-
+        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
       AND MONTH(lead_date) = %d
@@ -42,7 +29,6 @@ $rows = $wpdb->get_results($wpdb->prepare("
     GROUP BY lead_date
     ORDER BY lead_date DESC
 ", $campaign_post_id, $month, $year));
-
 ?>
 
 <div class="wrap">
@@ -82,11 +68,11 @@ $rows = $wpdb->get_results($wpdb->prepare("
         </thead>
         <tbody>
           <?php foreach ($rows as $r) :
-              $connected = intval($r->connected);
               $relevant = intval($r->relevant);
               $not_relevant = intval($r->not_relevant);
               $not_connected = intval($r->not_connected);
-              $not_available = intval($r->total_leads) - ($connected + $not_connected + $relevant + $not_relevant);
+              $connected = $relevant + $not_relevant;
+              $not_available = intval($r->total_leads) - ($connected + $not_connected);
           ?>
             <tr>
               <td><?= esc_html($r->date) ?></td>
