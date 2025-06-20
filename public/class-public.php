@@ -455,10 +455,34 @@ class PPC_CRM_Public {
         <?php
         return ob_get_clean();
     }
+
     public function render_campaign_detail() {
-    ob_start();
-    include  'page-campaign-detail.php';
-    return ob_get_clean();
-}
+        ob_start();
+
+        $campaign_id = isset($_GET['campaign_id']) ? intval($_GET['campaign_id']) : 0;
+
+        // Enqueue required styles
+        wp_enqueue_style( 'bootstrap-css' );
+        wp_enqueue_style( 'bootstrap-icons' );
+        wp_enqueue_style( 'flatpickr-css' );
+        wp_enqueue_style( 'lcm-tables' );
+
+        // Enqueue required scripts
+        wp_enqueue_script( 'bootstrap-js' );
+        wp_enqueue_script( 'flatpickr-js' );
+        wp_enqueue_script( 'flatpickr-init' );
+        wp_enqueue_script( 'lcm-campaign-detail' );
+
+        // Localize campaign-specific data for JS
+        wp_localize_script( 'lcm-campaign-detail', 'LCMTracker', [
+            'ajax_url'    => admin_url( 'admin-ajax.php' ),
+            'campaign_id' => $campaign_id,
+            'nonce'       => wp_create_nonce( 'lcm_nonce' )
+        ]);
+
+        include 'page-campaign-detail.php';
+
+        return ob_get_clean();
+    }
 
 }
