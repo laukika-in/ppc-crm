@@ -457,19 +457,26 @@ public function save_daily_tracker_row() {
         'amount_spent' => $amount_spent
     ]);
 
-    // Update totals in campaign main table
-    $totals = $wpdb->get_row($wpdb->prepare(
-        "SELECT SUM(reach) AS reach, SUM(impressions) AS impressions, SUM(amount_spent) AS amount_spent
-         FROM $table WHERE campaign_id = %d", $campaign_id
-    ), ARRAY_A);
+   // After insert/update of row
+$totals = $wpdb->get_row(
+    $wpdb->prepare("SELECT 
+        SUM(reach) as total_reach,
+        SUM(impressions) as total_impressions,
+        SUM(amount_spent) as total_spent
+        FROM $tracker WHERE campaign_id = %d", $campaign_id)
+);
 
-    $campaign_table = $wpdb->prefix . 'lcm_campaigns';
-    $wpdb->update($campaign_table, [
-        'reach' => intval($totals['reach']),
-        'impressions' => intval($totals['impressions']),
-        'amount_spent' => floatval($totals['amount_spent'])
-    ], ['post_id' => $campaign_id]);
+$wpdb->update(
+    $campaigns,
+    [
+        'reach' => intval($totals->total_reach),
+        'impressions' => intval($totals->total_impressions),
+        'amount_spent' => floatval($totals->total_spent),
+    ],
+    [ 'post_id' => $campaign_id ]
+);
 
+    
     wp_send_json_success();
 }
 
