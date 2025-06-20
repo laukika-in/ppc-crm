@@ -45,9 +45,9 @@ $rows = $wpdb->get_results(
 // Fetch Reach/Impressions/Spent from daily_tracker
 $tracker = $wpdb->get_results(
   $wpdb->prepare(
-    "SELECT id, log_date, reach, impressions, amount_spent
+    "SELECT id, track_date, reach, impressions, amount_spent
      FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-     WHERE campaign_post_id = %d",
+     WHERE campaign_id = %d",
     $campaign_post_id
   ),
   OBJECT_K
