@@ -16,8 +16,8 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
 		add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
-   
-    add_action('wp_ajax_lcm_save_daily_metrics', [$this, 'save_daily_metrics']);
+   add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
+
 
 	}
 
@@ -424,42 +424,35 @@ public function delete_campaign(){
 	wp_send_json_success(['total'=>$total]);
 }
  
-  public function save_daily_metrics() {
-    check_ajax_referer('lcm_ajax', 'nonce');
+public function save_daily_tracker() {
+  check_ajax_referer('lcm_ajax', 'nonce');
+  global $wpdb;
 
-    global $wpdb;
-    $table = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+  $row_id     = absint($_POST['row_id'] ?? 0);
+  $reach      = absint($_POST['reach'] ?? 0);
+  $impressions = absint($_POST['impressions'] ?? 0);
+  $spent      = floatval($_POST['spent'] ?? 0);
 
-    $campaign_id = absint($_POST['campaign_id']);
-    $date = sanitize_text_field($_POST['date']);
-    $reach = absint($_POST['reach']);
-    $impressions = absint($_POST['impressions']);
-    $amount_spent = floatval($_POST['amount_spent']);
-
-    $existing = $wpdb->get_var($wpdb->prepare(
-      "SELECT id FROM $table WHERE campaign_id = %d AND date = %s",
-      $campaign_id, $date
-    ));
-
-    if ($existing) {
-      $wpdb->update($table, [
-        'reach' => $reach,
-        'impressions' => $impressions,
-        'amount_spent' => $amount_spent,
-      ], [
-        'id' => $existing
-      ]);
-    } else {
-      $wpdb->insert($table, [
-        'campaign_id' => $campaign_id,
-        'date' => $date,
-        'reach' => $reach,
-        'impressions' => $impressions,
-        'amount_spent' => $amount_spent
-      ]);
-    }
-
-    wp_send_json_success();
+  if (!$row_id) {
+    wp_send_json_error("Invalid Row ID");
   }
+
+  $updated = $wpdb->update(
+    $wpdb->prefix . 'lcm_campaign_daily_tracker',
+    [
+      'reach'       => $reach,
+      'impressions' => $impressions,
+      'amount_spent'=> $spent
+    ],
+    [ 'id' => $row_id ]
+  );
+
+  if (false === $updated) {
+    wp_send_json_error("Update failed");
+  }
+
+  wp_send_json_success("Saved");
+}
+
 }
  

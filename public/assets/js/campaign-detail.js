@@ -5,7 +5,6 @@ jQuery(document).ready(function ($) {
     const row = $(this).closest("tr");
     const date = row.data("date");
     const campaign_id = LCM.campaign_id;
-
     const reach = parseInt(row.find(".reach-field").val()) || 0;
     const impressions = parseInt(row.find(".impressions-field").val()) || 0;
     const amount_spent = parseFloat(row.find(".spent-field").val()) || 0;
@@ -34,4 +33,31 @@ jQuery(document).ready(function ($) {
       },
     });
   });
+  $(document).on("click", ".save-daily-tracker", function () {
+  const $row = $(this).closest("tr");
+  const rowId = $row.data("row-id");
+  const reach = parseInt($row.find(".reach-input").val()) || 0;
+  const impressions = parseInt($row.find(".impressions-input").val()) || 0;
+  const spent = parseFloat($row.find(".spent-input").val()) || 0;
+
+  $.post(LCM.ajax_url, {
+    action: "lcm_save_daily_tracker",
+    nonce: LCM.nonce,
+    row_id: rowId,
+    reach: reach,
+    impressions: impressions,
+    spent: spent,
+  })
+    .done(function (response) {
+      if (response.success) {
+        alert("Saved successfully");
+      } else {
+        alert("Save failed");
+        console.error(response);
+      }
+    })
+    .fail(function () {
+      alert("Server error");
+    });
+});
 });
