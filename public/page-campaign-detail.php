@@ -160,12 +160,11 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
               <td><?= intval($r->scheduled_visit) ?></td>
               <td><?= intval($r->store_visit) ?></td>
                 <!-- Reach, Impressions, Spent editable fields -->
-    <td><input type="number" class="form-control form-control-sm reach-input" value="<?= intval($r->reach) ?>"></td>
-    <td><input type="number" class="form-control form-control-sm impressions-input" value="<?= intval($r->impressions) ?>"></td>
-    <td><input type="number" class="form-control form-control-sm spent-input" value="<?= floatval($r->amount_spent) ?>"></td>
+ <td><input type="number" class="form-control form-control-sm reach-input" value="<?= intval($reach) ?>"></td>
+<td><input type="number" class="form-control form-control-sm impressions-input" value="<?= intval($imp) ?>"></td>
+<td><input type="number" class="form-control form-control-sm spent-input" value="<?= floatval($spent) ?>"></td>
+<td><button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
 
-    <!-- Save Button -->
-    <td> <button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
   
             </tr>
           <?php endforeach ?>

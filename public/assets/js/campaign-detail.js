@@ -34,14 +34,12 @@ jQuery(document).ready(function ($) {
     });
   });
   $(document).on("click", ".save-daily-tracker", function () {
-    console.log("Saving row ID:", rowId, reach, impressions, spent);
-
     const $row = $(this).closest("tr");
     const rowId = $row.data("row-id");
     const reach = parseInt($row.find(".reach-input").val()) || 0;
     const impressions = parseInt($row.find(".impressions-input").val()) || 0;
     const spent = parseFloat($row.find(".spent-input").val()) || 0;
-
+    console.log("Saving row ID:", rowId, reach, impressions, spent);
     $.post(LCM.ajax_url, {
       action: "lcm_save_daily_tracker",
       nonce: LCM.nonce,
