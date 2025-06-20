@@ -98,12 +98,6 @@ class PPC_CRM_Public {
             PPC_CRM_VERSION,
             true
         ); 
-
-        wp_localize_script('lcm-campaign-detail', 'LCM', [
-          'ajax_url' => admin_url('admin-ajax.php'),
-          'nonce' => wp_create_nonce('lcm_ajax'),
-          'campaign_id' => absint($_GET['campaign_id'] ?? 0),
-        ]);
     }
 
     /**
@@ -470,7 +464,7 @@ class PPC_CRM_Public {
     wp_enqueue_script('flatpickr-init');
     wp_enqueue_script('lcm-campaign-detail');
 
-    wp_localize_script('campaign-detail-js', 'LCM', [
+    wp_localize_script('lcm-campaign-detail', 'LCM', [
       'ajax_url' => admin_url('admin-ajax.php'),
       'nonce'    => wp_create_nonce('lcm_ajax'),
       'campaign_id' => absint($_GET['campaign_id'] ?? 0),
