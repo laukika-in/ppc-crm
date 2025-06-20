@@ -488,7 +488,7 @@ public function get_daily_tracker_rows() {
     $wpdb->prepare(
       "SELECT id, track_date, reach, impressions, amount_spent
        FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-       WHERE campaign_post_id = %d",
+       WHERE campaign_id = %d",
       $campaign_post_id
     )
   );
