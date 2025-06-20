@@ -42,7 +42,7 @@ jQuery(document).ready(function ($) {
     const impressions = parseInt($row.find(".impressions-input").val()) || 0;
     const spent = parseFloat($row.find(".spent-input").val()) || 0;
     const campaign_id = LCM.campaign_id;
-    const date = $row.data("date"); 
+    const date = $row.data("date");
 
     console.log("Saving row ID:", rowId, reach, impressions, spent);
 
@@ -54,8 +54,9 @@ jQuery(document).ready(function ($) {
       date,
       reach,
       impressions,
-      spent,
+      amount_spent: spent,
     })
+
       .done(function (response) {
         if (response.success) {
           alert("Saved successfully");
