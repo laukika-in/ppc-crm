@@ -423,35 +423,55 @@ public function delete_campaign(){
 	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
 	wp_send_json_success(['total'=>$total]);
 }
- 
-public function save_daily_tracker() {
+ public function save_daily_tracker() {
   check_ajax_referer('lcm_ajax', 'nonce');
   global $wpdb;
 
-  $row_id     = absint($_POST['row_id'] ?? 0);
-  $reach      = absint($_POST['reach'] ?? 0);
+  $row_id = absint($_POST['row_id'] ?? 0);
+  $campaign_post_id = absint($_POST['campaign_id'] ?? 0);
+  $log_date = sanitize_text_field($_POST['date'] ?? '');
+  $reach = absint($_POST['reach'] ?? 0);
   $impressions = absint($_POST['impressions'] ?? 0);
-  $spent      = floatval($_POST['spent'] ?? 0);
+  $spent = floatval($_POST['spent'] ?? 0);
 
-  if (!$row_id) {
-    wp_send_json_error("Invalid Row ID");
+  if ($row_id) {
+    // Update existing row
+    $updated = $wpdb->update(
+      $wpdb->prefix . 'lcm_campaign_daily_tracker',
+      [
+        'reach' => $reach,
+        'impressions' => $impressions,
+        'amount_spent' => $spent
+      ],
+      [ 'id' => $row_id ]
+    );
+
+    if (false === $updated) {
+      wp_send_json_error("Update failed");
+    }
+
+    wp_send_json_success("Updated");
+  } elseif ($campaign_post_id && $log_date) {
+    // Insert new row
+    $inserted = $wpdb->insert(
+      $wpdb->prefix . 'lcm_campaign_daily_tracker',
+      [
+        'campaign_post_id' => $campaign_post_id,
+        'log_date' => $log_date,
+        'reach' => $reach,
+        'impressions' => $impressions,
+        'amount_spent' => $spent
+      ]
+    );
+
+    if (!$inserted) {
+      wp_send_json_error("Insert failed");
+    }
+
+    wp_send_json_success("Inserted");
   }
 
-  $updated = $wpdb->update(
-    $wpdb->prefix . 'lcm_campaign_daily_tracker',
-    [
-      'reach'       => $reach,
-      'impressions' => $impressions,
-      'amount_spent'=> $spent
-    ],
-    [ 'id' => $row_id ]
-  );
-
-  if (false === $updated) {
-    wp_send_json_error("Update failed");
-  }
-
-  wp_send_json_success("Saved");
+  wp_send_json_error("Invalid data");
 }
 
 }

@@ -44,14 +44,15 @@ $rows = $wpdb->get_results(
 
 // Fetch Reach/Impressions/Spent from daily_tracker
 $tracker = $wpdb->get_results(
-    $wpdb->prepare(
-        "SELECT log_date, reach, impressions, amount_spent
-         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-         WHERE campaign_post_id = %d",
-        $campaign_post_id
-    ),
-    OBJECT_K
+  $wpdb->prepare(
+    "SELECT id, log_date, reach, impressions, amount_spent
+     FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+     WHERE campaign_post_id = %d",
+    $campaign_post_id
+  ),
+  OBJECT_K
 );
+
 
 // Summary block query
 $summary = $wpdb->get_row(
@@ -145,6 +146,10 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
               $reach = $tracker[$r->date]->reach ?? '';
               $imp = $tracker[$r->date]->impressions ?? '';
               $spent = $tracker[$r->date]->amount_spent ?? '';
+          ?>
+          <?php
+            $track = $tracker[$r->date] ?? null;
+            $row_id = $track->id ?? 0;
           ?>
               <tr data-row-id="<?= $r->id ?>" data-date="<?= esc_attr($r->date) ?>">
               <td><?= esc_html($r->date) ?></td>
