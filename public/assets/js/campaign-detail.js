@@ -5,7 +5,7 @@ jQuery(function ($) {
     $.get(
       LCMTracker.ajax_url,
       {
-        action: "lcm_get_daily_tracker_rows",
+        action: "lcm_get_daily_tracker",
         campaign_id: CID,
         nonce: LCMTracker.nonce,
       },
