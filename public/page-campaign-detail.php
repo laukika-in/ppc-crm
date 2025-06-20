@@ -163,7 +163,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
           <?php endforeach ?>
         </tbody>
       </table>
-      <button id="save-daily-tracker" class="btn btn-success btn-sm mt-3">Save</button>
+      <button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button>
     </div>
   <?php endif ?>
 </div>
