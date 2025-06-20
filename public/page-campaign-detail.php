@@ -16,15 +16,12 @@ $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
         COUNT(*) AS total_leads,
-         
-    SUM(connected_number) AS connected,
-    SUM(not_connected) AS not_connected,
-    SUM(relevant) AS relevant,
-    SUM(not_relevant) AS not_relevant,
-    SUM(not_available) AS not_available,
-    SUM(scheduled_store_visit) AS scheduled_visit,
-    SUM(store_visit) AS store_visit
-
+        SUM(connected_number) AS connected,
+        SUM(not_connected) AS not_connected,
+        SUM(relevant) AS relevant,
+        SUM(not_relevant) AS not_relevant,
+        SUM(scheduled_store_visit) AS scheduled_visit,
+        SUM(store_visit) AS store_visit
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
       AND MONTH(lead_date) = %d
@@ -71,20 +68,21 @@ $rows = $wpdb->get_results($wpdb->prepare("
         </thead>
         <tbody>
           <?php foreach ($rows as $r) :
-              $connected = intval($r->connected);
-              $not_connected = intval($r->not_connected);
-              $relevant = intval($r->relevant);
-              $not_relevant = intval($r->not_relevant);
-              $not_available = intval($r->total_leads) - ($connected + $not_connected + $relevant + $not_relevant);
+              $connected      = intval($r->connected);
+              $not_connected  = intval($r->not_connected);
+              $relevant       = intval($r->relevant);
+              $not_relevant   = intval($r->not_relevant);
+              $total          = intval($r->total_leads);
+              $not_available  = max(0, $total - ($connected + $not_connected + $relevant + $not_relevant));
           ?>
             <tr>
               <td><?= esc_html($r->date) ?></td>
-              <td><?= intval($r->total_leads) ?></td>
+              <td><?= $total ?></td>
               <td><?= $connected ?></td>
               <td><?= $not_connected ?></td>
               <td><?= $relevant ?></td>
               <td><?= $not_relevant ?></td>
-              <td><?= max(0, $not_available) ?></td>
+              <td><?= $not_available ?></td>
               <td><?= intval($r->scheduled_visit) ?></td>
               <td><?= intval($r->store_visit) ?></td>
             </tr>
