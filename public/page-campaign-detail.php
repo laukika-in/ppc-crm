@@ -1,167 +1,74 @@
 <?php
-if (!defined('ABSPATH')) exit;
-global $wpdb;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
-$campaign_post_id = absint($_GET['campaign_id'] ?? 0);
-$current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
-$from = sanitize_text_field($_GET['from'] ?? '');
-$to = sanitize_text_field($_GET['to'] ?? '');
-
-$year = intval(substr($current_month, 0, 4));
-$month = intval(substr($current_month, 5, 2));
-
-if (!$campaign_post_id) {
-    echo "<div class='notice notice-error'>Invalid Campaign ID.</div>";
-    return;
+$campaign_id = intval( $_GET['campaign_id'] ?? 0 );
+$campaign = get_post( $campaign_id );
+if ( ! $campaign || $campaign->post_type !== 'lcm_campaign' ) {
+  echo '<div class="alert alert-danger">Invalid campaign.</div>';
+  return;
 }
 
-// Build WHERE clause
-$where = $wpdb->prepare("campaign_id = %d", $campaign_post_id);
+wp_enqueue_style( 'bootstrap-css' );
+wp_enqueue_style( 'bootstrap-icons' );
+wp_enqueue_script( 'bootstrap-js' );
+wp_enqueue_script( 'flatpickr-js' );
+wp_enqueue_style( 'flatpickr-css' );
+wp_enqueue_script( 'flatpickr-init' );
+wp_enqueue_script( 'campaign-detail' );
 
-if ($from && $to) {
-    $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
-    $filter_label = "From $from to $to";
-} else {
-    $where .= $wpdb->prepare(" AND MONTH(lead_date) = %d AND YEAR(lead_date) = %d", $month, $year);
-    $filter_label = date("F Y", strtotime($current_month . "-01"));
-}
-
-// Main data query (grouped by lead_date)
-$rows = $wpdb->get_results("
-    SELECT 
-        lead_date AS date,
-        COUNT(*) AS total_leads,
-        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-        FROM {$wpdb->prefix}lcm_leads
-        WHERE $where
-        GROUP BY lead_date
-        ORDER BY lead_date DESC
-");
-
-// Summary block query
-$summary = $wpdb->get_row("
-    SELECT 
-        COUNT(*) AS total_leads,
-        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-    FROM {$wpdb->prefix}lcm_leads
-    WHERE $where
-");
-
-$relevant = intval($summary->relevant);
-$not_relevant = intval($summary->not_relevant);
-$not_connected = intval($summary->not_connected);
-$connected = $relevant + $not_relevant;
-$not_available = intval($summary->total_leads) - ($connected + $not_connected);
+wp_localize_script( 'campaign-detail', 'LCM_AJAX', [
+  'ajax_url' => admin_url( 'admin-ajax.php' ),
+  'nonce' => wp_create_nonce( 'lcm_ajax' ),
+  'campaign_id' => $campaign_id,
+]);
 ?>
 
-<div class="wrap">
-  <h2>📊 Campaign Daily Report – <?= esc_html($filter_label) ?></h2>
+<div class="container mt-4">
+  <h4 class="mb-3">Campaign Detail: <?= esc_html( get_the_title( $campaign ) ); ?></h4>
 
-  <!-- Filters -->
-  <form method="get" class="row g-2 align-items-center mb-3">
-    <input type="hidden" name="page" value="campaign-detail">
-    <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_post_id); ?>">
-    <div class="col-auto">
-      <label for="month" class="form-label">Month:</label>
-      <input type="month" id="month" name="month" class="form-control" value="<?= esc_attr($current_month); ?>">
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <label>Month</label>
+      <select id="filter-month" class="form-select form-select-sm">
+        <option value="">All Months</option>
+        <?php foreach ([ 'January','February','March','April','May','June','July','August','September','October','November','December' ] as $m): ?>
+          <option value="<?= esc_attr($m) ?>"><?= esc_html($m) ?></option>
+        <?php endforeach; ?>
+      </select>
     </div>
-    <div class="col-auto">
-      <label for="from" class="form-label">From:</label>
-      <input type="date" id="from" name="from" class="form-control" value="<?= esc_attr($from); ?>">
+    <div class="col-md-3">
+      <label>From Date</label>
+      <input type="date" id="filter-from" class="form-control form-control-sm">
     </div>
-    <div class="col-auto">
-      <label for="to" class="form-label">To:</label>
-      <input type="date" id="to" name="to" class="form-control" value="<?= esc_attr($to); ?>">
+    <div class="col-md-3">
+      <label>To Date</label>
+      <input type="date" id="filter-to" class="form-control form-control-sm">
     </div>
-    <div class="col-auto">
-      <button type="submit" class="btn btn-primary">Filter</button>
+    <div class="col-md-3 d-flex align-items-end">
+      <button class="btn btn-primary btn-sm" id="apply-filters">Apply Filter</button>
     </div>
-  </form>
-<div class="card mt-4">
-  <div class="card-header">Daily Campaign Tracker</div>
-  <div class="card-body p-0">
-    <table class="table table-sm mb-0">
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm" id="daily-detail-table">
       <thead>
         <tr>
           <th>Date</th>
+          <th>Leads</th>
           <th>Reach</th>
           <th>Impressions</th>
-          <th>Amount Spent (₹)</th>
-          <th></th>
+          <th>Amount Spent (INR)</th>
+          <th>Connected</th>
+          <th>Not Connected</th>
+          <th>Relevant</th>
+          <th>Not Relevant</th>
+          <th>N/A</th>
+          <th>Visit Scheduled</th>
+          <th>Visit</th>
+          <th>Action</th>
         </tr>
       </thead>
-      <tbody id="tracker-body">
-        <tr><td colspan="5">Loading...</td></tr>
-      </tbody>
+      <tbody></tbody>
     </table>
   </div>
-</div>
-
-  <!-- Summary -->
-  <div class="card mb-4" style="max-width:1000px">
-    <div class="card-body">
-      <div class="row text-center">
-        <div class="col"><strong>Total Leads:</strong><br><?= intval($summary->total_leads) ?></div>
-        <div class="col"><strong>Connected:</strong><br><?= $connected ?></div>
-        <div class="col"><strong>Relevant:</strong><br><?= $relevant ?></div>
-        <div class="col"><strong>Not Relevant:</strong><br><?= $not_relevant ?></div>
-        <div class="col"><strong>Not Connected:</strong><br><?= $not_connected ?></div>
-        <div class="col"><strong>N/A:</strong><br><?= max(0, $not_available) ?></div>
-        <div class="col"><strong>Scheduled Visit:</strong><br><?= intval($summary->scheduled_visit) ?></div>
-        <div class="col"><strong>Store Visit:</strong><br><?= intval($summary->store_visit) ?></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Table -->
-  <?php if (empty($rows)) : ?>
-    <div class="alert alert-warning">No leads found for this campaign in the selected range.</div>
-  <?php else : ?>
-    <div class="table-responsive lcm-scroll">
-      <table class="table table-bordered table-striped table-sm lcm-table mb-0" style="min-width:1200px;">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Total Leads</th>
-            <th>Connected</th>
-            <th>Relevant</th>
-            <th>Not Relevant</th>
-            <th>Not Connected</th>
-            <th>N/A</th>
-            <th>Scheduled Visit</th>
-            <th>Store Visit</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($rows as $r) :
-              $rel = intval($r->relevant);
-              $nrel = intval($r->not_relevant);
-              $ncon = intval($r->not_connected);
-              $con = $rel + $nrel;
-              $na = intval($r->total_leads) - ($con + $ncon);
-          ?>
-            <tr>
-              <td><?= esc_html($r->date) ?></td>
-              <td><?= intval($r->total_leads) ?></td>
-              <td><?= $con ?></td>
-              <td><?= $rel ?></td>
-              <td><?= $nrel ?></td>
-              <td><?= $ncon ?></td>
-              <td><?= max(0, $na) ?></td>
-              <td><?= intval($r->scheduled_visit) ?></td>
-              <td><?= intval($r->store_visit) ?></td>
-            </tr>
-          <?php endforeach ?>
-        </tbody>
-      </table>
-    </div>
-  <?php endif ?>
 </div>
