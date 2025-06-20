@@ -14,17 +14,26 @@ if (!$campaign_post_id) {
 }
 
 // Step 2: Fetch leads for that campaign and month
+// 🧠 SQL: get daily totals with SUM for all specified fields
 $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
-        COUNT(*) AS total
+        COUNT(*) AS total,
+        SUM(connected_number) AS connected,
+        SUM(relevant) AS relevant,
+        SUM(not_connected) AS not_connected,
+        SUM(not_relevant) AS not_relevant,
+        SUM(not_available) AS not_available,
+        SUM(scheduled_store_visit) AS scheduled_store_visit,
+        SUM(store_visit) AS store_visit
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
-    AND MONTH(lead_date) = %d
-    AND YEAR(lead_date) = %d
+      AND MONTH(lead_date) = %d
+      AND YEAR(lead_date) = %d
     GROUP BY lead_date
     ORDER BY lead_date DESC
 ", $campaign_post_id, $month, $year));
+
 ?>
 
 <div class="wrap">
@@ -47,23 +56,38 @@ $rows = $wpdb->get_results($wpdb->prepare("
   <?php if (empty($rows)) : ?>
     <div class="alert alert-warning">No leads found for this campaign in <?= date("F Y", strtotime($current_month . "-01")) ?>.</div>
   <?php else : ?>
-    <div class="table-responsive lcm-scroll">
-      <table class="table table-bordered table-striped table-sm lcm-table mb-0" style="min-width:600px;">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Total Leads</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($rows as $r) : ?>
-            <tr>
-              <td><?= esc_html($r->date) ?></td>
-              <td><?= intval($r->total) ?></td>
-            </tr>
-          <?php endforeach ?>
-        </tbody>
-      </table>
-    </div>
+ <div class="table-responsive lcm-scroll">
+  <table class="table table-bordered table-striped table-sm lcm-table mb-0" style="min-width:1200px;">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Total Leads</th>
+        <th>Connected</th>
+        <th>Relevant</th>
+        <th>Not Connected</th>
+        <th>Not Relevant</th>
+        <th>Not Available</th>
+        <th>Scheduled Visit</th>
+        <th>Store Visit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($rows as $r) : ?>
+        <tr>
+          <td><?= esc_html($r->date) ?></td>
+          <td><?= intval($r->total) ?></td>
+          <td><?= intval($r->connected) ?></td>
+          <td><?= intval($r->relevant) ?></td>
+          <td><?= intval($r->not_connected) ?></td>
+          <td><?= intval($r->not_relevant) ?></td>
+          <td><?= intval($r->not_available) ?></td>
+          <td><?= intval($r->scheduled_store_visit) ?></td>
+          <td><?= intval($r->store_visit) ?></td>
+        </tr>
+      <?php endforeach ?>
+    </tbody>
+  </table>
+</div>
+
   <?php endif ?>
 </div>
