@@ -34,6 +34,9 @@ $rows = $wpdb->get_results($wpdb->prepare("
     GROUP BY lead_date
     ORDER BY lead_date DESC
 ", $campaign_id, $month, $year));
+echo "<pre>Debug Dump:\n";
+var_dump($rows);
+echo "</pre>";
 
 ?>
 
