@@ -2,18 +2,18 @@
 if (!defined('ABSPATH')) exit;
 global $wpdb;
 
-// Get campaign and month
-$campaign_id = absint($_GET['campaign_id'] ?? 0);
+// ✅ Step 1: campaign_id from GET is actually the WP post_id
+$campaign_post_id = absint($_GET['campaign_id'] ?? 0);
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
 $year = intval(substr($current_month, 0, 4));
 $month = intval(substr($current_month, 5, 2));
 
-if (!$campaign_id) {
+if (!$campaign_post_id) {
     echo "<div class='notice notice-error'>Invalid Campaign ID.</div>";
     return;
 }
 
-// Query grouped by lead_date
+// ✅ Step 2: Query lcm_leads where campaign_id matches post_id
 $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
@@ -33,11 +33,10 @@ $rows = $wpdb->get_results($wpdb->prepare("
       AND YEAR(lead_date) = %d
     GROUP BY lead_date
     ORDER BY lead_date DESC
-", $campaign_id, $month, $year));
+", $campaign_post_id, $month, $year));
 echo "<pre>Debug Dump:\n";
 var_dump($rows);
 echo "</pre>";
-
 ?>
 
 <div class="wrap">
@@ -45,7 +44,7 @@ echo "</pre>";
 
   <form method="get" class="row g-3 align-items-center mb-3">
     <input type="hidden" name="page" value="campaign-detail">
-    <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_id); ?>">
+    <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_post_id); ?>">
     <div class="col-auto">
       <label for="month" class="col-form-label">Select Month:</label>
     </div>
@@ -91,7 +90,7 @@ echo "</pre>";
               <td><?= intval($r->scheduled_visit) ?></td>
               <td><?= intval($r->store_visit) ?></td>
               <td>
-                <a href="<?= admin_url('admin.php?page=ppc-leads&campaign_id=' . $campaign_id . '&lead_date=' . $r->date); ?>" class="btn btn-sm btn-outline-primary">View</a>
+                <a href="<?= admin_url('admin.php?page=ppc-leads&campaign_id=' . $campaign_post_id . '&lead_date=' . $r->date); ?>" class="btn btn-sm btn-outline-primary">View</a>
               </td>
             </tr>
           <?php endforeach ?>
