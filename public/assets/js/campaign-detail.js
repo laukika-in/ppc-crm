@@ -1,36 +1,37 @@
-jQuery(document).ready(function ($) {
-  function loadTrackerRows() {
-    $.post(
+jQuery(function ($) {
+  const CID = LCMTracker.campaign_id;
+
+  function loadRows() {
+    $.get(
       LCMTracker.ajax_url,
       {
-        action: "lcm_get_daily_tracker",
-        campaign_id: LCMTracker.campaign_id,
+        action: "lcm_get_daily_tracker_rows",
+        campaign_id: CID,
         nonce: LCMTracker.nonce,
       },
       function (res) {
-        if (res.success && res.data.length > 0) {
-          let rows = "";
-          res.data.forEach((row) => {
-            rows += `<tr data-date="${row.track_date}">
-            <td>${row.track_date}</td>
-            <td><input type="number" class="form-control form-control-sm reach" value="${
-              row.reach || ""
-            }"></td>
-            <td><input type="number" class="form-control form-control-sm imp" value="${
-              row.impressions || ""
-            }"></td>
-            <td><input type="number" class="form-control form-control-sm amt" value="${
-              row.amount_spent || ""
-            }"></td>
-            <td><button class="btn btn-primary btn-sm save-row">Save</button></td>
-          </tr>`;
-          });
-          $("#tracker-body").html(rows);
-        } else {
+        if (!res.success || !res.data.length) {
           $("#tracker-body").html(
-            '<tr><td colspan="5">No data available</td></tr>'
+            '<tr><td colspan="5">No tracker data found.</td></tr>'
           );
+          return;
         }
+
+        const rows = res.data
+          .map(
+            (r) => `
+        <tr data-date=\"${r.track_date}\">
+          <td>${r.track_date}</td>
+          <td><input class=\"form-control form-control-sm reach\" type=\"number\" value=\"${r.reach}\"/></td>
+          <td><input class=\"form-control form-control-sm imp\" type=\"number\" value=\"${r.impressions}\"/></td>
+          <td><input class=\"form-control form-control-sm amt\" type=\"number\" step=\"0.01\" value=\"${r.amount_spent}\"/></td>
+          <td><button class=\"btn btn-sm btn-success save-row\">Save</button></td>
+        </tr>
+      `
+          )
+          .join("");
+
+        $("#tracker-body").html(rows);
       }
     );
   }
@@ -46,7 +47,7 @@ jQuery(document).ready(function ($) {
       LCMTracker.ajax_url,
       {
         action: "lcm_save_daily_tracker_row",
-        campaign_id: LCMTracker.campaign_id,
+        campaign_id: CID,
         track_date,
         reach,
         impressions: imp,
@@ -56,11 +57,10 @@ jQuery(document).ready(function ($) {
       function (res) {
         if (res.success) {
           alert("Saved!");
-          loadTrackerRows();
         }
       }
     );
   });
 
-  loadTrackerRows();
+  loadRows();
 });
