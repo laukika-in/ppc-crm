@@ -89,6 +89,16 @@ class PPC_CRM_Public {
             PPC_CRM_VERSION,
             true
         );
+        
+        // Campaign Detail Tracker
+        wp_register_script(
+            'lcm-campaign-detail',
+            $base . 'assets/js/campaign-detail.js',
+            [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
+            PPC_CRM_VERSION,
+            true
+        );
+
     }
 
     /**

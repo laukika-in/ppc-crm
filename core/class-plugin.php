@@ -118,7 +118,8 @@ public static function version() : string {
 		$charset = $wpdb->get_charset_collate();
 
 		$campaigns = $wpdb->prefix . 'lcm_campaigns';
-		$leads     = $wpdb->prefix . 'lcm_leads';
+		$leads     = $wpdb->prefix . 'lcm_leads';		
+		$daily = $wpdb->prefix . 'lcm_campaign_daily_tracker';
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -190,6 +191,22 @@ public static function version() : string {
 				KEY client_id  (client_id),
 				KEY campaign_id (campaign_id),
 				KEY adset (adset(191))
+			) $charset;
+		");
+
+		// Daily tracker
+		dbDelta("
+			CREATE TABLE $daily (
+				id            BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+				campaign_id   BIGINT(20) UNSIGNED NOT NULL,
+				track_date    DATE NOT NULL,
+				reach         INT UNSIGNED DEFAULT 0,
+				impressions   INT UNSIGNED DEFAULT 0,
+				amount_spent  DECIMAL(30,10) DEFAULT 0,
+				PRIMARY KEY (id),
+				UNIQUE KEY campaign_date (campaign_id, track_date),
+				KEY campaign_id (campaign_id),
+				KEY track_date (track_date)
 			) $charset;
 		");
 	}

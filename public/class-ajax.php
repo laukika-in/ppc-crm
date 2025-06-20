@@ -16,6 +16,8 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
 		add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
+    add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
+    add_action('wp_ajax_lcm_save_daily_tracker_row', [$this, 'save_daily_tracker_row']);
 	}
 
 	private function verify() {
@@ -26,30 +28,30 @@ class PPC_CRM_Ajax {
 
 	/* paginated fetch --------------------------------------------------- */
 	public function get_leads() {
-    $this->verify();
- $user      = wp_get_current_user();
-    $user_id   = $user->ID;
-    $is_client = in_array( 'client', (array) $user->roles, true );
+        $this->verify();
+        $user      = wp_get_current_user();
+        $user_id   = $user->ID;
+        $is_client = in_array( 'client', (array) $user->roles, true );
 
-    global $wpdb;
-    $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
+        global $wpdb;
+        $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
 
-    $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
+        $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
 
-    $p  = max(1,(int)($_GET['page']??1));
-    $pp = max(1,(int)($_GET['per_page']??10));
-    $o  = ($p-1)*$pp;
+        $p  = max(1,(int)($_GET['page']??1));
+        $pp = max(1,(int)($_GET['per_page']??10));
+        $o  = ($p-1)*$pp;
 
-    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads $where" );
-    $rows  = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}lcm_leads $where ORDER BY id DESC LIMIT %d OFFSET %d",
-            $pp, $o
-        ),
-        ARRAY_A
-    );
-    wp_send_json( [ 'total'=>$total, 'rows'=>$rows ] );
-}
+        $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads $where" );
+        $rows  = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}lcm_leads $where ORDER BY id DESC LIMIT %d OFFSET %d",
+                $pp, $o
+            ),
+            ARRAY_A
+        );
+        wp_send_json( [ 'total'=>$total, 'rows'=>$rows ] );
+    }
 
 
 	/* create lead ------------------------------------------------------- */
@@ -58,29 +60,29 @@ class PPC_CRM_Ajax {
 		$this->verify();
 
     global $wpdb;
-		$fields = [
-			'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
-  'name','phone_number','alt_number','email','location',
-  'client_type','source','source_campaign','targeting','budget',
-  'product_interest','occasion',
-  'attempt','attempt_type','attempt_status','store_visit_status','remarks'
-		];
+            $fields = [
+                'client_id','lead_title','ad_name','adset','uid','lead_date','lead_time','day',
+    'name','phone_number','alt_number','email','location',
+    'client_type','source','source_campaign','targeting','budget',
+    'product_interest','occasion',
+    'attempt','attempt_type','attempt_status','store_visit_status','remarks'
+            ];
 		$data=[];
 		foreach($fields as $f){ $data[$f]=sanitize_text_field($_POST[$f]??''); }
  
-// figure out which dropdown we’re linking by:
-if ( $data['source'] === 'Google' ) {
-  // ad_name dropdown now hands us the campaign post_id
-  $data['campaign_id'] = absint( $data['ad_name'] );
-} else {
-  // adset dropdown now hands us the campaign post_id
-  $data['campaign_id'] = absint( $data['adset'] );
-}
+        // figure out which dropdown we’re linking by:
+        if ( $data['source'] === 'Google' ) {
+        // ad_name dropdown now hands us the campaign post_id
+        $data['campaign_id'] = absint( $data['ad_name'] );
+        } else {
+        // adset dropdown now hands us the campaign post_id
+        $data['campaign_id'] = absint( $data['adset'] );
+        }
 
-// sanity‐check it
-if ( ! $data['campaign_id'] ) {
-  wp_send_json_error([ 'msg'=>'Please pick a valid campaign or adset' ], 400);
-}
+        // sanity‐check it
+        if ( ! $data['campaign_id'] ) {
+        wp_send_json_error([ 'msg'=>'Please pick a valid campaign or adset' ], 400);
+        }
 
 		$post_id=wp_insert_post([
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
@@ -124,20 +126,20 @@ public function update_lead() {
     foreach ( $fields as $f ) {
         $data[ $f ] = sanitize_text_field( $_POST[ $f ] ?? '' );
     }
-// figure out which dropdown we’re linking by:
-if ( $data['source'] === 'Google' ) {
-  // ad_name dropdown now hands us the campaign post_id
-  $data['campaign_id'] = absint( $data['ad_name'] );
-} else {
-  // adset dropdown now hands us the campaign post_id
-  $data['campaign_id'] = absint( $data['adset'] );
-}
+    // figure out which dropdown we’re linking by:
+    if ( $data['source'] === 'Google' ) {
+    // ad_name dropdown now hands us the campaign post_id
+    $data['campaign_id'] = absint( $data['ad_name'] );
+    } else {
+    // adset dropdown now hands us the campaign post_id
+    $data['campaign_id'] = absint( $data['adset'] );
+    }
 
-// sanity‐check it
-if ( ! $data['campaign_id'] ) {
-  wp_send_json_error([ 'msg'=>'Please pick a valid campaign or adset' ], 400);
-}
- 
+    // sanity‐check it
+    if ( ! $data['campaign_id'] ) {
+    wp_send_json_error([ 'msg'=>'Please pick a valid campaign or adset' ], 400);
+    }
+    
     // If client role, force client_id
     $user      = wp_get_current_user();
     $is_client = in_array( 'client', (array) $user->roles, true );
@@ -172,7 +174,7 @@ if ( ! $data['campaign_id'] ) {
     $ui = new PPC_CRM_Admin_UI();
     $ui->recount_total_leads( $data['campaign_id'] );
     $ui->recount_campaign_counters( $data['campaign_id'] );
-}
+    }
     wp_send_json_success();
 }
 
@@ -421,4 +423,55 @@ public function delete_campaign(){
 	wp_send_json_success(['total'=>$total]);
 }
  
+public function get_daily_tracker_rows() {
+    global $wpdb;
+    $campaign_id = intval($_GET['campaign_id']);
+    $from = sanitize_text_field($_GET['from'] ?? '');
+    $to = sanitize_text_field($_GET['to'] ?? '');
+
+    $where = "WHERE campaign_id = $campaign_id";
+    if ($from && $to) {
+        $where .= $wpdb->prepare(" AND track_date BETWEEN %s AND %s", $from, $to);
+    }
+
+    $table = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+    $rows = $wpdb->get_results("SELECT * FROM $table $where ORDER BY track_date ASC", ARRAY_A);
+    wp_send_json_success($rows);
+}
+
+public function save_daily_tracker_row() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+
+    $campaign_id = intval($_POST['campaign_id']);
+    $track_date = sanitize_text_field($_POST['track_date']);
+    $reach = intval($_POST['reach']);
+    $impressions = intval($_POST['impressions']);
+    $amount_spent = floatval($_POST['amount_spent']);
+
+    $wpdb->replace($table, [
+        'campaign_id' => $campaign_id,
+        'track_date' => $track_date,
+        'reach' => $reach,
+        'impressions' => $impressions,
+        'amount_spent' => $amount_spent
+    ]);
+
+    // Update totals in campaign main table
+    $totals = $wpdb->get_row($wpdb->prepare(
+        "SELECT SUM(reach) AS reach, SUM(impressions) AS impressions, SUM(amount_spent) AS amount_spent
+         FROM $table WHERE campaign_id = %d", $campaign_id
+    ), ARRAY_A);
+
+    $campaign_table = $wpdb->prefix . 'lcm_campaigns';
+    $wpdb->update($campaign_table, [
+        'reach' => intval($totals['reach']),
+        'impressions' => intval($totals['impressions']),
+        'amount_spent' => floatval($totals['amount_spent'])
+    ], ['post_id' => $campaign_id]);
+
+    wp_send_json_success();
+}
+
+
 }
