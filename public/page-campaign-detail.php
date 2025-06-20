@@ -43,15 +43,21 @@ $rows = $wpdb->get_results(
 );
 
 // Fetch Reach/Impressions/Spent from daily_tracker
-$tracker = $wpdb->get_results(
+$raw_tracker = $wpdb->get_results(
   $wpdb->prepare(
-    "SELECT id, track_date, reach, impressions, amount_spent
+    "SELECT id, log_date, reach, impressions, amount_spent
      FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-     WHERE campaign_id = %d",
+     WHERE campaign_post_id = %d",
     $campaign_post_id
-  ),
-  OBJECT_K
+  )
 );
+
+// Re-index by log_date
+$tracker = [];
+foreach ($raw_tracker as $t) {
+    $tracker[$t->log_date] = $t;
+}
+
 
 
 // Summary block query
