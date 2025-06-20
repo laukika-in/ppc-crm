@@ -7,7 +7,7 @@ jQuery(function ($) {
       {
         action: "lcm_get_daily_tracker",
         campaign_id: CID,
-        nonce: LCMTracker.nonce,
+        nonce: LCM.nonce,
       },
       function (res) {
         if (!res.success || !res.data.length) {
@@ -52,7 +52,7 @@ jQuery(function ($) {
         reach,
         impressions: imp,
         amount_spent: amt,
-        nonce: LCMTracker.nonce,
+        nonce: LCM.nonce,
       },
       function (res) {
         if (res.success) {

@@ -424,7 +424,7 @@ public function delete_campaign(){
 }
  
    public function get_daily_tracker() {
-        check_ajax_referer('lcm_nonce');
+        wp_create_nonce('lcm_nonce');
 
         global $wpdb;
         $campaign_id = intval($_GET['campaign_id']);
