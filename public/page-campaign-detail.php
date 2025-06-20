@@ -18,6 +18,13 @@ $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
         COUNT(*) AS total
+                SUM(connected_number) AS connected,
+        SUM(not_connected) AS not_connected,
+        SUM(relevant) AS relevant,
+        SUM(not_relevant) AS not_relevant,
+        SUM(not_available) AS not_available,
+        SUM(scheduled_store_visit) AS scheduled_visit,
+        SUM(store_visit) AS store_visit
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
       AND MONTH(lead_date) = %d
