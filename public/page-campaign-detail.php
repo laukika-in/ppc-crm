@@ -146,7 +146,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
               $imp = $tracker[$r->date]->impressions ?? '';
               $spent = $tracker[$r->date]->amount_spent ?? '';
           ?>
-            <tr data-date="<?= esc_attr($r->date) ?>">
+              <tr data-row-id="<?= $r->id ?>" data-date="<?= esc_attr($r->date) ?>">
               <td><?= esc_html($r->date) ?></td>
               <td><?= intval($r->total_leads) ?></td>
               <td contenteditable class="editable" data-field="reach"><?= esc_html($reach) ?></td>
