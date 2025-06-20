@@ -1,4 +1,6 @@
 // File: assets/js/campaign-detail.js
+console.log("✅ campaign-detail.js loaded");
+
 jQuery(document).ready(function ($) {
   // Delegate input changes on Reach/Impressions/Spent fields
   $(document).on("blur", ".editable-field", function () {
