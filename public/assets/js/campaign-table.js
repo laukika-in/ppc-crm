@@ -142,7 +142,7 @@ jQuery(function ($) {
           html += `<td class="text-center">
                <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
                <button class="btn btn-danger btn-sm del-camp me-1" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
-               <a class="btn btn-sm btn-info" style="width:auto!important" href="/campaign-detail?campaign_id=${campaignPostID}">View</a>
+               
              </td>`;
         }
       } else if (typ === "select") {
