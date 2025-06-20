@@ -468,7 +468,7 @@ class PPC_CRM_Public {
     wp_enqueue_script('bootstrap-js');
     wp_enqueue_script('flatpickr-js');
     wp_enqueue_script('flatpickr-init');
-    wp_enqueue_script('campaign-detail-js');
+    wp_enqueue_script('lcm-campaign-detail');
 
     wp_localize_script('campaign-detail-js', 'LCM', [
       'ajax_url' => admin_url('admin-ajax.php'),
