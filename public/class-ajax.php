@@ -432,7 +432,7 @@ public function delete_campaign(){
   $log_date = sanitize_text_field($_POST['date'] ?? '');
   $reach = absint($_POST['reach'] ?? 0);
   $impressions = absint($_POST['impressions'] ?? 0);
-  $spent = floatval($_POST['spent'] ?? 0);
+  $spent = floatval($_POST['amount_spent'] ?? 0);
 
   if ($row_id) {
     // Update existing row
