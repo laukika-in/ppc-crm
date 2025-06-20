@@ -422,7 +422,8 @@ public function delete_campaign(){
 	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
 	wp_send_json_success(['total'=>$total]);
 }
- public function get_daily_tracker() {
+ 
+   public function get_daily_tracker() {
         check_ajax_referer('lcm_nonce');
 
         global $wpdb;
@@ -476,5 +477,4 @@ public function delete_campaign(){
 
         wp_send_json_success([ 'message' => 'Saved and updated totals.' ]);
     }
-
 }
