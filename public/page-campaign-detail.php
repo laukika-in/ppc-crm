@@ -14,18 +14,10 @@ if (!$campaign_post_id) {
 }
 
 // Step 2: Fetch leads for that campaign and month
-// 🧠 SQL: get daily totals with SUM for all specified fields
 $rows = $wpdb->get_results($wpdb->prepare("
     SELECT 
         lead_date AS date,
-        COUNT(*) AS total,
-        SUM(connected_number) AS connected,
-        SUM(relevant) AS relevant,
-        SUM(not_connected) AS not_connected,
-        SUM(not_relevant) AS not_relevant,
-        SUM(not_available) AS not_available,
-        SUM(scheduled_store_visit) AS scheduled_store_visit,
-        SUM(store_visit) AS store_visit
+        COUNT(*) AS total
     FROM {$wpdb->prefix}lcm_leads
     WHERE campaign_id = %d
       AND MONTH(lead_date) = %d
@@ -33,7 +25,6 @@ $rows = $wpdb->get_results($wpdb->prepare("
     GROUP BY lead_date
     ORDER BY lead_date DESC
 ", $campaign_post_id, $month, $year));
-
 ?>
 
 <div class="wrap">
