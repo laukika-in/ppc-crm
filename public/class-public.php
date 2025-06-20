@@ -97,8 +97,13 @@ class PPC_CRM_Public {
             [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
             PPC_CRM_VERSION,
             true
-        );
-       
+        ); 
+
+        wp_localize_script('lcm-campaign-detail', 'LCM', [
+          'ajax_url' => admin_url('admin-ajax.php'),
+          'nonce' => wp_create_nonce('lcm_ajax'),
+          'campaign_id' => absint($_GET['campaign_id'] ?? 0),
+        ]);
     }
 
     /**
