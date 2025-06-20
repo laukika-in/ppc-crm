@@ -4,28 +4,28 @@ jQuery(document).ready(function ($) {
   // Step 1: Fetch tracker data and populate rows
   let trackerData = {};
 
-  $.get(LCM.ajax_url, {
-    action: "lcm_get_daily_tracker",
-    nonce: LCM.nonce,
-    campaign_id: LCM.campaign_id,
-  }).done(function (res) {
-    if (res.success) {
-      trackerData = res.data;
-
-      $("tr[data-date]").each(function () {
-        const $row = $(this);
-        const date = $row.data("date");
-        const rowData = trackerData[date];
-
-        if (rowData) {
-          $row.data("row-id", rowData.id);
-          $row.find(".reach-input").val(rowData.reach);
-          $row.find(".impressions-input").val(rowData.impressions);
-          $row.find(".spent-input").val(rowData.amount_spent);
+  $.get(
+    LCM.ajax_url,
+    {
+      action: "lcm_get_daily_tracker_rows",
+      nonce: LCM.nonce,
+      campaign_id: LCM.campaign_id,
+    },
+    function (response) {
+      if (response.success) {
+        const tracker = response.data;
+        for (const date in tracker) {
+          const row = $(`tr[data-date="${date}"]`);
+          if (!row.length) continue;
+          const data = tracker[date];
+          row.attr("data-row-id", data.id);
+          row.find(".reach-input").val(data.reach);
+          row.find(".impressions-input").val(data.impressions);
+          row.find(".spent-input").val(data.amount_spent);
         }
-      });
+      }
     }
-  });
+  );
 
   // Step 2: Handle Save button click
   $(document).on("click", ".save-daily-tracker", function () {

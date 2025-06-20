@@ -16,9 +16,10 @@ class PPC_CRM_Ajax {
 		add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
 		add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
 
-   add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
+        add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
+        
+        add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
 
-add_action('wp_ajax_lcm_get_daily_tracker', [$this, 'get_daily_tracker']);
 
 	}
 
@@ -474,36 +475,35 @@ public function delete_campaign(){
 
   wp_send_json_error("Invalid data");
 }
-public function get_daily_tracker() {
-    check_ajax_referer('lcm_ajax', 'nonce');
+public function get_daily_tracker_rows() {
+  check_ajax_referer('lcm_ajax', 'nonce');
+  global $wpdb;
 
-    global $wpdb;
+  $campaign_post_id = absint($_GET['campaign_id'] ?? 0);
+  if (!$campaign_post_id) {
+    wp_send_json_error('Invalid campaign ID');
+  }
 
-    $campaign_id = absint($_GET['campaign_id'] ?? 0);
-    if (!$campaign_id) {
-        wp_send_json_error("Invalid campaign ID");
-    }
+  $rows = $wpdb->get_results(
+    $wpdb->prepare(
+      "SELECT id, track_date, reach, impressions, amount_spent
+       FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+       WHERE campaign_post_id = %d",
+      $campaign_post_id
+    )
+  );
 
-    $results = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT id, track_date, reach, impressions, amount_spent
-             FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-             WHERE campaign_post_id = %d",
-            $campaign_id
-        )
-    );
+  $result = [];
+  foreach ($rows as $row) {
+    $result[$row->track_date] = [
+      'id' => $row->id,
+      'reach' => $row->reach,
+      'impressions' => $row->impressions,
+      'amount_spent' => $row->amount_spent,
+    ];
+  }
 
-    $data = [];
-    foreach ($results as $row) {
-        $data[$row->track_date] = [
-            'id' => $row->id,
-            'reach' => $row->reach,
-            'impressions' => $row->impressions,
-            'amount_spent' => $row->amount_spent,
-        ];
-    }
-
-    wp_send_json_success($data);
+  wp_send_json_success($result);
 }
 
 }
