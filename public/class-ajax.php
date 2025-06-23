@@ -33,9 +33,16 @@ class PPC_CRM_Ajax {
         $is_client = in_array( 'client', (array) $user->roles, true );
 
         global $wpdb;
-        $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
-        $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
+        $client_id = $is_client
+    ? $user->ID
+    : absint( $_GET['client_id'] ?? 0 );
 
+// always start WHERE with “1=1” so subsequent ANDs are valid
+$where = 'WHERE 1=1';
+
+if ( $client_id ) {
+    $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
+}
         if ( ! empty( $_GET['date_from'] ) ) {
     $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_GET['date_from']) );
 }
