@@ -224,20 +224,48 @@ class PPC_CRM_Public {
   </select>
 </div>
 
-<!-- Attempt Status -->
-<div class="col-auto">
-  <select id="lcm-filter-attempt-status" class="form-select form-select-sm">
-    <option value="">All Call Results</option>
-    <?php foreach ([
-      "Connected:Not Relevant","Connected:Relevant","Not Connected",
-      "Call Rescheduled","Just browsing","Not Interested",
-      "Ringing / No Response","Store Visit Scheduled","Wrong Number / Invalid Number"
-    ] as $st): ?>
-      <option value="<?= esc_attr($st) ?>"><?= esc_html($st) ?></option>
-    <?php endforeach; ?>
-  </select>
-</div>
+   <!-- Attempt Type -->
+        <div class="col-auto">
+          <div class="input-group input-group-sm lcm-filter-group" id="filter-attempt-type-group">
+            <select id="lcm-filter-attempt-type" class="form-select form-select-sm">
+              <option value="">All Attempt Types</option>
+              <?php foreach ([
+                'Connected:Not Relevant',
+                'Connected:Relevant',
+                'Not Connected'
+              ] as $type): ?>
+                <option value="<?= esc_attr($type) ?>"><?= esc_html($type) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <button type="button"
+                    class="btn btn-outline-secondary clear-filter"
+                    data-filter="attempt_type"
+                    title="Clear attempt-type filter">&times;</button>
+          </div>
+        </div>
 
+        <!-- Attempt Status -->
+        <div class="col-auto">
+          <div class="input-group input-group-sm lcm-filter-group" id="filter-attempt-status-group">
+            <select id="lcm-filter-attempt-status" class="form-select form-select-sm">
+              <option value="">All Attempt Statuses</option>
+              <?php foreach ([
+                'Call Rescheduled',
+                'Just browsing',
+                'Not Interested',
+                'Ringing / No Response',
+                'Store Visit Scheduled',
+                'Wrong Number / Invalid Number'
+              ] as $st): ?>
+                <option value="<?= esc_attr($st) ?>"><?= esc_html($st) ?></option>
+              <?php endforeach; ?>
+            </select>
+            <button type="button"
+                    class="btn btn-outline-secondary clear-filter"
+                    data-filter="attempt_status"
+                    title="Clear attempt-status filter">&times;</button>
+          </div>
+        </div>
 <!-- Store Visit -->
 <div class="col-auto">
   <select id="lcm-filter-store-visit-status" class="form-select form-select-sm">

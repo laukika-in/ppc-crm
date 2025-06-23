@@ -106,12 +106,13 @@ jQuery(function ($) {
     filterDayVal = "",
     filterClientTypeVal = "",
     filterSourceVal = "",
-    filterAttemptVal = "",
-    filterStoreVal = "",
-    filterOccasionVal = "",
-    filterTextVal = "",
-    filterBudgetVal = "",
-    filterProductVal = "";
+    filterAttemptTypeVal = "";
+  filterAttemptStatusVal = "";
+  (filterStoreVal = ""),
+    (filterOccasionVal = ""),
+    (filterTextVal = ""),
+    (filterBudgetVal = ""),
+    (filterProductVal = "");
 
   $filterDateFrom.on("change", () => {
     filterDateFrom = $filterDateFrom.val();
@@ -141,10 +142,19 @@ jQuery(function ($) {
     filterSourceVal = $filterSource.val();
     load(1);
   });
-  $filterAttemptStatus.on("change", () => {
-    filterAttemptVal = $filterAttemptStatus.val();
+
+  $filterAttemptType.on("change", () => {
+    filterAttemptTypeVal = $filterAttemptType.val();
+    toggleFilterHighlight("attempt-type", filterAttemptTypeVal);
     load(1);
   });
+
+  $filterAttemptStatus.on("change", () => {
+    filterAttemptStatusVal = $filterAttemptStatus.val();
+    toggleFilterHighlight("attempt-status", filterAttemptStatusVal);
+    load(1);
+  });
+
   $filterStoreVisit.on("change", () => {
     filterStoreVal = $filterStoreVisit.val();
     load(1);
@@ -280,7 +290,8 @@ jQuery(function ($) {
     if (filterDayVal) q.day = filterDayVal;
     if (filterClientTypeVal) q.client_type = filterClientTypeVal;
     if (filterSourceVal) q.source = filterSourceVal;
-    if (filterAttemptVal) q.attempt_status = filterAttemptVal;
+    if (filterAttemptTypeVal) q.attempt_type = filterAttemptTypeVal;
+    if (filterAttemptStatusVal) q.attempt_status = filterAttemptStatusVal;
     if (filterStoreVal) q.store_visit_status = filterStoreVal;
     if (filterOccasionVal) q.occasion = filterOccasionVal;
     if (filterTextVal) q.search = filterTextVal;
@@ -498,6 +509,28 @@ jQuery(function ($) {
     $tr
       .find("select[data-name=ad_name]")
       .html(opts(ADNAMES_BY_CLIENT[cid], ""));
+  });
+  function toggleFilterHighlight(group, value) {
+    const $grp = $(`#filter-${group}-group`);
+    if (value) $grp.addClass("filter-active");
+    else $grp.removeClass("filter-active");
+  }
+  // Clear-button clicks
+  $(".lcm-filters").on("click", ".clear-filter", function () {
+    const filter = this.dataset.filter;
+    switch (filter) {
+      case "attempt_type":
+        filterAttemptTypeVal = "";
+        $filterAttemptType.val("");
+        break;
+      case "attempt_status":
+        filterAttemptStatusVal = "";
+        $filterAttemptStatus.val("");
+        break;
+      // add other cases if you want clear for other filters
+    }
+    toggleFilterHighlight(filter.replace("_", "-"), ""); // reset highlight
+    load(1);
   });
 
   // Initial load
