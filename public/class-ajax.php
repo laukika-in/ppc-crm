@@ -64,9 +64,20 @@ if ( ! empty( $_GET['client_type'] ) ) {
 if ( ! empty( $_GET['source'] ) ) {
     $where .= $wpdb->prepare( " AND source = %s", sanitize_text_field($_GET['source']) );
 }
-if ( ! empty( $_GET['attempt_status'] ) ) {
-    $where .= $wpdb->prepare( " AND attempt_status = %s", sanitize_text_field($_GET['attempt_status']) );
-}
+    if ( ! empty( $_GET['attempt_type'] ) ) {
+        $where .= $wpdb->prepare(
+            " AND attempt_type = %s",
+            sanitize_text_field( $_GET['attempt_type'] )
+        );
+    }
+
+    // Attempt Status filter
+    if ( ! empty( $_GET['attempt_status'] ) ) {
+        $where .= $wpdb->prepare(
+            " AND attempt_status = %s",
+            sanitize_text_field( $_GET['attempt_status'] )
+        );
+    }
 if ( ! empty( $_GET['store_visit_status'] ) ) {
     $where .= $wpdb->prepare( " AND store_visit_status = %s", sanitize_text_field($_GET['store_visit_status']) );
 }
