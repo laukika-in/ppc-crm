@@ -181,9 +181,6 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                   . '&date_to='   . esc_attr($r->date)
                   . "&{$by}={$val}"
                 ) ?>" class="btn btn-sm btn-primary">View Leads</a>
-
-<a href="<?= site_url('/lead-data/?date_from=' . esc_attr($r->date) . '&date_to=' . esc_attr($r->date) . '&adset=' . esc_attr($r->adset ?? '') ) ?>" class="btn btn-sm btn-primary">🔍 View Leads</a>
-
               </td>
 
               <td><?= $con ?></td>
