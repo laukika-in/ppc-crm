@@ -149,8 +149,10 @@ if ($has_connected === 'yes') {
     $where .= " AND (attempt_type IS NULL OR attempt_type NOT LIKE 'Connected:%')";
 }
 
-     $rows = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lcm_leads $where ORDER BY id DESC");
-
+      $rows = $wpdb->get_results(
+        "SELECT client_id,post_id, adset FROM {$wpdb->prefix}lcm_campaigns WHERE adset<>''",
+        ARRAY_A
+      );
       $adsets_by_client = [];
       foreach ( $rows as $r ) {
         $adsets_by_client[ $r['client_id'] ][] = [ $r['post_id'], $r['adset'] ];
