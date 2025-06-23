@@ -170,10 +170,10 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
                 <?php
               // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
-              $by = $r->campaign_name ? 'ad_name' : 'adset';
-              $val = $by === 'ad_name'
+              $by = $r->campaign_name ? 'adset' : 'ad_name';
+              $val = $by === 'adset'
                     ? urlencode( $r->campaign_name )
-                    : urlencode( $r->adset );
+                    : urlencode( $r->ad_name );
             ?>
             <a href="<?= site_url(
                   '/lead-data'

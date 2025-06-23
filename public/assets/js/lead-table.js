@@ -580,14 +580,14 @@ jQuery(function ($) {
   }
 
   // campaign or adset
-  const adset = urlParams.get("adset");
-  const adname = urlParams.get("ad_name");
+  const adsetId = urlParams.get("adset");
+  const adNameId = urlParams.get("ad_name");
 
   if (adset) {
     $("#lcm-filter-adset").val(adset);
   }
-  if (adname) {
-    $("#lcm-filter-adname").val(adname);
+  if (adNameId) {
+    $("#lcm-filter-adname").val(adNameId);
   }
 
   $("#lcm-filter-adset, #lcm-filter-adname").trigger("change");
