@@ -1,9 +1,5 @@
-// File: assets/js/campaign-detail.js
-
 jQuery(document).ready(function ($) {
-  // Step 1: Fetch tracker data and populate rows
-  let trackerData = {};
-
+  // Step 1: Populate data
   $.get(
     LCM.ajax_url,
     {
@@ -22,12 +18,25 @@ jQuery(document).ready(function ($) {
           row.find(".reach-input").val(data.reach);
           row.find(".impressions-input").val(data.impressions);
           row.find(".spent-input").val(data.amount_spent);
+          row.find(".reach-display").text(data.reach);
+          row.find(".impressions-display").text(data.impressions);
+          row.find(".spent-display").text(data.amount_spent);
         }
       }
     }
   );
 
-  // Step 2: Handle Save button click
+  // Step 2: Edit Mode
+  $(document).on("click", ".edit-tracker", function () {
+    const $row = $(this).closest("tr");
+    $row.find(".tracker-display").addClass("d-none");
+    $row.find(".tracker-input").removeClass("d-none");
+    $row.find(".edit-tracker").addClass("d-none");
+    $row.find(".save-daily-tracker").removeClass("d-none");
+    $row.addClass("table-warning shadow-sm");
+  });
+
+  // Step 3: Save Button
   $(document).on("click", ".save-daily-tracker", function () {
     const $row = $(this).closest("tr");
     const rowId = $row.data("row-id");
@@ -42,18 +51,24 @@ jQuery(document).ready(function ($) {
       action: "lcm_save_daily_tracker",
       nonce: LCM.nonce,
       row_id: rowId,
-      campaign_id: campaign_id,
-      date: date,
-      reach: reach,
-      impressions: impressions,
+      campaign_id,
+      date,
+      reach,
+      impressions,
       amount_spent: spent,
     })
       .done(function (response) {
         if (response.success) {
-          alert("Saved successfully");
+          $row.find(".reach-display").text(reach);
+          $row.find(".impressions-display").text(impressions);
+          $row.find(".spent-display").text(spent);
+          $row.find(".tracker-display").removeClass("d-none");
+          $row.find(".tracker-input").addClass("d-none");
+          $row.find(".edit-tracker").removeClass("d-none");
+          $row.find(".save-daily-tracker").addClass("d-none");
+          $row.removeClass("table-warning shadow-sm");
         } else {
           alert("Save failed");
-          console.error(response);
         }
       })
       .fail(function () {

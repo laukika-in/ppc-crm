@@ -160,9 +160,25 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
 
               <td><?= esc_html($r->date) ?></td>
               <td><?= intval($r->total_leads) ?></td>
-              <td><input type="number" class="form-control form-control-sm reach-input" data-type="reach" value="<?= esc_attr($reach) ?>"></td>
-<td><input type="number" class="form-control form-control-sm impressions-input" data-type="impressions" value="<?= esc_attr($imp) ?>"></td>
-<td><input type="number" class="form-control form-control-sm spent-input" data-type="amount_spent" value="<?= esc_attr($spent) ?>"></td>
+              <td>
+                <span class="tracker-display reach-display"><?= esc_html($reach) ?></span>
+                <input type="number" class="form-control form-control-sm tracker-input reach-input d-none" data-type="reach" value="<?= esc_attr($reach) ?>">
+              </td>
+              <td>
+                <span class="tracker-display impressions-display"><?= esc_html($imp) ?></span>
+                <input type="number" class="form-control form-control-sm tracker-input impressions-input d-none" data-type="impressions" value="<?= esc_attr($imp) ?>">
+              </td>
+              <td>
+                <span class="tracker-display spent-display"><?= esc_html($spent) ?></span>
+                <input type="number" class="form-control form-control-sm tracker-input spent-input d-none" data-type="amount_spent" value="<?= esc_attr($spent) ?>">
+              </td>
+              <td>
+
+                <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
+                <button class="btn btn-sm btn-success save-daily-tracker d-none">💾 Save</button>
+                  <a href="<?= admin_url('admin.php?page=leads&lead_date=' . esc_attr($r->date)) ?>" class="btn btn-sm btn-primary">🔍 View Leads</a>
+
+              </td>
 
               <td><?= $con ?></td>
               <td><?= $rel ?></td>
@@ -171,8 +187,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
               <td><?= max(0, $na) ?></td>
               <td><?= intval($r->scheduled_visit) ?></td>
               <td><?= intval($r->store_visit) ?></td> 
-        <td><button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
-
+     
   
             </tr>
           <?php endforeach ?>
