@@ -171,9 +171,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <?php
               // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
               $by = $r->campaign_name ? 'adset' : 'ad_name';
-              $val = $by === 'adset'
-                    ? urlencode( $r->campaign_name )
-                    : urlencode( $r->ad_name );
+              $val = urlencode( $r->campaign_name );
             ?>
             <a href="<?= site_url(
                   '/lead-data'
