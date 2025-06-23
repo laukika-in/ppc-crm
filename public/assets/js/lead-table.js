@@ -545,6 +545,12 @@ jQuery(function ($) {
     toggleFilterHighlight(filter.replace("_", "-"), ""); // reset highlight
     load(1);
   });
+  // make the filters searchable
+  $("#lcm-filter-adname, #lcm-filter-adset").select2({
+    placeholder: "— Select —",
+    allowClear: true,
+    width: "200px",
+  });
 
   // Initial load
   load(1);

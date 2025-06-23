@@ -203,138 +203,157 @@ class PPC_CRM_Public {
           <?php endif; ?>
      
         <!-- Date range -->
-<div class="col-auto">
-  <div class="input-group input-group-sm">
-    <input id="lcm-filter-date-from" type="date" class="form-control" placeholder="From date">
-    <input id="lcm-filter-date-to"   type="date" class="form-control" placeholder="To date">
-  </div>
-</div>
+      <div class="col-auto">
+        <div class="input-group input-group-sm">
+          <input id="lcm-filter-date-from" type="date" class="form-control" placeholder="From date">
+          <input id="lcm-filter-date-to"   type="date" class="form-control" placeholder="To date">
+        </div>
+      </div>
 
-<!-- Campaign Name -->
+      <!-- Campaign Name -->
 <div class="col-auto">
   <select id="lcm-filter-adname" class="form-select form-select-sm">
     <option value="">All Campaigns</option>
+    <?php
+      // $vars['adnames_by_client'] is [ client_id => [ [post_id, title], … ] ]
+      $all = array_merge(...array_values($adnames_by_client));
+      usort($all, fn($a,$b)=> strcasecmp($a[1],$b[1]));
+      foreach( $all as list($pid,$title) ): ?>
+        <option value="<?php echo esc_attr($pid) ?>">
+          <?php echo esc_html($title) ?>
+        </option>
+      <?php endforeach; ?>
   </select>
 </div>
+
 <!-- Adset -->
 <div class="col-auto">
   <select id="lcm-filter-adset" class="form-select form-select-sm">
     <option value="">All Adsets</option>
+    <?php
+      $all = array_merge(...array_values($adsets_by_client));
+      usort($all, fn($a,$b)=> strcasecmp($a[1],$b[1]));
+      foreach( $all as list($pid,$title) ): ?>
+        <option value="<?php echo esc_attr($pid) ?>">
+          <?php echo esc_html($title) ?>
+        </option>
+      <?php endforeach; ?>
   </select>
 </div>
 
-<!-- Day -->
-<div class="col-auto">
-  <select id="lcm-filter-day" class="form-select form-select-sm">
-    <option value="">All Days</option>
-    <?php foreach ( [ 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday' ] as $d ) : ?>
-      <option value="<?= esc_attr($d) ?>"><?= esc_html($d) ?></option>
-    <?php endforeach; ?>
-  </select>
-</div>
 
-<!-- Client Type -->
-<div class="col-auto">
-  <select id="lcm-filter-client-type" class="form-select form-select-sm">
-    <option value="">All Client Types</option>
-    <option value="New Client">New Client</option>
-    <option value="Existing Client">Existing Client</option>
-  </select>
-</div>
-
-<!-- Source -->
-<div class="col-auto">
-  <select id="lcm-filter-source" class="form-select form-select-sm">
-    <option value="">All Sources</option>
-    <?php foreach (["Google","Meta","WhatsApp","LinkedIn","Twitter","TikTok","Email","Referral","Organic","Other"] as $src): ?>
-      <option value="<?= esc_attr($src) ?>"><?= esc_html($src) ?></option>
-    <?php endforeach; ?>
-  </select>
-</div>
-
-   <!-- Attempt Type -->
-        <div class="col-auto">
-          <div class="input-group input-group-sm lcm-filter-group" id="filter-attempt-type-group">
-            <select id="lcm-filter-attempt-type" class="form-select form-select-sm">
-              <option value="">All Attempt Types</option>
-              <?php foreach ([
-                'Connected:Not Relevant',
-                'Connected:Relevant',
-                'Not Connected'
-              ] as $type): ?>
-                <option value="<?= esc_attr($type) ?>"><?= esc_html($type) ?></option>
-              <?php endforeach; ?>
-            </select>
-            <button type="button"
-                    class="btn btn-outline-secondary clear-filter"
-                    data-filter="attempt_type"
-                    title="Clear attempt-type filter">&times;</button>
-          </div>
-        </div>
-
-        <!-- Attempt Status -->
-        <div class="col-auto">
-          <div class="input-group input-group-sm lcm-filter-group" id="filter-attempt-status-group">
-            <select id="lcm-filter-attempt-status" class="form-select form-select-sm">
-              <option value="">All Attempt Statuses</option>
-              <?php foreach ([
-                'Call Rescheduled',
-                'Just browsing',
-                'Not Interested',
-                'Ringing / No Response',
-                'Store Visit Scheduled',
-                'Wrong Number / Invalid Number'
-              ] as $st): ?>
-                <option value="<?= esc_attr($st) ?>"><?= esc_html($st) ?></option>
-              <?php endforeach; ?>
-            </select>
-            <button type="button"
-                    class="btn btn-outline-secondary clear-filter"
-                    data-filter="attempt_status"
-                    title="Clear attempt-status filter">&times;</button>
-          </div>
-        </div>
-<!-- Store Visit -->
-<div class="col-auto">
-  <select id="lcm-filter-store-visit-status" class="form-select form-select-sm">
-    <option value="">All Store Visits</option>
-    <option value="Show">Show</option>
-    <option value="No Show">No Show</option>
-  </select>
-</div>
-
-<!-- Occasion -->
-<div class="col-auto">
-  <select id="lcm-filter-occasion" class="form-select form-select-sm">
-    <option value="">All Occasions</option>
-    <?php foreach (["Anniversary","Birthday","Casual Occasion","Engagement/Wedding","Gifting","Others","N/A"] as $oc): ?>
-      <option value="<?= esc_attr($oc) ?>"><?= esc_html($oc) ?></option>
-    <?php endforeach; ?>
-  </select>
-</div>
-
-<!-- Free-text search -->
-<div class="col-auto">
-  <input id="lcm-filter-text" type="text" class="form-control form-control-sm" placeholder="Search name/phone/email">
-</div>
-<!-- Budget & Product -->
-<div class="col-auto">
-  <input id="lcm-filter-budget" type="text" class="form-control form-control-sm" placeholder="Budget contains…">
-</div>
-<div class="col-auto">
-  <input id="lcm-filter-product" type="text" class="form-control form-control-sm" placeholder="Product interest…">
-</div>
+      <!-- Day -->
+      <div class="col-auto">
+        <select id="lcm-filter-day" class="form-select form-select-sm">
+          <option value="">All Days</option>
+          <?php foreach ( [ 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday' ] as $d ) : ?>
+            <option value="<?= esc_attr($d) ?>"><?= esc_html($d) ?></option>
+          <?php endforeach; ?>
+        </select>
       </div>
-        <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
+
+      <!-- Client Type -->
+      <div class="col-auto">
+        <select id="lcm-filter-client-type" class="form-select form-select-sm">
+          <option value="">All Client Types</option>
+          <option value="New Client">New Client</option>
+          <option value="Existing Client">Existing Client</option>
+        </select>
+      </div>
+
+      <!-- Source -->
+      <div class="col-auto">
+        <select id="lcm-filter-source" class="form-select form-select-sm">
+          <option value="">All Sources</option>
+          <?php foreach (["Google","Meta","WhatsApp","LinkedIn","Twitter","TikTok","Email","Referral","Organic","Other"] as $src): ?>
+            <option value="<?= esc_attr($src) ?>"><?= esc_html($src) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+
+          <!-- Attempt Type -->
+                <div class="col-auto">
+                  <div class="input-group input-group-sm lcm-filter-group" id="filter-attempt-type-group">
+                    <select id="lcm-filter-attempt-type" class="form-select form-select-sm">
+                      <option value="">All Attempt Types</option>
+                      <?php foreach ([
+                        'Connected:Not Relevant',
+                        'Connected:Relevant',
+                        'Not Connected'
+                      ] as $type): ?>
+                        <option value="<?= esc_attr($type) ?>"><?= esc_html($type) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                    <button type="button"
+                            class="btn btn-outline-secondary clear-filter"
+                            data-filter="attempt_type"
+                            title="Clear attempt-type filter">&times;</button>
+                  </div>
+                </div>
+
+                <!-- Attempt Status -->
+                <div class="col-auto">
+                  <div class="input-group input-group-sm lcm-filter-group" id="filter-attempt-status-group">
+                    <select id="lcm-filter-attempt-status" class="form-select form-select-sm">
+                      <option value="">All Attempt Statuses</option>
+                      <?php foreach ([
+                        'Call Rescheduled',
+                        'Just browsing',
+                        'Not Interested',
+                        'Ringing / No Response',
+                        'Store Visit Scheduled',
+                        'Wrong Number / Invalid Number'
+                      ] as $st): ?>
+                        <option value="<?= esc_attr($st) ?>"><?= esc_html($st) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                    <button type="button"
+                            class="btn btn-outline-secondary clear-filter"
+                            data-filter="attempt_status"
+                            title="Clear attempt-status filter">&times;</button>
+                  </div>
+                </div>
+        <!-- Store Visit -->
+        <div class="col-auto">
+          <select id="lcm-filter-store-visit-status" class="form-select form-select-sm">
+            <option value="">All Store Visits</option>
+            <option value="Show">Show</option>
+            <option value="No Show">No Show</option>
+          </select>
         </div>
 
-        <div class="table-responsive lcm-scroll">
-            <table id="lcm-lead-table" class="table table-bordered table-striped table-sm lcm-table mb-0"
-                   style="table-layout:auto; min-width:1200px;">
-                <thead></thead>
-                <tbody></tbody>
-            </table>
+        <!-- Occasion -->
+        <div class="col-auto">
+          <select id="lcm-filter-occasion" class="form-select form-select-sm">
+            <option value="">All Occasions</option>
+            <?php foreach (["Anniversary","Birthday","Casual Occasion","Engagement/Wedding","Gifting","Others","N/A"] as $oc): ?>
+              <option value="<?= esc_attr($oc) ?>"><?= esc_html($oc) ?></option>
+            <?php endforeach; ?>
+          </select>
         </div>
+
+        <!-- Free-text search -->
+        <div class="col-auto">
+          <input id="lcm-filter-text" type="text" class="form-control form-control-sm" placeholder="Search name/phone/email">
+        </div>
+        <!-- Budget & Product -->
+        <div class="col-auto">
+          <input id="lcm-filter-budget" type="text" class="form-control form-control-sm" placeholder="Budget contains…">
+        </div>
+        <div class="col-auto">
+          <input id="lcm-filter-product" type="text" class="form-control form-control-sm" placeholder="Product interest…">
+        </div>
+              </div>
+                <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
+                </div>
+
+                <div class="table-responsive lcm-scroll">
+                    <table id="lcm-lead-table" class="table table-bordered table-striped table-sm lcm-table mb-0"
+                          style="table-layout:auto; min-width:1200px;">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
 
         <!-- Delete Modal -->
         <div class="modal fade" id="lcmDelModal" tabindex="-1">
