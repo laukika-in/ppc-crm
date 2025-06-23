@@ -90,4 +90,17 @@ jQuery(document).ready(function ($) {
     $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
     $row.removeClass("table-warning shadow-sm");
   });
+  $.getJSON(
+    CampaignDetail.ajax_url,
+    {
+      action: "lcm_get_campaign_leads_json",
+      nonce: CampaignDetail.nonce,
+      campaign_id: CampaignDetail.campaign_id,
+    },
+    function (res) {
+      // res.data is an array of { date: '2025-06-03', leads: 3 }, etc.
+      renderTable(res.data);
+      // and recalculate your summary widgets off that same array
+    }
+  );
 });

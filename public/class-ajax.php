@@ -17,6 +17,8 @@ class PPC_CRM_Ajax {
     add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
     add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
     add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
+    add_action( 'wp_ajax_lcm_get_campaign_leads_json', [ $this, 'get_campaign_leads_json' ] );
+
 	}
 
 	private function verify() {
@@ -78,26 +80,26 @@ if ( ! empty( $_GET['source'] ) ) {
             sanitize_text_field( $_GET['attempt_status'] )
         );
     }
-if ( ! empty( $_GET['store_visit_status'] ) ) {
-    $where .= $wpdb->prepare( " AND store_visit_status = %s", sanitize_text_field($_GET['store_visit_status']) );
-}
-if ( ! empty( $_GET['occasion'] ) ) {
-    $where .= $wpdb->prepare( " AND occasion = %s", sanitize_text_field($_GET['occasion']) );
-}
-if ( ! empty( $_GET['search'] ) ) {
-    $s = '%' . $wpdb->esc_like( $_GET['search'] ) . '%';
-    $where .= $wpdb->prepare( " AND ( name LIKE %s OR phone_number LIKE %s OR email LIKE %s )", $s, $s, $s );
-}
-if ( ! empty( $_GET['budget'] ) ) {
-    $b = '%' . $wpdb->esc_like( $_GET['budget'] ) . '%';
-    $where .= $wpdb->prepare( " AND budget LIKE %s", $b );
-}
-if ( ! empty( $_GET['product_interest'] ) ) {
-    $p = '%' . $wpdb->esc_like( $_GET['product_interest'] ) . '%';
-    $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
-}
-error_log( 'LCM GET params: ' . print_r( $_GET, true ) );
-error_log( 'LCM WHERE clause: ' . $where );
+    if ( ! empty( $_GET['store_visit_status'] ) ) {
+        $where .= $wpdb->prepare( " AND store_visit_status = %s", sanitize_text_field($_GET['store_visit_status']) );
+    }
+    if ( ! empty( $_GET['occasion'] ) ) {
+        $where .= $wpdb->prepare( " AND occasion = %s", sanitize_text_field($_GET['occasion']) );
+    }
+    if ( ! empty( $_GET['search'] ) ) {
+        $s = '%' . $wpdb->esc_like( $_GET['search'] ) . '%';
+        $where .= $wpdb->prepare( " AND ( name LIKE %s OR phone_number LIKE %s OR email LIKE %s )", $s, $s, $s );
+    }
+    if ( ! empty( $_GET['budget'] ) ) {
+        $b = '%' . $wpdb->esc_like( $_GET['budget'] ) . '%';
+        $where .= $wpdb->prepare( " AND budget LIKE %s", $b );
+    }
+    if ( ! empty( $_GET['product_interest'] ) ) {
+        $p = '%' . $wpdb->esc_like( $_GET['product_interest'] ) . '%';
+        $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
+    }
+    error_log( 'LCM GET params: ' . print_r( $_GET, true ) );
+    error_log( 'LCM WHERE clause: ' . $where );
 
         $p  = max(1,(int)($_GET['page']??1));
         $pp = max(1,(int)($_GET['per_page']??10));
@@ -563,6 +565,25 @@ public function get_daily_tracker_rows() {
 
   wp_send_json_success($result);
 }
+
+public function get_campaign_leads_json() {
+  $this->verify();
+  $campaign_id = absint( $_GET['campaign_id'] ?? 0 );
+  if ( ! $campaign_id ) wp_send_json_error('Missing campaign ID', 400);
+
+  global $wpdb;
+  $rows = $wpdb->get_results( $wpdb->prepare(
+    "SELECT lead_date AS date, COUNT(*) AS leads
+       FROM {$wpdb->prefix}lcm_leads
+      WHERE campaign_id = %d
+      GROUP BY lead_date
+      ORDER BY lead_date ASC",
+    $campaign_id
+  ), ARRAY_A );
+
+  wp_send_json_success( $rows );
+}
+
 
 }
  

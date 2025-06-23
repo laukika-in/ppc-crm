@@ -1,8 +1,15 @@
 <?php
 if (!defined('ABSPATH')) exit;
 global $wpdb;
+ 
+  $campaign_id = absint( $_GET['campaign_id'] ?? get_the_ID() );
+  wp_localize_script( 'campaign-detail-js', 'CampaignDetail', [
+    'ajax_url'     => admin_url('admin-ajax.php'),
+    'nonce'        => wp_create_nonce('lcm_ajax'),
+    'campaign_id'  => $campaign_id,
+  ] );
+ 
 
-$campaign_id = absint($_GET['campaign_id'] ?? 0);
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
 $from = sanitize_text_field($_GET['from'] ?? '');
 $to = sanitize_text_field($_GET['to'] ?? '');
