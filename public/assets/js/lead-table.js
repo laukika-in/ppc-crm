@@ -92,6 +92,7 @@ jQuery(function ($) {
   const $filterDay = $("#lcm-filter-day");
   const $filterClientType = $("#lcm-filter-client-type");
   const $filterSource = $("#lcm-filter-source");
+  const $filterAttemptType   = $("#lcm-filter-attempt-type");
   const $filterAttemptStatus = $("#lcm-filter-attempt-status");
   const $filterStoreVisit = $("#lcm-filter-store-visit-status");
   const $filterOccasion = $("#lcm-filter-occasion");
