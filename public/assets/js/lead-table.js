@@ -556,26 +556,30 @@ jQuery(function ($) {
     allowClear: true,
     width: "200px",
   });
-  const params = new URLSearchParams(window.location.search);
-  const urlFrom = params.get("date_from");
-  const urlTo = params.get("date_to");
-  const urlAdName = params.get("ad_name");
-  const urlAdSet = params.get("adset");
-  if (urlFrom) {
-    filterDateFrom = urlFrom;
-    $filterDateFrom.val(urlFrom);
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // dates
+  const df = urlParams.get("date_from");
+  const dt = urlParams.get("date_to");
+  if (df) {
+    filterDateFrom = df;
+    $filterDateFrom.val(df);
   }
-  if (urlTo) {
-    filterDateTo = urlTo;
-    $filterDateTo.val(urlTo);
+  if (dt) {
+    filterDateTo = dt;
+    $filterDateTo.val(dt);
   }
-  if (urlAdName) {
-    filterAdNameVal = urlAdName;
-    $filterAdName.val(urlAdName);
+
+  // campaign or adset
+  const yan = urlParams.get("ad_name");
+  const yas = urlParams.get("adset");
+  if (yan) {
+    filterAdNameVal = yan;
+    $filterAdName.val(yan);
   }
-  if (urlAdSet) {
-    filterAdsetVal = urlAdSet;
-    $filterAdset.val(urlAdSet);
+  if (yas) {
+    filterAdsetVal = yas;
+    $filterAdset.val(yas);
   }
   // Initial load
   load(1);
