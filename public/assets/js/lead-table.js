@@ -269,27 +269,31 @@ jQuery(function ($) {
       nonce: LCM.nonce,
       page: p,
       per_page: PER_PAGE,
-      client_id: filterClient || undefined,
-      date_from: filterDateFrom || undefined,
-      date_to: filterDateTo || undefined,
-      ad_name: filterAdNameVal || undefined,
-      adset: filterAdsetVal || undefined,
-      day: filterDayVal || undefined,
-      client_type: filterClientTypeVal || undefined,
-      source: filterSourceVal || undefined,
-      attempt_status: filterAttemptVal || undefined,
-      store_visit_status: filterStoreVal || undefined,
-      occasion: filterOccasionVal || undefined,
-      search: filterTextVal || undefined,
-      budget: filterBudgetVal || undefined,
-      product_interest: filterProductVal || undefined,
     };
+
+    // only append filter params when non‐empty
+    if (filterClient) q.client_id = filterClient;
+    if (filterDateFrom) q.date_from = filterDateFrom;
+    if (filterDateTo) q.date_to = filterDateTo;
+    if (filterAdNameVal) q.ad_name = filterAdNameVal;
+    if (filterAdsetVal) q.adset = filterAdsetVal;
+    if (filterDayVal) q.day = filterDayVal;
+    if (filterClientTypeVal) q.client_type = filterClientTypeVal;
+    if (filterSourceVal) q.source = filterSourceVal;
+    if (filterAttemptVal) q.attempt_status = filterAttemptVal;
+    if (filterStoreVal) q.store_visit_status = filterStoreVal;
+    if (filterOccasionVal) q.occasion = filterOccasionVal;
+    if (filterTextVal) q.search = filterTextVal;
+    if (filterBudgetVal) q.budget = filterBudgetVal;
+    if (filterProductVal) q.product_interest = filterProductVal;
+
     $.getJSON(LCM.ajax_url, q, (res) => {
       page = p;
       $tbody.html(res.rows.map(rowHtml).join(""));
       renderPager(res.total);
     });
   }
+
   // Filter for PPC/Admin
   if (!IS_CLIENT) {
     $filter.on("change", function () {
