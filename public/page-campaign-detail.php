@@ -2,13 +2,8 @@
 if (!defined('ABSPATH')) exit;
 global $wpdb;
 
-$campaign_id = get_queried_object_id(); 
-?>
-<script>
-  window.LCM = window.LCM || {};
-  LCM.campaign_id = <?= (int)$campaign_id ?>;
-</script>
-<?php
+$campaign_id = absint($_GET['campaign_id'] ?? 0);
+
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
 $from = sanitize_text_field($_GET['from'] ?? '');
 $to = sanitize_text_field($_GET['to'] ?? '');
