@@ -36,6 +36,8 @@ $rows = $wpdb->get_results(
         SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
         SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
         SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+        MAX(adset) AS adset, 
+        MAX(ad_name) AS ad_name
      FROM {$wpdb->prefix}lcm_leads
      WHERE $where
      GROUP BY lead_date
@@ -169,17 +171,23 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
                 <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
                 <?php
-              // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
-              $by = $r->campaign_id ? 'adset' : 'ad_name';
-              $val = $by === 'adset'
-                    ? urlencode( $r->adset )
-                    : urlencode( $r->ad_name );
+               $by = '';
+              $val = '';
+
+              if ($r->adset == $campaign_id) {
+                $by = 'adset';
+                $val = $r->adset;
+              } elseif ($r->ad_name == $campaign_id) {
+                $by = 'ad_name';
+                $val = $r->ad_name;
+              }
             ?>
+
             <a href="<?= site_url(
                   '/lead-data'
                   . '?date_from=' . esc_attr($r->date)
                   . '&date_to='   . esc_attr($r->date)
-                  . "&{$by}={$val}"
+                  . ($by ? "&{$by}=" . urlencode($val) : '')
                 ) ?>" class="btn btn-sm btn-primary">View Leads</a>
               </td>
 
