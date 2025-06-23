@@ -5,6 +5,12 @@ jQuery(function ($) {
   const ADSETS_BY_CLIENT = LCM.adsets_by_client;
   const ADNAMES_BY_CLIENT = LCM.adnames_by_client;
 
+  function initSearchable($scope) {
+    $scope
+      .find('select[data-name="adset"], select[data-name="ad_name"]')
+      .select2({ width: "100%" });
+  }
+
   // Column definitions
   const cols = [
     ["_action", "Action", "action"],
@@ -303,6 +309,8 @@ jQuery(function ($) {
       page = p;
       $tbody.html(res.rows.map(rowHtml).join(""));
       renderPager(res.total);
+      initSearchable($tbody); // ← initialize on all rows
+      LCM_initFlatpickr($tbody); // (if you want date/time)
     });
   }
 
@@ -320,7 +328,9 @@ jQuery(function ($) {
     cols.forEach((c) => (d[c[0]] = ""));
     if (IS_CLIENT) d.client_id = CLIENT_ID;
     $tbody.prepend(rowHtml(d));
-    LCM_initFlatpickr($tbody.find("tr").first());
+    const $new = $tbody.find("tr").first();
+    initSearchable($new);
+    LCM_initFlatpickr($new);
   });
   // Whenever Client is changed in a draft/edit row, refresh its Adset options:
   $tbody.on("change", "select[data-name=client_id]", function () {
@@ -384,6 +394,8 @@ jQuery(function ($) {
       .after(
         '<button class="btn btn-warning btn-sm cancel-edit ms-1"><i class="bi bi-x-lg"></i></button>'
       );
+    // … enable inputs …
+    initSearchable($tr);
     LCM_initFlatpickr($tr);
     toggleDeps($tr);
   });

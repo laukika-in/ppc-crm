@@ -97,7 +97,34 @@ class PPC_CRM_Public {
             [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
             PPC_CRM_VERSION,
             true
-        ); 
+        );
+         wp_register_style(
+        'select2-css',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+        [],
+        '4.1.0'
+    );
+    wp_register_script(
+        'select2-js',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+        [ 'jquery' ],
+        '4.1.0',
+        true
+    );
+ wp_register_style(
+        'select2-css',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+        [],
+        '4.1.0'
+    );
+    wp_register_script(
+        'select2-js',
+        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+        [ 'jquery' ],
+        '4.1.0',
+        true
+    );
+ 
     }
 
     /**
@@ -148,11 +175,12 @@ class PPC_CRM_Public {
         wp_enqueue_style( 'bootstrap-icons' );
         wp_enqueue_style( 'flatpickr-css' );
         wp_enqueue_style( 'lcm-tables' );
-
         wp_enqueue_script( 'bootstrap-js' );
         wp_enqueue_script( 'flatpickr-js' );
         wp_enqueue_script( 'flatpickr-init' );
         wp_enqueue_script( 'lcm-lead-table' );
+        wp_enqueue_style( 'select2-css' );
+        wp_enqueue_script( 'select2-js' );
 
         wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
 
