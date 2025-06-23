@@ -78,6 +78,8 @@ if ( ! empty( $_GET['product_interest'] ) ) {
     $p = '%' . $wpdb->esc_like( $_GET['product_interest'] ) . '%';
     $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
 }
+error_log( 'LCM GET params: ' . print_r( $_GET, true ) );
+error_log( 'LCM WHERE clause: ' . $where );
 
         $p  = max(1,(int)($_GET['page']??1));
         $pp = max(1,(int)($_GET['per_page']??10));

@@ -286,7 +286,7 @@ jQuery(function ($) {
     if (filterTextVal) q.search = filterTextVal;
     if (filterBudgetVal) q.budget = filterBudgetVal;
     if (filterProductVal) q.product_interest = filterProductVal;
-
+    console.log("LCM filter payload:", q);
     $.getJSON(LCM.ajax_url, q, (res) => {
       page = p;
       $tbody.html(res.rows.map(rowHtml).join(""));
