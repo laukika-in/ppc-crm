@@ -578,19 +578,32 @@ jQuery(function ($) {
     filterDateTo = dt;
     $filterDateTo.val(dt);
   }
-
   // campaign or adset
-  const adsetId = urlParams.get("adset");
   const adNameId = urlParams.get("ad_name");
-
-  if (adset) {
-    $("#lcm-filter-adset").val(adset);
-  }
+  const adsetId = urlParams.get("adset");
   if (adNameId) {
-    $("#lcm-filter-adname").val(adNameId);
+    filterAdNameVal = adNameId;
+    $filterAdName.val(yan);
+  }
+  if (adsetId) {
+    filterAdsetVal = adsetId;
+    $filterAdset.val(adsetId);
+  }
+  $("#lcm-filter-adset, #lcm-filter-adname").trigger("change");
+
+  if (adNameId && !adsetId) {
+    $("#lcm-filter-adname").val(adNameId).trigger("change");
+
+    // Wait for adset dropdown to populate
+    setTimeout(() => {
+      const $adsetDropdown = $("#lcm-filter-adset");
+      const firstAdset = $adsetDropdown.find("option").eq(1).val(); // skip "All Adsets"
+      if (firstAdset) {
+        $adsetDropdown.val(firstAdset).trigger("change");
+      }
+    }, 500);
   }
 
-  $("#lcm-filter-adset, #lcm-filter-adname").trigger("change");
   // Initial load
   load(1);
 });
