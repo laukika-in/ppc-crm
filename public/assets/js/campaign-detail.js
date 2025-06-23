@@ -1,9 +1,5 @@
-// File: assets/js/campaign-detail.js
-
 jQuery(document).ready(function ($) {
-  // Step 1: Fetch tracker data and populate rows
-  let trackerData = {};
-
+  // Step 1: Populate data
   $.get(
     LCM.ajax_url,
     {
@@ -22,6 +18,9 @@ jQuery(document).ready(function ($) {
           row.find(".reach-input").val(data.reach);
           row.find(".impressions-input").val(data.impressions);
           row.find(".spent-input").val(data.amount_spent);
+          row.find(".reach-display").text(data.reach);
+          row.find(".impressions-display").text(data.impressions);
+          row.find(".spent-display").text(data.amount_spent);
         }
       }
     }
