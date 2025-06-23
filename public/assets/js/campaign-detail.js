@@ -98,9 +98,26 @@ jQuery(document).ready(function ($) {
       campaign_id: CampaignDetail.campaign_id,
     },
     function (res) {
-      // res.data is an array of { date: '2025-06-03', leads: 3 }, etc.
-      renderTable(res.data);
-      // and recalculate your summary widgets off that same array
+      if (!res.success) {
+        console.error(res);
+        return;
+      }
+      // 1) build your per-day table from res.data.days
+      renderDailyTable(res.data.days);
+      // 2) update your summary widgets:
+      $("#total-leads").text(res.data.total);
+      const byType = res.data.by_type.reduce((acc, r) => {
+        acc[r.attempt_type] = r.qty;
+        return acc;
+      }, {});
+      $("#connected").text(
+        (byType["Connected:Relevant"] || 0) +
+          (byType["Connected:Not Relevant"] || 0)
+      );
+      $("#relevant").text(byType["Connected:Relevant"] || 0);
+      $("#not-connected").text(byType["Not Connected"] || 0);
+      $("#scheduled-visit").text(res.data.scheduled);
+      $("#store-visit").text(res.data.visit);
     }
   );
 });

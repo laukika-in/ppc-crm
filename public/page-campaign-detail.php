@@ -2,13 +2,16 @@
 if (!defined('ABSPATH')) exit;
 global $wpdb;
  
-  $campaign_id = absint( $_GET['campaign_id'] ?? get_the_ID() );
-  wp_localize_script( 'campaign-detail-js', 'CampaignDetail', [
-    'ajax_url'     => admin_url('admin-ajax.php'),
-    'nonce'        => wp_create_nonce('lcm_ajax'),
-    'campaign_id'  => $campaign_id,
-  ] );
- 
+$campaign_id = get_queried_object_id(); 
+  wp_localize_script( 
+    'campaign-detail-js', 
+    'CampaignDetail', 
+    [
+      'ajax_url'     => admin_url('admin-ajax.php'),
+      'nonce'        => wp_create_nonce('lcm_ajax'),
+      'campaign_id'  => $campaign_id,
+    ]
+  );
 
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
 $from = sanitize_text_field($_GET['from'] ?? '');
@@ -184,19 +187,18 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
                 <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
                 <?php
-  // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
-  $by = $r->campaign_name ? 'ad_name' : 'adset';
-  $val = $by === 'ad_name'
-         ? urlencode( $r->campaign_name )
-         : urlencode( $r->adset );
-?>
-<a href="<?= site_url(
-      '/lead-data'
-      . '?date_from=' . esc_attr($r->date)
-      . '&date_to='   . esc_attr($r->date)
-      . "&{$by}={$val}"
-    ) ?>"
-   class="btn btn-sm btn-primary">View Leads</a>
+              // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
+              $by = $r->campaign_name ? 'ad_name' : 'adset';
+              $val = $by === 'ad_name'
+                    ? urlencode( $r->campaign_name )
+                    : urlencode( $r->adset );
+            ?>
+            <a href="<?= site_url(
+                  '/lead-data'
+                  . '?date_from=' . esc_attr($r->date)
+                  . '&date_to='   . esc_attr($r->date)
+                  . "&{$by}={$val}"
+                ) ?>" class="btn btn-sm btn-primary">View Leads</a>
 
 
               </td>

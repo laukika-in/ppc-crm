@@ -18,7 +18,6 @@ class PPC_CRM_Ajax {
     add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
     add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
     add_action( 'wp_ajax_lcm_get_campaign_leads_json', [ $this, 'get_campaign_leads_json' ] );
-
 	}
 
 	private function verify() {
@@ -568,20 +567,49 @@ public function get_daily_tracker_rows() {
 
 public function get_campaign_leads_json() {
   $this->verify();
-  $campaign_id = absint( $_GET['campaign_id'] ?? 0 );
-  if ( ! $campaign_id ) wp_send_json_error('Missing campaign ID', 400);
+  $cid = absint( $_GET['campaign_id'] ?? 0 );
+  if ( ! $cid ) wp_send_json_error('Missing campaign ID', 400);
 
   global $wpdb;
-  $rows = $wpdb->get_results( $wpdb->prepare(
+  // 1) per-day lead counts
+  $days = $wpdb->get_results( $wpdb->prepare(
     "SELECT lead_date AS date, COUNT(*) AS leads
        FROM {$wpdb->prefix}lcm_leads
       WHERE campaign_id = %d
       GROUP BY lead_date
       ORDER BY lead_date ASC",
-    $campaign_id
+    $cid
   ), ARRAY_A );
 
-  wp_send_json_success( $rows );
+  // 2) summary tallies
+  $total_leads = array_sum(wp_list_pluck($days,'leads'));
+  $types = $wpdb->get_results( $wpdb->prepare(
+    "SELECT attempt_type, COUNT(*) AS qty
+       FROM {$wpdb->prefix}lcm_leads
+      WHERE campaign_id = %d
+      GROUP BY attempt_type",
+    $cid
+  ), ARRAY_A );
+  $status = $wpdb->get_results( $wpdb->prepare(
+    "SELECT attempt_status, COUNT(*) AS qty
+       FROM {$wpdb->prefix}lcm_leads
+      WHERE campaign_id = %d
+        AND attempt_status='Store Visit Scheduled'",
+    $cid
+  ), ARRAY_A );
+  $visit = $wpdb->get_var( $wpdb->prepare(
+    "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads
+      WHERE campaign_id=%d AND store_visit_status='Show'",
+    $cid
+  ) );
+
+  wp_send_json_success([
+    'days'         => $days,
+    'total'        => $total_leads,
+    'by_type'      => $types,
+    'scheduled'    => (int)$status[0]->qty ?? 0,
+    'visit'        => (int)$visit,
+  ]);
 }
 
 
