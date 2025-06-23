@@ -113,11 +113,44 @@ class PPC_CRM_Public {
         $campaigns = get_posts( [ 'post_type' => 'lcm_campaign', 'numberposts' => -1, 'fields' => 'ids' ] );
       global $wpdb;
 
+$location     = sanitize_text_field($_GET['location'] ?? '');
+$month        = sanitize_text_field($_GET['month'] ?? '');
+$lead_date    = sanitize_text_field($_GET['lead_date'] ?? '');
+$from         = sanitize_text_field($_GET['from'] ?? '');
+$to           = sanitize_text_field($_GET['to'] ?? '');
+$store_visit  = sanitize_text_field($_GET['store_visit'] ?? '');
+$has_connected = sanitize_text_field($_GET['has_connected'] ?? '');
 
-      $rows = $wpdb->get_results(
-        "SELECT client_id,post_id, adset FROM {$wpdb->prefix}lcm_campaigns WHERE adset<>''",
-        ARRAY_A
-      );
+$where = "WHERE 1=1";
+
+if ($location) {
+    $where .= $wpdb->prepare(" AND location LIKE %s", '%' . $wpdb->esc_like($location) . '%');
+}
+
+if ($month) {
+    $where .= $wpdb->prepare(" AND DATE_FORMAT(lead_date, '%%Y-%%m') = %s", $month);
+}
+
+if ($lead_date) {
+    $where .= $wpdb->prepare(" AND lead_date = %s", $lead_date);
+} elseif ($from && $to) {
+    $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
+}
+
+if ($store_visit === 'yes') {
+    $where .= " AND store_visit_status = 'Show'";
+} elseif ($store_visit === 'no') {
+    $where .= " AND (store_visit_status IS NULL OR store_visit_status != 'Show')";
+}
+
+if ($has_connected === 'yes') {
+    $where .= " AND attempt_type IN ('Connected:Relevant', 'Connected:Not Relevant')";
+} elseif ($has_connected === 'no') {
+    $where .= " AND (attempt_type IS NULL OR attempt_type NOT LIKE 'Connected:%')";
+}
+
+     $rows = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}lcm_leads $where ORDER BY id DESC");
+
       $adsets_by_client = [];
       foreach ( $rows as $r ) {
         $adsets_by_client[ $r['client_id'] ][] = [ $r['post_id'], $r['adset'] ];
