@@ -34,12 +34,13 @@ class PPC_CRM_Ajax {
         $is_client = in_array( 'client', (array) $user->roles, true );
 
         global $wpdb;
-        $client_id = $is_client
-    ? $user->ID
-    : absint( $_GET['client_id'] ?? 0 );
+     $client_id = $is_client
+             ? $user->ID
+             : absint( $_GET['client_id'] ?? 0 );
 
-// always start WHERE with “1=1” so subsequent ANDs are valid
+// start with a no-op WHERE clause
 $where = 'WHERE 1=1';
+
 
 if ( $client_id ) {
     $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
