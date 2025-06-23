@@ -106,8 +106,8 @@ jQuery(function ($) {
     filterDayVal = "",
     filterClientTypeVal = "",
     filterSourceVal = "",
-    filterAttemptTypeVal = "";
-  filterAttemptStatusVal = "";
+    filterAttemptTypeVal = "",
+   filterAttemptStatusVal = "",
   (filterStoreVal = ""),
     (filterOccasionVal = ""),
     (filterTextVal = ""),
