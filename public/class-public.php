@@ -162,7 +162,7 @@ class PPC_CRM_Public {
             $vars = [
                 'ajax_url'          => admin_url( 'admin-ajax.php' ),
                 'nonce'             => wp_create_nonce( 'lcm_ajax' ),
-                'per_page'          => 60,
+                'per_page'          => 100,
                 'is_client'         => $is_client,
                 'current_client_id' => $user->ID,
                 'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
@@ -357,7 +357,7 @@ class PPC_CRM_Public {
         $vars = [
             'ajax_url'          => admin_url( 'admin-ajax.php' ),
             'nonce'             => wp_create_nonce( 'lcm_ajax' ),
-            'per_page'          => 60,
+            'per_page'          => 100,
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),

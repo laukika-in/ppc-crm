@@ -102,7 +102,7 @@ if ( ! empty( $_GET['source'] ) ) {
     error_log( 'LCM WHERE clause: ' . $where );
 
         $p  = max(1,(int)($_GET['page']??1));
-        $pp = max(1,(int)($_GET['per_page']??60));
+        $pp = max(1,(int)($_GET['per_page']??100));
         $o  = ($p-1)*$pp;
 
         $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads $where" );
@@ -293,7 +293,7 @@ public function get_campaigns() {
 
     global $wpdb;
     $p  = max(1, (int)($_GET['page'] ?? 1));
-    $pp = max(1, (int)($_GET['per_page'] ?? 60));
+    $pp = max(1, (int)($_GET['per_page'] ?? 100));
     $o  = ($p - 1) * $pp;
 
     $table = $wpdb->prefix . 'lcm_campaigns';
