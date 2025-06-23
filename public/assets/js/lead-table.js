@@ -92,7 +92,7 @@ jQuery(function ($) {
   const $filterDay = $("#lcm-filter-day");
   const $filterClientType = $("#lcm-filter-client-type");
   const $filterSource = $("#lcm-filter-source");
-  const $filterAttemptType   = $("#lcm-filter-attempt-type");
+  const $filterAttemptType = $("#lcm-filter-attempt-type");
   const $filterAttemptStatus = $("#lcm-filter-attempt-status");
   const $filterStoreVisit = $("#lcm-filter-store-visit-status");
   const $filterOccasion = $("#lcm-filter-occasion");
@@ -108,12 +108,12 @@ jQuery(function ($) {
     filterClientTypeVal = "",
     filterSourceVal = "",
     filterAttemptTypeVal = "",
-   filterAttemptStatusVal = "",
-  (filterStoreVal = ""),
-    (filterOccasionVal = ""),
-    (filterTextVal = ""),
-    (filterBudgetVal = ""),
-    (filterProductVal = "");
+    filterAttemptStatusVal = "",
+    filterStoreVal = "",
+    filterOccasionVal = "",
+    filterTextVal = "",
+    filterBudgetVal = "",
+    filterProductVal = "";
 
   $filterDateFrom.on("change", () => {
     filterDateFrom = $filterDateFrom.val();
