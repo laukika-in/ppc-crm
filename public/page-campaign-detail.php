@@ -14,8 +14,8 @@ $campaign_id = get_queried_object_id();
   );
 
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
-$from = sanitize_text_field($_GET['from'] ?? '');
-$to = sanitize_text_field($_GET['to'] ?? '');
+$from = sanitize_text_field( $_GET['date_from'] ?? '' );
+$to   = sanitize_text_field( $_GET['date_to']   ?? '' );
 
 $year = intval(substr($current_month, 0, 4));
 $month = intval(substr($current_month, 5, 2));
@@ -101,11 +101,11 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
     </div>
     <div class="col-auto">
       <label for="from" class="form-label">From:</label>
-      <input type="date" id="from" name="from" class="form-control" value="<?= esc_attr($from); ?>">
+      <input type="date" id="date_from" name="date_from" class="form-control" value="<?= esc_attr($from); ?>">
     </div>
     <div class="col-auto">
       <label for="to" class="form-label">To:</label>
-      <input type="date" id="to" name="to" class="form-control" value="<?= esc_attr($to); ?>">
+      <input type="date" id="date_to"   name="date_to"   class="form-control" value="<?= esc_attr($to); ?>">
     </div>
     <div class="col-auto">
       <button type="submit" class="btn btn-primary">Filter</button>
