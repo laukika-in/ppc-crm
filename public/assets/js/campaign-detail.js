@@ -1,5 +1,8 @@
+// campaign-detail.js
+// Populates and edits daily-tracker rows, now with per-day lead counts added
+
 jQuery(document).ready(function ($) {
-  // Step 1: Populate data
+  // Step 1: Populate daily-tracker inputs
   $.get(
     LCM.ajax_url,
     {
@@ -22,6 +25,23 @@ jQuery(document).ready(function ($) {
           row.find(".impressions-display").text(data.impressions);
           row.find(".spent-display").text(data.amount_spent);
         }
+
+        // Step 1b: Populate leads count for each date
+        $.getJSON(
+          LCM.ajax_url,
+          {
+            action: "lcm_get_daily_leads",
+            nonce: LCM.nonce,
+            campaign_id: LCM.campaign_id,
+          },
+          function (leadsByDate) {
+            for (const date in leadsByDate) {
+              const $row = $(`tr[data-date="${date}"]`);
+              if (!$row.length) continue;
+              $row.find(".leads-display").text(leadsByDate[date]);
+            }
+          }
+        );
       }
     }
   );
@@ -75,6 +95,8 @@ jQuery(document).ready(function ($) {
         alert("Server error");
       });
   });
+
+  // Cancel changes
   $(document).on("click", ".cancel-tracker", function () {
     const $row = $(this).closest("tr");
     // Revert inputs to original display values
