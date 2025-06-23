@@ -164,7 +164,26 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
               <td><input type="number" class="form-control form-control-sm reach-input" data-type="reach" value="<?= esc_attr($reach) ?>"></td>
 <td><input type="number" class="form-control form-control-sm impressions-input" data-type="impressions" value="<?= esc_attr($imp) ?>"></td>
 <td><input type="number" class="form-control form-control-sm spent-input" data-type="amount_spent" value="<?= esc_attr($spent) ?>"></td>
-   <td><button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
+ <td>
+                <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
+                <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
+                <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
+                <?php
+              // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
+              $by = $r->campaign_name ? 'ad_name' : 'adset';
+              $val = $by === 'ad_name'
+                    ? urlencode( $r->campaign_name )
+                    : urlencode( $r->adset );
+            ?>
+            <a href="<?= site_url(
+                  '/lead-data'
+                  . '?date_from=' . esc_attr($r->date)
+                  . '&date_to='   . esc_attr($r->date)
+                  . "&{$by}={$val}"
+                ) ?>" class="btn btn-sm btn-primary">View Leads</a>
+
+
+              </td>
 
               <td><?= $con ?></td>
               <td><?= $rel ?></td>
