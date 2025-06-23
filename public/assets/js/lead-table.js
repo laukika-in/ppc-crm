@@ -556,7 +556,18 @@ jQuery(function ($) {
     allowClear: true,
     width: "200px",
   });
+  const params = new URLSearchParams(window.location.search);
+  const urlFrom = params.get("from");
+  const urlTo = params.get("to");
 
+  if (urlFrom) {
+    filterDateFrom = urlFrom;
+    $filterDateFrom.val(urlFrom);
+  }
+  if (urlTo) {
+    filterDateTo = urlTo;
+    $filterDateTo.val(urlTo);
+  }
   // Initial load
   load(1);
 });
