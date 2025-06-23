@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) exit;
 global $wpdb;
 
-$campaign_id = absint($_GET['campaign_id'] ?? 0);
+$campaign_id = get_queried_object_id(); 
 ?>
 <script>
   window.LCM = window.LCM || {};
