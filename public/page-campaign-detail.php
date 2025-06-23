@@ -61,17 +61,23 @@ foreach ($tracker_rows as $row) {
 
 
 // Summary block query
-$summary = $wpdb->get_row(
+$rows = $wpdb->get_results(
     "SELECT 
+        lead_date AS date,
         COUNT(*) AS total_leads,
         SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
         SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
         SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
         SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit,
+        MAX(adset) AS adset, 
+        MAX(ad_name) AS ad_name
      FROM {$wpdb->prefix}lcm_leads
-     WHERE $where"
+     WHERE $where
+     GROUP BY lead_date
+     ORDER BY lead_date DESC"
 );
+
 
 $relevant = intval($summary->relevant);
 $not_relevant = intval($summary->not_relevant);
@@ -172,23 +178,23 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
                 <?php
                $by = '';
-              $val = '';
+                $val = '';
 
-              if ($r->adset == $campaign_id) {
-                $by = 'adset';
-                $val = $r->adset;
-              } elseif ($r->ad_name == $campaign_id) {
-                $by = 'ad_name';
-                $val = $r->ad_name;
-              }
-            ?>
+                if ($r->adset == $campaign_id) {
+                  $by = 'adset';
+                  $val = $r->adset;
+                } elseif ($r->ad_name == $campaign_id) {
+                  $by = 'ad_name';
+                  $val = $r->ad_name;
+                }
+              ?>
 
-            <a href="<?= site_url(
-                  '/lead-data'
-                  . '?date_from=' . esc_attr($r->date)
-                  . '&date_to='   . esc_attr($r->date)
-                  . ($by ? "&{$by}=" . urlencode($val) : '')
-                ) ?>" class="btn btn-sm btn-primary">View Leads</a>
+              <a href="<?= site_url(
+                    '/lead-data'
+                    . '?date_from=' . esc_attr($r->date)
+                    . '&date_to='   . esc_attr($r->date)
+                    . ($by ? "&{$by}=" . urlencode($val) : '')
+                  ) ?>" class="btn btn-sm btn-primary">View Leads</a>
               </td>
 
               <td><?= $con ?></td>
