@@ -557,8 +557,8 @@ jQuery(function ($) {
     width: "200px",
   });
   const params = new URLSearchParams(window.location.search);
-  const urlFrom = params.get("from");
-  const urlTo = params.get("to");
+  const urlFrom = params.get("date_from");
+  const urlTo = params.get("date_to");
 
   if (urlFrom) {
     filterDateFrom = urlFrom;
