@@ -1,21 +1,11 @@
 <?php
 if (!defined('ABSPATH')) exit;
 global $wpdb;
- 
-$campaign_id = get_queried_object_id(); 
-  wp_localize_script( 
-    'campaign-detail-js', 
-    'CampaignDetail', 
-    [
-      'ajax_url'     => admin_url('admin-ajax.php'),
-      'nonce'        => wp_create_nonce('lcm_ajax'),
-      'campaign_id'  => $campaign_id,
-    ]
-  );
 
+$campaign_id = absint($_GET['campaign_id'] ?? 0);
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
-$from = sanitize_text_field( $_GET['date_from'] ?? '' );
-$to   = sanitize_text_field( $_GET['date_to']   ?? '' );
+$from = sanitize_text_field($_GET['from'] ?? '');
+$to = sanitize_text_field($_GET['to'] ?? '');
 
 $year = intval(substr($current_month, 0, 4));
 $month = intval(substr($current_month, 5, 2));
@@ -38,23 +28,19 @@ if ($from && $to) {
 
 // Main data query (grouped by lead_date)
 $rows = $wpdb->get_results(
-    $wpdb->prepare(
-        "SELECT 
-            DATE(lead_date) AS date,
-            COUNT(*) AS total_leads,
-            SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-            SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-            SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-            SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-            SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-         FROM {$wpdb->prefix}lcm_leads
-         WHERE campaign_id = %d
-         GROUP BY DATE(lead_date)
-         ORDER BY DATE(lead_date) DESC",
-        $campaign_post_id
-    )
+    "SELECT 
+        lead_date AS date,
+        COUNT(*) AS total_leads,
+        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+     FROM {$wpdb->prefix}lcm_leads
+     WHERE $where
+     GROUP BY lead_date
+     ORDER BY lead_date DESC"
 );
-
 
 $tracker_rows = $wpdb->get_results(
   $wpdb->prepare(
@@ -74,18 +60,15 @@ foreach ($tracker_rows as $row) {
 
 // Summary block query
 $summary = $wpdb->get_row(
-    $wpdb->prepare(
-        "SELECT 
-            COUNT(*) AS total_leads,
-            SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-            SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-            SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-            SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-            SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-         FROM {$wpdb->prefix}lcm_leads
-         WHERE campaign_id = %d",
-        $campaign_post_id
-    )
+    "SELECT 
+        COUNT(*) AS total_leads,
+        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+     FROM {$wpdb->prefix}lcm_leads
+     WHERE $where"
 );
 
 $relevant = intval($summary->relevant);
@@ -108,11 +91,11 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
     </div>
     <div class="col-auto">
       <label for="from" class="form-label">From:</label>
-      <input type="date" id="date_from" name="date_from" class="form-control" value="<?= esc_attr($from); ?>">
+      <input type="date" id="from" name="from" class="form-control" value="<?= esc_attr($from); ?>">
     </div>
     <div class="col-auto">
       <label for="to" class="form-label">To:</label>
-      <input type="date" id="date_to"   name="date_to"   class="form-control" value="<?= esc_attr($to); ?>">
+      <input type="date" id="to" name="to" class="form-control" value="<?= esc_attr($to); ?>">
     </div>
     <div class="col-auto">
       <button type="submit" class="btn btn-primary">Filter</button>
@@ -148,6 +131,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
             <th>Reach</th>
             <th>Impressions</th>
             <th>Amount Spent (INR)</th>
+            <th>Action</th>
             <th>Connected</th>
             <th>Relevant</th>
             <th>Not Relevant</th>
@@ -177,38 +161,11 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
 
               <td><?= esc_html($r->date) ?></td>
               <td><?= intval($r->total_leads) ?></td>
-              <td>
-                <span class="tracker-display reach-display"><?= esc_html($reach) ?></span>
-                <input type="number" class="form-control form-control-sm tracker-input reach-input d-none" data-type="reach" value="<?= esc_attr($reach) ?>">
-              </td>
-              <td>
-                <span class="tracker-display impressions-display"><?= esc_html($imp) ?></span>
-                <input type="number" class="form-control form-control-sm tracker-input impressions-input d-none" data-type="impressions" value="<?= esc_attr($imp) ?>">
-              </td>
-              <td>
-                <span class="tracker-display spent-display"><?= esc_html($spent) ?></span>
-                <input type="number" class="form-control form-control-sm tracker-input spent-input d-none" data-type="amount_spent" value="<?= esc_attr($spent) ?>">
-              </td>
-              <td>
-                <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
-                <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
-                <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
-                <?php
-              // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
-              $by = $r->campaign_name ? 'ad_name' : 'adset';
-              $val = $by === 'ad_name'
-                    ? urlencode( $r->campaign_name )
-                    : urlencode( $r->adset );
-            ?>
-            <a href="<?= site_url(
-                  '/lead-data'
-                  . '?date_from=' . esc_attr($r->date)
-                  . '&date_to='   . esc_attr($r->date)
-                  . "&{$by}={$val}"
-                ) ?>" class="btn btn-sm btn-primary">View Leads</a>
+              <td><input type="number" class="form-control form-control-sm reach-input" data-type="reach" value="<?= esc_attr($reach) ?>"></td>
+<td><input type="number" class="form-control form-control-sm impressions-input" data-type="impressions" value="<?= esc_attr($imp) ?>"></td>
+<td><input type="number" class="form-control form-control-sm spent-input" data-type="amount_spent" value="<?= esc_attr($spent) ?>"></td>
+   <td><button class="btn btn-sm btn-success save-daily-tracker">💾 Save</button></td>
 
-
-              </td>
               <td><?= $con ?></td>
               <td><?= $rel ?></td>
               <td><?= $nrel ?></td>
