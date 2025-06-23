@@ -280,6 +280,9 @@ jQuery(function ($) {
     );
   }
 
+  // and the click binding:
+  $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
+
   function load(p = 1) {
     const q = {
       action: "lcm_get_leads_json",
