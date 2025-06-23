@@ -38,19 +38,23 @@ if ($from && $to) {
 
 // Main data query (grouped by lead_date)
 $rows = $wpdb->get_results(
-    "SELECT 
-        lead_date AS date,
-        COUNT(*) AS total_leads,
-        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-     FROM {$wpdb->prefix}lcm_leads
-     WHERE $where
-     GROUP BY lead_date
-     ORDER BY lead_date DESC"
+    $wpdb->prepare(
+        "SELECT 
+            DATE(lead_date) AS date,
+            COUNT(*) AS total_leads,
+            SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+            SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+            SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+            SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+            SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+         FROM {$wpdb->prefix}lcm_leads
+         WHERE campaign_id = %d
+         GROUP BY DATE(lead_date)
+         ORDER BY DATE(lead_date) DESC",
+        $campaign_post_id
+    )
 );
+
 
 $tracker_rows = $wpdb->get_results(
   $wpdb->prepare(
@@ -70,15 +74,18 @@ foreach ($tracker_rows as $row) {
 
 // Summary block query
 $summary = $wpdb->get_row(
-    "SELECT 
-        COUNT(*) AS total_leads,
-        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-     FROM {$wpdb->prefix}lcm_leads
-     WHERE $where"
+    $wpdb->prepare(
+        "SELECT 
+            COUNT(*) AS total_leads,
+            SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+            SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+            SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+            SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+            SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+         FROM {$wpdb->prefix}lcm_leads
+         WHERE campaign_id = %d",
+        $campaign_post_id
+    )
 );
 
 $relevant = intval($summary->relevant);
