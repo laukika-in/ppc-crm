@@ -333,12 +333,21 @@ jQuery(function ($) {
     LCM_initFlatpickr($new);
   });
   // Whenever Client is changed in a draft/edit row, refresh its Adset options:
-  $tbody.on("change", "select[data-name=client_id]", function () {
+  // Whenever someone picks a Campaign Name, wipe out the Adset
+  $tbody.on("change", "select[data-name=ad_name]", function () {
     const $tr = $(this).closest("tr");
-    const cid = $(this).val();
-    const $ad = $tr.find("select[data-name=adset]");
-    const optsHtml = opts(ADSETS_BY_CLIENT[cid] || [], "");
-    $ad.html("<option value=''></option>" + optsHtml);
+    // only clear if they've actually selected something
+    if ($(this).val()) {
+      $tr.find("select[data-name=adset]").val("");
+    }
+  });
+
+  // Conversely: if they pick an Adset, clear the Campaign Name
+  $tbody.on("change", "select[data-name=adset]", function () {
+    const $tr = $(this).closest("tr");
+    if ($(this).val()) {
+      $tr.find("select[data-name=ad_name]").val("");
+    }
   });
 
   // When source changes, refresh ad_name & adset lists

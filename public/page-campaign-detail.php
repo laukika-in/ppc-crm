@@ -26,7 +26,7 @@ if (!$campaign_id) {
 }
 
 // Build WHERE clause
-$where = $wpdb->prepare("campaign_post_id = %d", $campaign_id);
+$where = $wpdb->prepare("campaign_id = %d", $campaign_id);
 
 if ($from && $to) {
     $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
