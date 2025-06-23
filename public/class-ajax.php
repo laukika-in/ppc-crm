@@ -34,8 +34,50 @@ class PPC_CRM_Ajax {
 
         global $wpdb;
         $client_id = $is_client ? $user->ID : absint( $_GET['client_id'] ?? 0 );
-
         $where = $client_id ? $wpdb->prepare( "WHERE client_id = %d", $client_id ) : '';
+
+        if ( ! empty( $_GET['date_from'] ) ) {
+    $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_GET['date_from']) );
+}
+if ( ! empty( $_GET['date_to'] ) ) {
+    $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_GET['date_to']) );
+}
+if ( ! empty( $_GET['ad_name'] ) ) {
+    $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_GET['ad_name']) );
+}
+if ( ! empty( $_GET['adset'] ) ) {
+    $where .= $wpdb->prepare( " AND adset = %s", sanitize_text_field($_GET['adset']) );
+}
+if ( ! empty( $_GET['day'] ) ) {
+    $where .= $wpdb->prepare( " AND day = %s", sanitize_text_field($_GET['day']) );
+}
+if ( ! empty( $_GET['client_type'] ) ) {
+    $where .= $wpdb->prepare( " AND client_type = %s", sanitize_text_field($_GET['client_type']) );
+}
+if ( ! empty( $_GET['source'] ) ) {
+    $where .= $wpdb->prepare( " AND source = %s", sanitize_text_field($_GET['source']) );
+}
+if ( ! empty( $_GET['attempt_status'] ) ) {
+    $where .= $wpdb->prepare( " AND attempt_status = %s", sanitize_text_field($_GET['attempt_status']) );
+}
+if ( ! empty( $_GET['store_visit_status'] ) ) {
+    $where .= $wpdb->prepare( " AND store_visit_status = %s", sanitize_text_field($_GET['store_visit_status']) );
+}
+if ( ! empty( $_GET['occasion'] ) ) {
+    $where .= $wpdb->prepare( " AND occasion = %s", sanitize_text_field($_GET['occasion']) );
+}
+if ( ! empty( $_GET['search'] ) ) {
+    $s = '%' . $wpdb->esc_like( $_GET['search'] ) . '%';
+    $where .= $wpdb->prepare( " AND ( name LIKE %s OR phone_number LIKE %s OR email LIKE %s )", $s, $s, $s );
+}
+if ( ! empty( $_GET['budget'] ) ) {
+    $b = '%' . $wpdb->esc_like( $_GET['budget'] ) . '%';
+    $where .= $wpdb->prepare( " AND budget LIKE %s", $b );
+}
+if ( ! empty( $_GET['product_interest'] ) ) {
+    $p = '%' . $wpdb->esc_like( $_GET['product_interest'] ) . '%';
+    $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
+}
 
         $p  = max(1,(int)($_GET['page']??1));
         $pp = max(1,(int)($_GET['per_page']??10));

@@ -99,21 +99,20 @@ jQuery(function ($) {
   const $filterBudget = $("#lcm-filter-budget");
   const $filterProduct = $("#lcm-filter-product");
 
-  (filterDateFrom = ""),
-    (filterDateTo = ""),
-    (filterAdNameVal = ""),
-    (filterAdsetVal = ""),
-    (filterDayVal = ""),
-    (filterClientTypeVal = ""),
-    (filterSourceVal = ""),
-    (filterAttemptVal = ""),
-    (filterStoreVal = ""),
-    (filterOccasionVal = ""),
-    (filterTextVal = ""),
-    (filterBudgetVal = ""),
-    (filterProductVal = "");
+  let filterDateFrom = "",
+    filterDateTo = "",
+    filterAdNameVal = "",
+    filterAdsetVal = "",
+    filterDayVal = "",
+    filterClientTypeVal = "",
+    filterSourceVal = "",
+    filterAttemptVal = "",
+    filterStoreVal = "",
+    filterOccasionVal = "",
+    filterTextVal = "",
+    filterBudgetVal = "",
+    filterProductVal = "";
 
-  // on-change handlers (all reload page 1)
   $filterDateFrom.on("change", () => {
     filterDateFrom = $filterDateFrom.val();
     load(1);
@@ -270,29 +269,27 @@ jQuery(function ($) {
       nonce: LCM.nonce,
       page: p,
       per_page: PER_PAGE,
+      client_id: filterClient || undefined,
+      date_from: filterDateFrom || undefined,
+      date_to: filterDateTo || undefined,
+      ad_name: filterAdNameVal || undefined,
+      adset: filterAdsetVal || undefined,
+      day: filterDayVal || undefined,
+      client_type: filterClientTypeVal || undefined,
+      source: filterSourceVal || undefined,
+      attempt_status: filterAttemptVal || undefined,
+      store_visit_status: filterStoreVal || undefined,
+      occasion: filterOccasionVal || undefined,
+      search: filterTextVal || undefined,
+      budget: filterBudgetVal || undefined,
+      product_interest: filterProductVal || undefined,
     };
-    if (filterClient) q.client_id = filterClient;
-    q.date_from = filterDateFrom;
-    q.date_to = filterDateTo;
-    q.ad_name = filterAdNameVal;
-    q.adset = filterAdsetVal;
-    q.day = filterDayVal;
-    q.client_type = filterClientTypeVal;
-    q.source = filterSourceVal;
-    q.attempt_status = filterAttemptVal;
-    q.store_visit_status = filterStoreVal;
-    q.occasion = filterOccasionVal;
-    q.search = filterTextVal;
-    q.budget = filterBudgetVal;
-    q.product_interest = filterProductVal;
     $.getJSON(LCM.ajax_url, q, (res) => {
       page = p;
       $tbody.html(res.rows.map(rowHtml).join(""));
       renderPager(res.total);
     });
   }
-  $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
-
   // Filter for PPC/Admin
   if (!IS_CLIENT) {
     $filter.on("change", function () {
