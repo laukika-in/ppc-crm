@@ -556,18 +556,22 @@ jQuery(function ($) {
     allowClear: true,
     width: "200px",
   });
+  // ① grab date filters (you already have this)
   const params = new URLSearchParams(window.location.search);
-  const urlFrom = params.get("date_from");
-  const urlTo = params.get("date_to");
 
-  if (urlFrom) {
-    filterDateFrom = urlFrom;
-    $filterDateFrom.val(urlFrom);
+  // ② campaign filters
+  const urlAdName = params.get("ad_name");
+  const urlAdSet = params.get("adset");
+
+  if (urlAdName) {
+    filterAdNameVal = urlAdName;
+    $filterAdName.val(urlAdName);
   }
-  if (urlTo) {
-    filterDateTo = urlTo;
-    $filterDateTo.val(urlTo);
+  if (urlAdSet) {
+    filterAdsetVal = urlAdSet;
+    $filterAdset.val(urlAdSet);
   }
+
   // Initial load
   load(1);
 });
