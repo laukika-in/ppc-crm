@@ -33,6 +33,7 @@ jQuery(document).ready(function ($) {
     $row.find(".tracker-input").removeClass("d-none");
     $row.find(".edit-tracker").addClass("d-none");
     $row.find(".save-daily-tracker").removeClass("d-none");
+    $row.find(".cancel-tracker").removeClass("d-none");
     $row.addClass("table-warning shadow-sm");
   });
 
