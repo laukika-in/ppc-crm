@@ -581,7 +581,7 @@ jQuery(function ($) {
 
   // campaign or adset
   const adset = urlParams.get("adset");
-  const adname = urlParams.get("adname");
+  const adname = urlParams.get("ad_name");
 
   if (adset) {
     $("#lcm-filter-adset").val(adset);
