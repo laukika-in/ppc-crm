@@ -183,7 +183,20 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
                 <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
                 <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
-                <a href="<?= site_url('/lead-data?from=' . esc_attr($r->date) . '&to=' . esc_attr($r->date)) ?>" class="btn btn-sm btn-primary">View Leads</a>
+                <?php
+  // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
+  $by = $r->campaign_name ? 'ad_name' : 'adset';
+  $val = $by === 'ad_name'
+         ? urlencode( $r->campaign_name )
+         : urlencode( $r->adset );
+?>
+<a href="<?= site_url(
+      '/lead-data'
+      . '?date_from=' . esc_attr($r->date)
+      . '&date_to='   . esc_attr($r->date)
+      . "&{$by}={$val}"
+    ) ?>"
+   class="btn btn-sm btn-primary">View Leads</a>
 
 
               </td>
