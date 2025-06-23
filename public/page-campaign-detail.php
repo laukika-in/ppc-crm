@@ -3,7 +3,6 @@ if (!defined('ABSPATH')) exit;
 global $wpdb;
 
 $campaign_id = absint($_GET['campaign_id'] ?? 0);
-
 $current_month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
 $from = sanitize_text_field($_GET['from'] ?? '');
 $to = sanitize_text_field($_GET['to'] ?? '');
@@ -177,21 +176,7 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
                 <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
                 <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
-               <?php
-  // decide whether we’re filtering by Campaign Name (Google) or Adset (Meta/others)
-  $by = $r->campaign_name ? 'ad_name' : 'adset';
-  $val = $by === 'ad_name'
-         ? urlencode( $r->campaign_name )
-         : urlencode( $r->adset );
-?>
-<a href="<?= site_url(
-      '/lead-data'
-      . '?date_from=' . esc_attr($r->date)
-      . '&date_to='   . esc_attr($r->date)
-      . "&{$by}={$val}"
-    ) ?>"
-   class="btn btn-sm btn-primary">View Leads</a>
-
+                <a href="<?= site_url('/lead-data?from=' . esc_attr($r->date) . '&to=' . esc_attr($r->date)) ?>" class="btn btn-sm btn-primary">View Leads</a>
 
 
               </td>
