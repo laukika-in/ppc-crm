@@ -545,9 +545,14 @@ jQuery(function ($) {
     toggleFilterHighlight(filter.replace("_", "-"), ""); // reset highlight
     load(1);
   });
-  // make the filters searchable
-  $("#lcm-filter-adname, #lcm-filter-adset").select2({
-    placeholder: "— Select —",
+  // Split it into two calls:
+  $("#lcm-filter-adname").select2({
+    placeholder: "All Campaigns",
+    allowClear: true,
+    width: "200px",
+  });
+  $("#lcm-filter-adset").select2({
+    placeholder: "All Adsets",
     allowClear: true,
     width: "200px",
   });
