@@ -589,6 +589,8 @@ jQuery(function ($) {
   if (adname) {
     $("#lcm-filter-adname").val(adname);
   }
+
+  $("#lcm-filter-adset, #lcm-filter-adname").trigger("change");
   // Initial load
   load(1);
 });
