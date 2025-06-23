@@ -29,16 +29,18 @@ if ($from && $to) {
 
 // Main data query (grouped by lead_date)
 $rows = $wpdb->get_results(
-    "SELECT lead_date AS date, 
-       COUNT(*) FILTER(WHERE attempt_type IN ('Connected:Relevant','Connected:Not Relevant')) AS connected,
-       COUNT(*) FILTER(WHERE attempt_type = 'Connected:Relevant') AS relevant,
-       COUNT(*) FILTER(WHERE attempt_type = 'Connected:Not Relevant') AS not_relevant,
-       COUNT(*) FILTER(WHERE attempt_type = 'Not Connected') AS not_connected,
-       COUNT(*) FILTER(WHERE attempt_status = 'Store Visit Scheduled') AS scheduled_visit,
-       COUNT(*) FILTER(WHERE store_visit_status = 'Show') AS store_visit
-  FROM wp_lcm_leads
- WHERE campaign_id = %d
- GROUP BY lead_date"
+    "SELECT 
+        lead_date AS date,
+        COUNT(*) AS total_leads,
+        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+     FROM {$wpdb->prefix}lcm_leads
+     WHERE $where
+     GROUP BY lead_date
+     ORDER BY lead_date DESC"
 );
 
 $tracker_rows = $wpdb->get_results(
