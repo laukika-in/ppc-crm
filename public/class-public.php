@@ -266,12 +266,12 @@ class PPC_CRM_Public {
         <div class="col-auto">
           <input id="lcm-filter-budget" type="text" class="form-control form-control-sm" placeholder="Budget contains…">
         </div>
+
         <div class="col-auto">
           <input id="lcm-filter-product" type="text" class="form-control form-control-sm" placeholder="Product interest…">
         </div>
       </div>
-
-            <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
+        <div id="lcm-pager-lead" class="btn-group btn-group-sm ms-2"></div>
         </div>
 
         <div class="table-responsive lcm-scroll">

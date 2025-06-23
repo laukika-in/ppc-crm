@@ -3,24 +3,20 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 class PPC_CRM_Ajax {
 
-	public function __construct() {
-		add_action( 'wp_ajax_lcm_get_leads_json',   [ $this, 'get_leads' ] );
-		add_action( 'wp_ajax_lcm_create_lead',      [ $this, 'create_lead' ] );
-		add_action( 'wp_ajax_nopriv_lcm_get_leads_json',  [ $this, 'forbid' ] );
-		add_action( 'wp_ajax_nopriv_lcm_create_lead',     [ $this, 'forbid' ] );
-        add_action( 'wp_ajax_lcm_delete_lead', [ $this, 'delete_lead' ] );
-		add_action( 'wp_ajax_nopriv_lcm_delete_lead', [ $this, 'forbid' ] );
-		add_action( 'wp_ajax_lcm_get_campaigns_json', [ $this, 'get_campaigns' ] );
-		add_action( 'wp_ajax_lcm_create_campaign',    [ $this, 'create_campaign' ] );
-		add_action( 'wp_ajax_lcm_delete_campaign',    [ $this, 'delete_campaign' ] );
-		add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
-		add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
-
-        add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
-        
-        add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
-
-
+    public function __construct() {
+    add_action( 'wp_ajax_lcm_get_leads_json',   [ $this, 'get_leads' ] );
+    add_action( 'wp_ajax_lcm_create_lead',      [ $this, 'create_lead' ] );
+    add_action( 'wp_ajax_nopriv_lcm_get_leads_json',  [ $this, 'forbid' ] );
+    add_action( 'wp_ajax_nopriv_lcm_create_lead',     [ $this, 'forbid' ] );
+    add_action( 'wp_ajax_lcm_delete_lead', [ $this, 'delete_lead' ] );
+    add_action( 'wp_ajax_nopriv_lcm_delete_lead', [ $this, 'forbid' ] );
+    add_action( 'wp_ajax_lcm_get_campaigns_json', [ $this, 'get_campaigns' ] );
+    add_action( 'wp_ajax_lcm_create_campaign',    [ $this, 'create_campaign' ] );
+    add_action( 'wp_ajax_lcm_delete_campaign',    [ $this, 'delete_campaign' ] );
+    add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
+    add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
+    add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
+    add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
 	}
 
 	private function verify() {
@@ -111,7 +107,7 @@ class PPC_CRM_Ajax {
             wp_send_json_success();
 	}
 
-    public function update_lead() {
+public function update_lead() {
         $this->verify();
 
             global $wpdb;
@@ -182,7 +178,8 @@ class PPC_CRM_Ajax {
         }
 
     /* ---------- 3) Delete saved lead row ------------------------------- */
-public function delete_lead() {
+
+    public function delete_lead() {
     $this->verify();
 
     $id = absint( $_POST['id'] ?? 0 );
@@ -408,8 +405,6 @@ public function update_campaign() {
     wp_send_json_success();
 }
 
-
-/* ---------- Campaign: delete -------------------------------------- */
 public function delete_campaign(){
 	$this->verify();
 	$id=absint($_POST['id']??0);
@@ -425,6 +420,7 @@ public function delete_campaign(){
 	$total=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}lcm_campaigns");
 	wp_send_json_success(['total'=>$total]);
 }
+
  public function save_daily_tracker() {
   check_ajax_referer('lcm_ajax', 'nonce');
   global $wpdb;

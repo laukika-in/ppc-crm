@@ -173,13 +173,12 @@ $not_available = intval($summary->total_leads) - ($connected + $not_connected);
                 <input type="number" class="form-control form-control-sm tracker-input spent-input d-none" data-type="amount_spent" value="<?= esc_attr($spent) ?>">
               </td>
               <td>
-
                 <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
-                <button class="btn btn-sm btn-success save-daily-tracker d-none">💾 Save</button>
-                  <a href="<?= admin_url('admin.php?page=leads&lead_date=' . esc_attr($r->date)) ?>" class="btn btn-sm btn-primary">🔍 View Leads</a>
+                <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
+                <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
+                <a href="<?= admin_url('admin.php?page=lead-data&from=' . esc_attr($r->date) . '&to=' . esc_attr($r->date)) ?>" class="btn btn-sm btn-primary">View Leads</a>
 
               </td>
-
               <td><?= $con ?></td>
               <td><?= $rel ?></td>
               <td><?= $nrel ?></td>
