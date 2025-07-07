@@ -17,9 +17,7 @@ class PPC_CRM_Ajax {
     add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
     add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
     add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
-
-    $this->update_campaign_daily_totals($lead_data['campaign_id'], $lead_data['lead_date']);
-
+ 
     add_action( 'wp_ajax_lcm_get_campaign_leads_json', [ $this, 'get_campaign_leads_json' ] );
 	}
 
@@ -157,6 +155,10 @@ if ( ! empty( $_GET['source'] ) ) {
 		$post_id=wp_insert_post([
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
 		],true);
+        if ( isset( $data['campaign_id'], $data['lead_date'] ) ) {
+    $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
+}
+
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
             
@@ -228,6 +230,9 @@ public function update_lead() {
             array_fill( 0, count( $data ), '%s' ),
             [ '%d' ]
         );
+        if ( isset( $data['campaign_id'], $data['lead_date'] ) ) {
+    $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
+}
 
         // Also update the WP post title (UID)
         $lead = $wpdb->get_var( $wpdb->prepare(
