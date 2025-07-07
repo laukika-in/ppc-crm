@@ -169,15 +169,87 @@ jQuery(function ($) {
   }
 
   function renderPager(total) {
-    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
-    $pager.html(
-      Array.from({ length: pages }, (_, i) => {
-        const n = i + 1;
-        return `<button class="btn btn-outline-secondary${
-          n === page ? " active" : ""
-        }" data-p="${n}">${n}</button>`;
-      }).join("")
-    );
+    const maxButtons = 5;
+    const delta = 2;
+    const firstPage = 1;
+    const lastPage = total;
+    let html = "";
+
+    // Helper to append a button
+    const addBtn = (
+      pageNum,
+      label,
+      iconClass,
+      disabled = false,
+      isActive = false
+    ) => {
+      const cls = [
+        "btn",
+        "btn-sm",
+        disabled ? "btn-outline-secondary disabled" : "btn-outline-secondary",
+        isActive ? "active" : "",
+      ].join(" ");
+      html += `<button class="${cls}" data-p="${pageNum}">
+               ${iconClass ? `<i class="${iconClass}"></i>` : label}
+             </button>`;
+    };
+
+    // First & Prev
+    addBtn(firstPage, "First", "bi bi-chevron-double-left", page === firstPage);
+    addBtn(page - 1, "Prev", "bi bi-chevron-left", page === firstPage);
+
+    // Page numbers w/ ellipses
+    let left = Math.max(page - delta, firstPage + 1);
+    let right = Math.min(page + delta, lastPage - 1);
+
+    // ensure we have enough buttons if we're near the edges
+    if (page - firstPage <= delta) {
+      right = Math.min(firstPage + maxButtons, lastPage - 1);
+    }
+    if (lastPage - page <= delta) {
+      left = Math.max(lastPage - maxButtons, firstPage + 1);
+    }
+
+    // 1 always
+    addBtn(1, "1", "", false, page === 1);
+
+    if (left > firstPage + 1) {
+      html +=
+        '<span class="btn btn-sm btn-outline-secondary disabled">…</span>';
+    }
+
+    // middle pages
+    for (let p = left; p <= right; p++) {
+      addBtn(p, String(p), "", false, page === p);
+    }
+
+    if (right < lastPage - 1) {
+      html +=
+        '<span class="btn btn-sm btn-outline-secondary disabled">…</span>';
+    }
+
+    // last always
+    if (lastPage > 1) {
+      addBtn(lastPage, String(lastPage), "", false, page === lastPage);
+    }
+
+    // Next & Last
+    addBtn(page + 1, "Next", "bi bi-chevron-right", page === lastPage);
+    addBtn(lastPage, "Last", "bi bi-chevron-double-right", page === lastPage);
+
+    // render
+    $pager.html(html);
+
+    // re-bind click
+    $pager
+      .find("button")
+      .off("click")
+      .on("click", (e) => {
+        const p = +e.currentTarget.dataset.p;
+        if (p >= firstPage && p <= lastPage && p !== page) {
+          load(p);
+        }
+      });
   }
 
   function rowHtml(r = {}) {
