@@ -17,6 +17,9 @@ class PPC_CRM_Ajax {
     add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
     add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
     add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
+
+    $this->update_campaign_daily_totals($lead_data['campaign_id'], $lead_data['lead_date']);
+
     add_action( 'wp_ajax_lcm_get_campaign_leads_json', [ $this, 'get_campaign_leads_json' ] );
 	}
 
@@ -633,6 +636,47 @@ public function get_campaign_leads_json() {
     'scheduled'    => (int)$status[0]->qty ?? 0,
     'visit'        => (int)$visit,
   ]);
+}
+
+public function update_campaign_daily_totals($campaign_id, $lead_date) {
+    global $wpdb;
+
+    if (!$campaign_id || !$lead_date) return;
+
+    // Recalculate leads for that date
+    $summary = $wpdb->get_row($wpdb->prepare("
+        SELECT
+            COUNT(*) AS total_leads
+        FROM {$wpdb->prefix}lcm_leads
+        WHERE campaign_id = %d AND lead_date = %s
+    ", $campaign_id, $lead_date));
+
+    if (!$summary) return;
+
+    // Now update or insert into tracker table
+    $existing_id = $wpdb->get_var($wpdb->prepare("
+        SELECT id FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+        WHERE campaign_id = %d AND track_date = %s
+    ", $campaign_id, $lead_date));
+
+    if ($existing_id) {
+        // Update
+        $wpdb->update(
+            "{$wpdb->prefix}lcm_campaign_daily_tracker",
+            ['leads' => $summary->total_leads],
+            ['id' => $existing_id]
+        );
+    } else {
+        // Insert
+        $wpdb->insert(
+            "{$wpdb->prefix}lcm_campaign_daily_tracker",
+            [
+                'campaign_id' => $campaign_id,
+                'track_date' => $lead_date,
+                'leads'       => $summary->total_leads
+            ]
+        );
+    }
 }
 
 
