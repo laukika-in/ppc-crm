@@ -61,27 +61,42 @@ foreach ($tracker_rows as $row) {
 
 
 // Summary block query
-$summary = $wpdb->get_results(
-    "SELECT 
-        lead_date AS date,
-        COUNT(*) AS total_leads,
-        SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-        SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-        SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-        SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-        SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-     FROM {$wpdb->prefix}lcm_leads
-     WHERE $where"
+// SUMMARY block – a single row of aggregates
+$summary = $wpdb->get_row(
+    $wpdb->prepare(
+        "SELECT 
+            COUNT(*) AS total_leads,
+            SUM(CASE WHEN attempt_type = 'Connected:Relevant'      THEN 1 ELSE 0 END) AS relevant,
+            SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+            SUM(CASE WHEN attempt_type = 'Not Connected'           THEN 1 ELSE 0 END) AS not_connected,
+            SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
+            SUM(CASE WHEN store_visit_status = 'Show'             THEN 1 ELSE 0 END) AS store_visit
+         FROM {$wpdb->prefix}lcm_leads
+         WHERE $where"
+    )
 );
 
+if ( ! $summary ) {
+    echo "<div class='notice notice-warning'>No summary data found.</div>";
+    $summary = (object) [
+      'total_leads'     => 0,
+      'relevant'        => 0,
+      'not_relevant'    => 0,
+      'not_connected'   => 0,
+      'scheduled_visit' => 0,
+      'store_visit'     => 0,
+    ];
+}
 
-$relevant       = intval( $summary->relevant );
-$not_relevant   = intval( $summary->not_relevant );
-$not_connected  = intval( $summary->not_connected );
-$connected      = $relevant + $not_relevant;
-$not_available  = intval( $summary->total_leads ) - ( $connected + $not_connected );
-$scheduled      = intval( $summary->scheduled_visit );
-$store_visit    = intval( $summary->store_visit );
+
+$relevant      = intval( $summary->relevant );
+$not_relevant  = intval( $summary->not_relevant );
+$not_connected = intval( $summary->not_connected );
+$connected     = $relevant + $not_relevant;
+$not_available = intval( $summary->total_leads ) - ( $connected + $not_connected );
+$scheduled     = intval( $summary->scheduled_visit );
+$store_visit   = intval( $summary->store_visit );
+
 ?>
 
 <div class="wrap">
