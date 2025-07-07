@@ -4,13 +4,20 @@ jQuery(function ($) {
   const PER_PAGE = LCM.per_page;
   const ADSETS_BY_CLIENT = LCM.adsets_by_client;
   const ADNAMES_BY_CLIENT = LCM.adnames_by_client;
+  const $preloader = $("#lcm-preloader");
+  function showPreloader() {
+    $preloader.show();
+  }
+  function hidePreloader() {
+    $preloader.hide();
+  }
 
   function initSearchable($scope) {
     $scope
       .find('select[data-name="adset"], select[data-name="ad_name"]')
       .select2({ width: "100%" });
   }
-
+  let cachedPages = {};
   // Column definitions
   const cols = [
     ["_action", "Action", "action"],
@@ -281,7 +288,18 @@ jQuery(function ($) {
   }
 
   // and the click binding:
-  $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
+  $pager.on("click", "button", (e) => {
+    const p = +e.currentTarget.dataset.p;
+    if (cachedPages[p]) {
+      page = p;
+      $tbody.html(cachedPages[p].map(rowHtml).join(""));
+      $pager.find("button.active").removeClass("active");
+      $(e.currentTarget).addClass("active");
+    } else {
+      showPreloader();
+      load(p).then(() => hidePreloader());
+    }
+  });
 
   function load(p = 1) {
     const q = {
@@ -307,13 +325,17 @@ jQuery(function ($) {
     if (filterTextVal) q.search = filterTextVal;
     if (filterBudgetVal) q.budget = filterBudgetVal;
     if (filterProductVal) q.product_interest = filterProductVal;
-    console.log("LCM filter payload:", q);
-    $.getJSON(LCM.ajax_url, q, (res) => {
-      page = p;
-      $tbody.html(res.rows.map(rowHtml).join(""));
-      renderPager(res.total);
-      initSearchable($tbody); // ← initialize on all rows
-      LCM_initFlatpickr($tbody); // (if you want date/time)
+
+    return new Promise((resolve) => {
+      $.getJSON(LCM.ajax_url, q, (res) => {
+        page = p;
+        $tbody.html(res.rows.map(rowHtml).join(""));
+        renderPager(res.total);
+        initSearchable($tbody);
+        LCM_initFlatpickr($tbody);
+        // cache the page’s rows for later
+        resolve({ page: p, rows: res.rows, total: res.total });
+      });
     });
   }
 
@@ -324,7 +346,16 @@ jQuery(function ($) {
       load(1);
     });
   }
-
+  function prefetchAllPages() {
+    const totalPages = Math.ceil(
+      parseInt($pager.find("button").last().text(), 10)
+    );
+    for (let p = 2; p <= totalPages; p++) {
+      load(p).then((data) => {
+        cachedPages[data.page] = data.rows;
+      });
+    }
+  }
   // Add draft
   $("#lcm-add-row-lead").on("click", () => {
     const d = {};
@@ -608,5 +639,11 @@ jQuery(function ($) {
   }
 
   // Initial load
-  load(1);
+  showPreloader();
+  load(1).then((data) => {
+    hidePreloader();
+    // cache page 1 too
+    cachedPages[data.page] = data.rows;
+    prefetchAllPages();
+  });
 });

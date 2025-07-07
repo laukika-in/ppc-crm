@@ -162,7 +162,7 @@ class PPC_CRM_Public {
             $vars = [
                 'ajax_url'          => admin_url( 'admin-ajax.php' ),
                 'nonce'             => wp_create_nonce( 'lcm_ajax' ),
-                'per_page'          => 100,
+                'per_page'          => 50,
                 'is_client'         => $is_client,
                 'current_client_id' => $user->ID,
                 'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
@@ -357,7 +357,7 @@ class PPC_CRM_Public {
         $vars = [
             'ajax_url'          => admin_url( 'admin-ajax.php' ),
             'nonce'             => wp_create_nonce( 'lcm_ajax' ),
-            'per_page'          => 100,
+            'per_page'          => 50,
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
@@ -463,6 +463,20 @@ class PPC_CRM_Public {
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
         </div>
+
+        <div id="lcm-preloader" style="
+     position: absolute;
+     top: 0; left: 0; right: 0; bottom: 0;
+     background: rgba(255,255,255,0.8);
+     display: none;
+     align-items: center;
+     justify-content: center;
+     z-index: 999;
+">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Loading…</span>
+  </div>
+</div>
 
         <div class="table-responsive lcm-scroll">
             <table id="<?= esc_attr( $div ); ?>"
