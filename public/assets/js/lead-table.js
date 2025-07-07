@@ -1,8 +1,12 @@
 jQuery(function ($) {
   // ─── 1) Preloader overlay ─────────────────────────────────────────────────
   const $preloader = $("#lcm-preloader");
-  const $tbody = $("#lcm-lead-table tbody");
-  const $pager = $("#lcm-pager-lead");
+  function showPreloader() {
+    $preloader.show();
+  }
+  function hidePreloader() {
+    $preloader.hide();
+  }
 
   // ─── 2) Core configuration & cache ────────────────────────────────────────
   const IS_CLIENT = !!LCM.is_client;
@@ -13,12 +17,6 @@ jQuery(function ($) {
 
   let cachedPages = {}; // store fetched rows per page
 
-  function showPreloader() {
-    $preloader.show();
-  }
-  function hidePreloader() {
-    $preloader.hide();
-  }
   // ─── 3) Column definitions ────────────────────────────────────────────────
   const cols = [
     ["_action", "Action", "action"],
@@ -265,43 +263,25 @@ jQuery(function ($) {
     });
   }
 
-  function loadPage(p = 1) {
-    showPreloader();
-    $.getJSON(
-      LCM.ajax_url,
-      {
-        action: "lcm_get_leads_json",
-        nonce: LCM.nonce,
-        page: p,
-        per_page: PER_PAGE,
-        // … include any active filters here …
-      },
-      (res) => {
-        // render rows
-        $tbody.html(res.rows.map((r) => rowHtml(r)).join(""));
-        // render pager
-        const pages = Math.ceil(res.total / PER_PAGE);
-        $pager.html(
-          Array.from(
-            { length: pages },
-            (_, i) =>
-              `<button class="${i + 1 === p ? "active" : ""}" data-p="${
-                i + 1
-              }">${i + 1}</button>`
-          ).join("")
-        );
-        initSearchable($tbody);
-        LCM_initFlatpickr($tbody);
-        hidePreloader();
-      }
-    );
+  function prefetchAllPages() {
+    const totalPages = parseInt($pager.find("button").last().text(), 10) || 1;
+    for (let p = 2; p <= totalPages; p++) {
+      fetchPage(p).then((data) => {
+        cachedPages[data.page] = data.rows;
+      });
+    }
   }
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
     const p = +e.currentTarget.dataset.p;
-    if (!$(e.currentTarget).hasClass("active")) {
-      loadPage(p);
+    if (cachedPages[p]) {
+      page = p;
+      $tbody.html(cachedPages[p].map(rowHtml).join(""));
+      $pager.find("button.active").removeClass("active");
+      $(e.currentTarget).addClass("active");
+    } else {
+      load(p);
     }
   });
 
@@ -647,5 +627,8 @@ jQuery(function ($) {
   // Render header
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
 
-  loadPage(1);
+  showPreloader();
+  load(1).then(() => {
+    prefetchAllPages();
+  });
 });
