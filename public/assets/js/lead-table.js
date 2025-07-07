@@ -318,9 +318,19 @@ jQuery(function ($) {
       city: filterCityVal,
     };
     return new Promise((resolve) => {
-      $.getJSON(LCM.ajax_url, q, (res) => {
-        resolve({ page: p, rows: res.rows, total: res.total });
-      });
+      $.post(
+        LCM.ajax_url,
+        q,
+        (res) => {
+          // Always resolve, even on WP error, so your prefetch loop won’t hang.
+          resolve({
+            page: p,
+            rows: res.success ? res.data.rows : [],
+            total: res.success ? res.data.total : 0,
+          });
+        },
+        "json"
+      );
     });
   }
 
