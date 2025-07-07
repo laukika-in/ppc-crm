@@ -61,7 +61,7 @@ foreach ($tracker_rows as $row) {
 
 
 // Summary block query
-$rows = $wpdb->get_results(
+$summary = $wpdb->get_results(
     "SELECT 
         lead_date AS date,
         COUNT(*) AS total_leads,
@@ -79,11 +79,13 @@ $rows = $wpdb->get_results(
 );
 
 
-$relevant = intval($summary->relevant);
-$not_relevant = intval($summary->not_relevant);
-$not_connected = intval($summary->not_connected);
-$connected = $relevant + $not_relevant;
-$not_available = intval($summary->total_leads) - ($connected + $not_connected);
+$relevant       = intval( $summary->relevant );
+$not_relevant   = intval( $summary->not_relevant );
+$not_connected  = intval( $summary->not_connected );
+$connected      = $relevant + $not_relevant;
+$not_available  = intval( $summary->total_leads ) - ( $connected + $not_connected );
+$scheduled      = intval( $summary->scheduled_visit );
+$store_visit    = intval( $summary->store_visit );
 ?>
 
 <div class="wrap">
