@@ -1,9 +1,5 @@
 jQuery(function ($) {
-  const IS_CLIENT = !!LCM.is_client;
-  const CLIENT_ID = LCM.current_client_id;
-  const PER_PAGE = LCM.per_page;
-  const ADSETS_BY_CLIENT = LCM.adsets_by_client;
-  const ADNAMES_BY_CLIENT = LCM.adnames_by_client;
+  // ─── 1) Preloader overlay ─────────────────────────────────────────────────
   const $preloader = $("#lcm-preloader");
   function showPreloader() {
     $preloader.show();
@@ -12,20 +8,23 @@ jQuery(function ($) {
     $preloader.hide();
   }
 
-  function initSearchable($scope) {
-    $scope
-      .find('select[data-name="adset"], select[data-name="ad_name"]')
-      .select2({ width: "100%" });
-  }
-  let cachedPages = {};
-  // Column definitions
+  // ─── 2) Core configuration & cache ────────────────────────────────────────
+  const IS_CLIENT = !!LCM.is_client;
+  const CLIENT_ID = LCM.current_client_id;
+  const PER_PAGE = LCM.per_page;
+  const ADSETS_BY_CLIENT = LCM.adsets_by_client;
+  const ADNAMES_BY_CLIENT = LCM.adnames_by_client;
+
+  let cachedPages = {}; // store fetched rows per page
+
+  // ─── 3) Column definitions ────────────────────────────────────────────────
   const cols = [
     ["_action", "Action", "action"],
     ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
     ["lead_title", "Lead Title", "text"],
     ["source", "Source", "select", ["Google", "Meta"]],
     ["ad_name", "Campaign Name", "select", []],
-    ["adset", "Adset", "select", "select", []],
+    ["adset", "Adset", "select", []],
     ["uid", "UID", "text"],
     ["lead_date", "Date", "date"],
     ["lead_time", "Time", "time"],
@@ -49,7 +48,6 @@ jQuery(function ($) {
     ["email", "Email", "text"],
     ["location", "Location", "text"],
     ["client_type", "Client Type", "select", ["New Client", "Existing Client"]],
-
     ["source_campaign", "Source of Campaign", "text"],
     ["targeting", "Targeting", "text"],
     ["budget", "Budget", "text"],
@@ -92,12 +90,11 @@ jQuery(function ($) {
     ["remarks", "Remarks", "text"],
   ];
 
+  // ─── 4) DOM references ────────────────────────────────────────────────────
   const $thead = $("#lcm-lead-table thead");
   const $tbody = $("#lcm-lead-table tbody");
   const $pager = $("#lcm-pager-lead");
   const $filter = $("#lcm-filter-client");
-  let page = 1,
-    filterClient = IS_CLIENT ? CLIENT_ID : "";
   const $filterDateFrom = $("#lcm-filter-date-from");
   const $filterDateTo = $("#lcm-filter-date-to");
   const $filterAdName = $("#lcm-filter-adname");
@@ -113,89 +110,33 @@ jQuery(function ($) {
   const $filterBudget = $("#lcm-filter-budget");
   const $filterProduct = $("#lcm-filter-product");
 
-  let filterDateFrom = "",
-    filterDateTo = "",
-    filterAdNameVal = "",
-    filterAdsetVal = "",
-    filterDayVal = "",
-    filterClientTypeVal = "",
-    filterSourceVal = "",
-    filterAttemptTypeVal = "",
-    filterAttemptStatusVal = "",
-    filterStoreVal = "",
-    filterOccasionVal = "",
-    filterTextVal = "",
-    filterBudgetVal = "",
-    filterProductVal = "";
+  // ─── 5) Filter state ─────────────────────────────────────────────────────
+  let page = 1;
+  let filterClient = IS_CLIENT ? CLIENT_ID : "";
+  let filterDateFrom = "";
+  let filterDateTo = "";
+  let filterAdNameVal = "";
+  let filterAdsetVal = "";
+  let filterDayVal = "";
+  let filterClientTypeVal = "";
+  let filterSourceVal = "";
+  let filterAttemptTypeVal = "";
+  let filterAttemptStatusVal = "";
+  let filterStoreVal = "";
+  let filterOccasionVal = "";
+  let filterTextVal = "";
+  let filterBudgetVal = "";
+  let filterProductVal = "";
 
-  $filterDateFrom.on("change", () => {
-    filterDateFrom = $filterDateFrom.val();
-    load(1);
-  });
-  $filterDateTo.on("change", () => {
-    filterDateTo = $filterDateTo.val();
-    load(1);
-  });
-  $filterAdName.on("change", () => {
-    filterAdNameVal = $filterAdName.val();
-    load(1);
-  });
-  $filterAdset.on("change", () => {
-    filterAdsetVal = $filterAdset.val();
-    load(1);
-  });
-  $filterDay.on("change", () => {
-    filterDayVal = $filterDay.val();
-    load(1);
-  });
-  $filterClientType.on("change", () => {
-    filterClientTypeVal = $filterClientType.val();
-    load(1);
-  });
-  $filterSource.on("change", () => {
-    filterSourceVal = $filterSource.val();
-    load(1);
-  });
+  // ─── 6) Helpers: init select2, opts builder, collect row data ─────────────
+  function initSearchable($scope) {
+    $scope
+      .find('select[data-name="adset"], select[data-name="ad_name"]')
+      .select2({ width: "100%" });
+  }
 
-  $filterAttemptType.on("change", () => {
-    filterAttemptTypeVal = $filterAttemptType.val();
-    toggleFilterHighlight("attempt-type", filterAttemptTypeVal);
-    load(1);
-  });
-
-  $filterAttemptStatus.on("change", () => {
-    filterAttemptStatusVal = $filterAttemptStatus.val();
-    toggleFilterHighlight("attempt-status", filterAttemptStatusVal);
-    load(1);
-  });
-
-  $filterStoreVisit.on("change", () => {
-    filterStoreVal = $filterStoreVisit.val();
-    load(1);
-  });
-  $filterOccasion.on("change", () => {
-    filterOccasionVal = $filterOccasion.val();
-    load(1);
-  });
-  $filterText.on("input", () => {
-    filterTextVal = $filterText.val().trim();
-    load(1);
-  });
-  $filterBudget.on("input", () => {
-    filterBudgetVal = $filterBudget.val().trim();
-    load(1);
-  });
-  $filterProduct.on("input", () => {
-    filterProductVal = $filterProduct.val().trim();
-    load(1);
-  });
-
-  // Render header
-  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
-
-  // Helpers
   const opts = (arr, cur = "") =>
-    "<option value=''></option>" +
+    '<option value=""></option>' +
     arr
       .map((o) => {
         const v = Array.isArray(o) ? o[0] : o,
@@ -225,13 +166,24 @@ jQuery(function ($) {
       .prop("disabled", s !== "Store Visit Scheduled");
   }
 
-  // Build a row
+  function renderPager(total) {
+    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+    $pager.html(
+      Array.from({ length: pages }, (_, i) => {
+        const n = i + 1;
+        return `<button class="btn btn-outline-secondary${
+          n === page ? " active" : ""
+        }" data-p="${n}">${n}</button>`;
+      }).join("")
+    );
+  }
+
   function rowHtml(r = {}) {
     const saved = !!r.id;
     let html = `<tr data-id="${r.id || ""}"${
-      saved ? "" : " class='table-warning'"
+      saved ? "" : ' class="table-warning"'
     }>`;
-    cols.forEach(([f, _l, typ, opt]) => {
+    cols.forEach(([f, label, typ, opt]) => {
       const val = r[f] || "",
         dis = saved ? " disabled" : "";
       if (typ === "action") {
@@ -246,48 +198,81 @@ jQuery(function ($) {
              </td>`;
       } else if (typ === "select") {
         let choices = opt;
-        if (f === "adset") {
-          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
-          choices = ADSETS_BY_CLIENT[cid] || [];
-        } else if (f === "ad_name") {
-          const cid = IS_CLIENT ? CLIENT_ID : r.client_id;
-          choices = ADNAMES_BY_CLIENT[cid] || [];
-        }
-
-        html += `<td><select class="form-select form-select-sm"
-                              data-name="${f}"${dis}>
-                            ${opts(choices, val)}
-                          </select></td>`;
+        if (f === "adset")
+          choices = ADSETS_BY_CLIENT[IS_CLIENT ? CLIENT_ID : r.client_id] || [];
+        if (f === "ad_name")
+          choices =
+            ADNAMES_BY_CLIENT[IS_CLIENT ? CLIENT_ID : r.client_id] || [];
+        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>${opts(
+          choices,
+          val
+        )}</select></td>`;
       } else if (typ === "date") {
-        html += `<td><input type="date" class="form-control form-control-sm flatpickr-date"
-                         data-name="lead_date" value="${val}"${dis}></td>`;
+        html += `<td><input type="date" class="form-control form-control-sm flatpickr-date" data-name="lead_date" value="${val}"${dis}></td>`;
       } else if (typ === "time") {
-        html += `<td><input type="text" class="form-control form-control-sm flatpickr-time"
-                         data-name="lead_time" value="${val}"${dis}></td>`;
+        html += `<td><input type="text" class="form-control form-control-sm flatpickr-time" data-name="lead_time" value="${val}"${dis}></td>`;
       } else {
-        html += `<td><input type="text" class="form-control form-control-sm"
-                         data-name="${f}" value="${val}"${dis}></td>`;
+        html += `<td><input type="text" class="form-control form-control-sm" data-name="${f}" value="${val}"${dis}></td>`;
       }
     });
     html += "</tr>";
     return html;
   }
 
-  // Pager & Load
-  function renderPager(total) {
-    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
-    $pager.html(
-      Array.from({ length: pages }, (_, i) => {
-        const n = i + 1;
-        return `<button class="btn btn-outline-secondary ${
-          n === page ? "active" : ""
-        }"
-                      data-p="${n}">${n}</button>`;
-      }).join("")
-    );
+  // ─── 7) Data fetching ────────────────────────────────────────────────────
+  function fetchPage(p = 1) {
+    const q = {
+      action: "lcm_get_leads_json",
+      nonce: LCM.nonce,
+      page: p,
+      per_page: PER_PAGE,
+      client_id: filterClient,
+      date_from: filterDateFrom,
+      date_to: filterDateTo,
+      ad_name: filterAdNameVal,
+      adset: filterAdsetVal,
+      day: filterDayVal,
+      client_type: filterClientTypeVal,
+      source: filterSourceVal,
+      attempt_type: filterAttemptTypeVal,
+      attempt_status: filterAttemptStatusVal,
+      store_visit_status: filterStoreVal,
+      occasion: filterOccasionVal,
+      search: filterTextVal,
+      budget: filterBudgetVal,
+      product_interest: filterProductVal,
+    };
+    return new Promise((resolve) => {
+      $.getJSON(LCM.ajax_url, q, (res) => {
+        resolve({ page: p, rows: res.rows, total: res.total });
+      });
+    });
   }
 
-  // and the click binding:
+  function load(p = 1) {
+    showPreloader();
+    return fetchPage(p).then((data) => {
+      page = data.page;
+      cachedPages[page] = data.rows;
+      $tbody.html(data.rows.map(rowHtml).join(""));
+      renderPager(data.total);
+      initSearchable($tbody);
+      LCM_initFlatpickr($tbody);
+      hidePreloader();
+      return data;
+    });
+  }
+
+  function prefetchAllPages() {
+    const totalPages = parseInt($pager.find("button").last().text(), 10) || 1;
+    for (let p = 2; p <= totalPages; p++) {
+      fetchPage(p).then((data) => {
+        cachedPages[data.page] = data.rows;
+      });
+    }
+  }
+
+  // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
     const p = +e.currentTarget.dataset.p;
     if (cachedPages[p]) {
@@ -296,66 +281,67 @@ jQuery(function ($) {
       $pager.find("button.active").removeClass("active");
       $(e.currentTarget).addClass("active");
     } else {
-      showPreloader();
-      load(p).then(() => hidePreloader());
+      load(p);
     }
   });
 
-  function load(p = 1) {
-    const q = {
-      action: "lcm_get_leads_json",
-      nonce: LCM.nonce,
-      page: p,
-      per_page: PER_PAGE,
-    };
-
-    // only append filter params when non‐empty
-    if (filterClient) q.client_id = filterClient;
-    if (filterDateFrom) q.date_from = filterDateFrom;
-    if (filterDateTo) q.date_to = filterDateTo;
-    if (filterAdNameVal) q.ad_name = filterAdNameVal;
-    if (filterAdsetVal) q.adset = filterAdsetVal;
-    if (filterDayVal) q.day = filterDayVal;
-    if (filterClientTypeVal) q.client_type = filterClientTypeVal;
-    if (filterSourceVal) q.source = filterSourceVal;
-    if (filterAttemptTypeVal) q.attempt_type = filterAttemptTypeVal;
-    if (filterAttemptStatusVal) q.attempt_status = filterAttemptStatusVal;
-    if (filterStoreVal) q.store_visit_status = filterStoreVal;
-    if (filterOccasionVal) q.occasion = filterOccasionVal;
-    if (filterTextVal) q.search = filterTextVal;
-    if (filterBudgetVal) q.budget = filterBudgetVal;
-    if (filterProductVal) q.product_interest = filterProductVal;
-
-    return new Promise((resolve) => {
-      $.getJSON(LCM.ajax_url, q, (res) => {
-        page = p;
-        $tbody.html(res.rows.map(rowHtml).join(""));
-        renderPager(res.total);
-        initSearchable($tbody);
-        LCM_initFlatpickr($tbody);
-        // cache the page’s rows for later
-        resolve({ page: p, rows: res.rows, total: res.total });
-      });
-    });
-  }
-
-  // Filter for PPC/Admin
+  // ─── 9) Filter & UI event bindings (unchanged) ──────────────────────────
   if (!IS_CLIENT) {
     $filter.on("change", function () {
       filterClient = this.value;
       load(1);
     });
   }
-  function prefetchAllPages() {
-    const totalPages = Math.ceil(
-      parseInt($pager.find("button").last().text(), 10)
-    );
-    for (let p = 2; p <= totalPages; p++) {
-      load(p).then((data) => {
-        cachedPages[data.page] = data.rows;
-      });
-    }
-  }
+  $filterDateFrom.add($filterDateTo).on("change", () => load(1));
+  $filterAdName.on("change", () => {
+    filterAdNameVal = $filterAdName.val();
+    load(1);
+  });
+  $filterAdset.on("change", () => {
+    filterAdsetVal = $filterAdset.val();
+    load(1);
+  });
+  $filterDay.on("change", () => {
+    filterDayVal = $filterDay.val();
+    load(1);
+  });
+  $filterClientType.on("change", () => {
+    filterClientTypeVal = $filterClientType.val();
+    load(1);
+  });
+  $filterSource.on("change", () => {
+    filterSourceVal = $filterSource.val();
+    load(1);
+  });
+  $filterAttemptType.on("change", () => {
+    filterAttemptTypeVal = $filterAttemptType.val();
+    load(1);
+  });
+  $filterAttemptStatus.on("change", () => {
+    filterAttemptStatusVal = $filterAttemptStatus.val();
+    load(1);
+  });
+  $filterStoreVisit.on("change", () => {
+    filterStoreVal = $filterStoreVisit.val();
+    load(1);
+  });
+  $filterOccasion.on("change", () => {
+    filterOccasionVal = $filterOccasion.val();
+    load(1);
+  });
+  $filterText.on("input", () => {
+    filterTextVal = $filterText.val().trim();
+    load(1);
+  });
+  $filterBudget.on("input", () => {
+    filterBudgetVal = $filterBudget.val().trim();
+    load(1);
+  });
+  $filterProduct.on("input", () => {
+    filterProductVal = $filterProduct.val().trim();
+    load(1);
+  });
+
   // Add draft
   $("#lcm-add-row-lead").on("click", () => {
     const d = {};
@@ -638,12 +624,11 @@ jQuery(function ($) {
     }, 500);
   }
 
-  // Initial load
+  // Render header
+  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
+
   showPreloader();
-  load(1).then((data) => {
-    hidePreloader();
-    // cache page 1 too
-    cachedPages[data.page] = data.rows;
+  load(1).then(() => {
     prefetchAllPages();
   });
 });
