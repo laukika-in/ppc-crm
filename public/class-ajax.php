@@ -36,6 +36,10 @@ class PPC_CRM_Ajax {
         $user_id   = $user->ID;
         $is_client = in_array( 'client', (array) $user->roles, true );
 
+
+            $lead_data = isset( $_REQUEST['lead_data'] ) && is_array( $_REQUEST['lead_data'] )
+               ? wp_unslash( (array) $_REQUEST['lead_data'] )
+               : [];
         global $wpdb;
      $client_id = $is_client
              ? $user->ID
