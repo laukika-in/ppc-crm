@@ -186,7 +186,7 @@ class PPC_CRM_Public {
 
             // Render HTML
             ob_start(); ?>
-           <div class="d-flex justify-content-between mb-2 flex-wrap">
+ <div class="d-flex justify-content-between mb-2 flex-wrap lcm-lead-wrapper">
   <button class="btn btn-sm btn-primary mb-2" id="lcm-add-row-lead">+ Add Lead</button>
 
   <div class="lcm-filters">
@@ -294,12 +294,12 @@ class PPC_CRM_Public {
         <?php endforeach; ?>
       </select>
     </div>
- <div class="filter-item">
+    <div class="filter-item">
     <input type="text"
            id="lcm-filter-city"
            class="form-control form-control-sm"
            placeholder="City contains…">
-  </div>
+    </div>
     <div class="filter-item flex-grow-1">
       <input type="text" id="lcm-filter-text" class="form-control form-control-sm" placeholder="Search name/phone/email">
     </div>
@@ -311,30 +311,22 @@ class PPC_CRM_Public {
     </div>
   </div>
 
-  <div class="btn-group btn-group-sm ms-2 mb-2" id="lcm-pager-lead"></div>
-</div>
-<!-- Preloader overlay -->
- <div style="position: relative;">   
-<div id="lcm-preloader" style="
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(255,255,255,0.8);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-">
+    <div class="btn-group btn-group-sm ms-2 mb-2" id="lcm-pager-lead"></div>
+  </div>
+  <!-- Preloader overlay -->
+  <div style="position: relative;">   
+  <div id="lcm-preloader" >
   <div class="spinner-border" role="status">
     <span class="visually-hidden">Loading…</span>
   </div>
-</div>
-<!-- Table Container -->
-<div class="lcm-scroll table-responsive">
-  <table class="lcm-table table table-bordered table-sm table-striped" id="lcm-lead-table">
-    <thead><!-- headers via JS --></thead>
-    <tbody><!-- rows via JS --></tbody>
-  </table>
-</div>
+  </div>
+  <!-- Table Container -->
+  <div class="lcm-scroll table-responsive">
+    <table class="lcm-table table table-bordered table-sm table-striped" id="lcm-lead-table">
+      <thead><!-- headers via JS --></thead>
+      <tbody><!-- rows via JS --></tbody>
+    </table>
+  </div>
 </div>    
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="lcmDelModal" tabindex="-1">

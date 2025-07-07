@@ -288,7 +288,8 @@ jQuery(function ($) {
       $pager.find("button.active").removeClass("active");
       $(e.currentTarget).addClass("active");
     } else {
-      load(p);
+      showPreloader();
+      load(p).then(() => hidePreloader());
     }
   });
 
@@ -639,7 +640,7 @@ jQuery(function ($) {
 
   showPreloader();
   load(1).then(() => {
-    // give the browser 1s to finish painting page 1
+    hidePreloader();
     setTimeout(prefetchAllPages, 1000);
   });
 });
