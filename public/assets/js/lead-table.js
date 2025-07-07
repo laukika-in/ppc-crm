@@ -264,14 +264,18 @@ jQuery(function ($) {
   }
 
   function prefetchAllPages() {
-    const totalPages = parseInt($pager.find("button").last().text(), 10) || 1;
+    const totalPages = Math.ceil(
+      parseInt($pager.find("button").last().text(), 10)
+    );
     for (let p = 2; p <= totalPages; p++) {
-      fetchPage(p).then((data) => {
-        cachedPages[data.page] = data.rows;
-      });
+      // schedule each fetch 500ms apart
+      setTimeout(() => {
+        fetchPage(p).then((data) => {
+          cachedPages[data.page] = data.rows;
+        });
+      }, (p - 1) * 500);
     }
   }
-
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
     const p = +e.currentTarget.dataset.p;
@@ -629,6 +633,7 @@ jQuery(function ($) {
 
   showPreloader();
   load(1).then(() => {
-    prefetchAllPages();
+    // give the browser 1s to finish painting page 1
+    setTimeout(prefetchAllPages, 1000);
   });
 });
