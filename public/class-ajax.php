@@ -287,7 +287,7 @@ public function update_lead() {
 public function get_campaigns() {
     $this->verify();
 
-    $user      = wp_get_current_user();
+ $user      = wp_get_current_user();
     $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
 
@@ -296,63 +296,79 @@ public function get_campaigns() {
     $pp = max(1, (int)($_GET['per_page'] ?? 100));
     $o  = ($p - 1) * $pp;
 
-    $tbl_campaigns = $wpdb->prefix . 'lcm_campaigns';
-    $tbl_tracker   = $wpdb->prefix . 'lcm_campaign_daily_tracker';
-
-    // build your WHERE exactly as before…
+    $table = $wpdb->prefix . 'lcm_campaigns';
     $where = 'WHERE 1=1';
-    if ( ! empty( $_GET['month'] ) ) {
-      $where .= $wpdb->prepare( " AND month = %s", sanitize_text_field( $_GET['month'] ) );
+
+  // Month filter
+  if ( ! empty( $_GET['month'] ) ) {
+    $where .= $wpdb->prepare( " AND month = %s", sanitize_text_field( $_GET['month'] ) );
+  }
+    $lead_date = sanitize_text_field($_GET['lead_date'] ?? '');
+    if ($lead_date) {
+        $where .= $wpdb->prepare(" AND lead_date = %s", $lead_date);
     }
-    // … other filters …
-    if ( $is_client ) {
-      $where .= $wpdb->prepare( " AND client_id = %d", $user_id );
-    } elseif ( ! empty( $_GET['client_id'] ) ) {
-      $where .= $wpdb->prepare( " AND client_id = %d", absint( $_GET['client_id'] ) );
+  // Location filter (partial match)
+  if ( ! empty( $_GET['location'] ) ) {
+    $where .= $wpdb->prepare( " AND location LIKE %s", '%' . $wpdb->esc_like( $_GET['location'] ) . '%' );
+  }
+
+  // Store Visit filter
+  if ( ! empty( $_GET['store_visit'] ) ) {
+    if ( $_GET['store_visit'] === 'yes' ) {
+      $where .= " AND store_visit > 0";
+    } else {
+      $where .= " AND store_visit = 0";
+    }
+  }
+
+  // Connected filter
+  if ( ! empty( $_GET['has_connected'] ) ) {
+    if ( $_GET['has_connected'] === 'yes' ) {
+      $where .= " AND connected_number > 0";
+    } else {
+      $where .= " AND connected_number = 0";
+    }
+  }
+    // Filter by role
+    if ($is_client) {
+        $where .= $wpdb->prepare(" AND client_id = %d", $user_id);
+    } elseif (!empty($_GET['client_id'])) {
+        $where .= $wpdb->prepare(" AND client_id = %d", absint($_GET['client_id']));
     }
 
-    // total count
-    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tbl_campaigns} {$where}" );
+    // Total count
+    $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM $table $where");
 
-    // now select each campaign plus three correlated sums
-    $sql = "
-      SELECT
-        c.*,
-        -- total reach across all days for this campaign
-        COALESCE((
-          SELECT SUM(reach)
-          FROM {$tbl_tracker}
-          WHERE campaign_id = c.id
-        ), 0) AS total_reach,
-        -- total impressions
-        COALESCE((
-          SELECT SUM(impressions)
-          FROM {$tbl_tracker}
-          WHERE campaign_id = c.id
-        ), 0) AS total_impressions,
-        -- total amount spent
-        COALESCE((
-          SELECT SUM(amount_spent)
-          FROM {$tbl_tracker}
-          WHERE campaign_id = c.id
-        ), 0) AS total_spent
-      FROM {$tbl_campaigns} c
-      {$where}
-      ORDER BY c.id DESC
-      LIMIT %d OFFSET %d
-    ";
-
+    // Campaign rows
     $rows = $wpdb->get_results(
-      $wpdb->prepare( $sql, $pp, $o ),
-      ARRAY_A
+    $wpdb->prepare("SELECT *, not_relevant FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $pp, $o),
+    ARRAY_A
+);
+
+// Attach totals from daily tracker
+foreach ($rows as &$row) {
+    $post_id = (int) $row['post_id'];
+    $totals = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT 
+                SUM(reach) as total_reach, 
+                SUM(impressions) as total_impressions, 
+                SUM(amount_spent) as total_spent 
+             FROM {$wpdb->prefix}lcm_campaign_daily_tracker 
+             WHERE campaign_id = %d",
+            $post_id
+        ),
+        ARRAY_A
     );
 
-    wp_send_json( [
-      'total' => $total,
-      'rows'  => $rows,
-    ] );
+    $row['total_reach']       = (int) ($totals['total_reach'] ?? 0);
+    $row['total_impressions'] = (int) ($totals['total_impressions'] ?? 0);
+    $row['total_spent']       = (float) ($totals['total_spent'] ?? 0);
 }
 
+
+    wp_send_json(['total' => $total, 'rows' => $rows]);
+}
 
 public function create_campaign() {
     $this->verify();
