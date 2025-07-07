@@ -586,7 +586,7 @@ jQuery(function ($) {
   const adsetId = urlParams.get("adset");
   if (adNameId) {
     filterAdNameVal = adNameId;
-    $filterAdName.val(yan);
+    $filterAdName.val(adNameId).trigger("change");
   }
   if (adsetId) {
     filterAdsetVal = adsetId;
