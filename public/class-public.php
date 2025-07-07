@@ -463,20 +463,21 @@ class PPC_CRM_Public {
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
         </div>
-
-        <div id="lcm-preloader" style="
-     position: absolute;
-     top: 0; left: 0; right: 0; bottom: 0;
-     background: rgba(255,255,255,0.8);
-     display: none;
-     align-items: center;
-     justify-content: center;
-     z-index: 999;
-">
-  <div class="spinner-border" role="status">
-    <span class="visually-hidden">Loading…</span>
+<div style="position: relative;">
+         <!-- Preloader overlay -->
+  <div id="lcm-preloader" style="
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    ">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading…</span>
+    </div>
   </div>
-</div>
 
         <div class="table-responsive lcm-scroll">
             <table id="<?= esc_attr( $div ); ?>"
@@ -487,6 +488,7 @@ class PPC_CRM_Public {
             </table>
         </div>
 
+  </div>
         <!-- Delete Modal -->
         <div class="modal fade" id="lcmDelModal" tabindex="-1">
           <div class="modal-dialog modal-dialog-centered">
