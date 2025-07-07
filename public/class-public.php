@@ -162,7 +162,7 @@ class PPC_CRM_Public {
             $vars = [
                 'ajax_url'          => admin_url( 'admin-ajax.php' ),
                 'nonce'             => wp_create_nonce( 'lcm_ajax' ),
-                'per_page'          => 50,
+                'per_page'          => 25,
                 'is_client'         => $is_client,
                 'current_client_id' => $user->ID,
                 'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),
@@ -294,7 +294,12 @@ class PPC_CRM_Public {
         <?php endforeach; ?>
       </select>
     </div>
-
+ <div class="filter-item">
+    <input type="text"
+           id="lcm-filter-city"
+           class="form-control form-control-sm"
+           placeholder="City contains…">
+  </div>
     <div class="filter-item flex-grow-1">
       <input type="text" id="lcm-filter-text" class="form-control form-control-sm" placeholder="Search name/phone/email">
     </div>
@@ -371,7 +376,7 @@ class PPC_CRM_Public {
         $vars = [
             'ajax_url'          => admin_url( 'admin-ajax.php' ),
             'nonce'             => wp_create_nonce( 'lcm_ajax' ),
-            'per_page'          => 50,
+            'per_page'          => 25,
             'is_client'         => $is_client,
             'current_client_id' => $user->ID,
             'clients'           => array_map( fn($u) => [ $u->ID, $u->display_name ], $clients ),

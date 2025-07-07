@@ -103,6 +103,13 @@ if ( ! empty( $_GET['source'] ) ) {
         $p = '%' . $wpdb->esc_like( $_GET['product_interest'] ) . '%';
         $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
     }
+ $city = sanitize_text_field( $_GET['city'] ?? '' );
+if ( $city ) {
+    $where .= $wpdb->prepare(
+        " AND location LIKE %s",
+        '%' . $wpdb->esc_like( $city ) . '%'
+    );
+}
  
 
         $p  = max(1,(int)($_GET['page']??1));

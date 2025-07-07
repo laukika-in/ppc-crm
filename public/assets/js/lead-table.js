@@ -109,6 +109,7 @@ jQuery(function ($) {
   const $filterText = $("#lcm-filter-text");
   const $filterBudget = $("#lcm-filter-budget");
   const $filterProduct = $("#lcm-filter-product");
+  const $filterCity = $("#lcm-filter-city");
 
   // ─── 5) Filter state ─────────────────────────────────────────────────────
   let page = 1;
@@ -127,6 +128,7 @@ jQuery(function ($) {
   let filterTextVal = "";
   let filterBudgetVal = "";
   let filterProductVal = "";
+  let filterCityVal = "";
 
   // ─── 6) Helpers: init select2, opts builder, collect row data ─────────────
   function initSearchable($scope) {
@@ -241,6 +243,7 @@ jQuery(function ($) {
       search: filterTextVal,
       budget: filterBudgetVal,
       product_interest: filterProductVal,
+      city: filterCityVal,
     };
     return new Promise((resolve) => {
       $.getJSON(LCM.ajax_url, q, (res) => {
@@ -345,7 +348,10 @@ jQuery(function ($) {
     filterProductVal = $filterProduct.val().trim();
     load(1);
   });
-
+  $filterCity.on("input", () => {
+    filterCityVal = $filterCity.val().trim();
+    load(1);
+  });
   // Add draft
   $("#lcm-add-row-lead").on("click", () => {
     const d = {};
