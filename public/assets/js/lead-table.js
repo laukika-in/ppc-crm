@@ -383,7 +383,14 @@ jQuery(function ($) {
       load(1);
     });
   }
-  $filterDateFrom.add($filterDateTo).on("change", () => load(1));
+  $filterDateFrom.on("change", function () {
+    filterDateFrom = this.value;
+    load(1);
+  });
+  $filterDateTo.on("change", function () {
+    filterDateTo = this.value;
+    load(1);
+  });
   $filterAdName.on("change", () => {
     filterAdNameVal = $filterAdName.val();
     load(1);
