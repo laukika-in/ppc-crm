@@ -1,119 +1,133 @@
-jQuery(function ($) {
-  // cache
-  const $filterMonth = $("#lcm-filter-month"),
-    $filterDateFrom = $("#lcm-filter-date-from"),
-    $filterDateTo = $("#lcm-filter-date-to"),
-    $tbody = $("table.lcm-table tbody");
+jQuery(document).ready(function ($) {
+  const campaignId = LCM.campaign_id;
 
-  // wire up flatpickr only on the date inputs:
-  flatpickr($filterDateFrom[0], { dateFormat: "Y-m-d", allowInput: true });
-  flatpickr($filterDateTo[0], { dateFormat: "Y-m-d", allowInput: true });
+  const $month = $("#month");
+  const $from = $("#lcm-filter-date-from");
+  const $to = $("#lcm-filter-date-to");
+  const $tbody = $("table.lcm-table tbody");
 
-  // any change fires reload()
-  $filterMonth.on("change", reload);
-  $filterDateFrom.on("change", reload);
-  $filterDateTo.on("change", reload);
+  const $summary = {
+    total: $("strong:contains('Total Leads')").next(),
+    connected: $("strong:contains('Connected')").next(),
+    relevant: $("strong:contains('Relevant')").next(),
+    notRelevant: $("strong:contains('Not Relevant')").next(),
+    notConnected: $("strong:contains('Not Connected')").next(),
+    na: $("strong:contains('N/A')").next(),
+    scheduled: $("strong:contains('Scheduled Visit')").next(),
+    store: $("strong:contains('Store Visit')").next(),
+  };
+
+  // --- Initialize flatpickr ---
+  flatpickr($month[0], {
+    dateFormat: "Y-m",
+    allowInput: true,
+    plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m" })],
+    onChange: reload,
+  });
+
+  flatpickr([$from[0], $to[0]], {
+    dateFormat: "Y-m-d",
+    allowInput: true,
+    onChange: reload,
+  });
 
   function reload() {
-    const month = $month.val(),
-      from = $from.val(),
-      to = $to.val();
-
     $.getJSON(LCM.ajax_url, {
-      action: "lcm_get_campaign_leads_json",
+      action: "lcm_get_campaign_detail_rows",
       nonce: LCM.nonce,
       campaign_id: campaignId,
-      month,
-      from,
-      to,
+      month: $month.val(),
+      from: $from.val(),
+      to: $to.val(),
     })
       .done((res) => {
-        if (!res.success) return alert(res.data || "Error");
-        const d = res.data,
-          days = d.days;
+        if (!res.success) return alert(res.data || "Error loading data");
+        const d = res.data;
 
-        // update summary…
-        // (same as before)
+        $summary.total.text(d.total_leads);
+        $summary.connected.text(d.connected);
+        $summary.relevant.text(d.relevant);
+        $summary.notRelevant.text(d.not_relevant);
+        $summary.notConnected.text(d.not_connected);
+        $summary.na.text(d.na);
+        $summary.scheduled.text(d.scheduled_visit);
+        $summary.store.text(d.store_visit);
 
-        // rebuild tbody
         let html = "";
-        days.forEach((r) => {
-          const t = d.tracker?.[r.date] || {};
+        d.rows.forEach((r) => {
+          const track = d.tracker[r.date] || {};
           html += `
-          <tr data-date="${r.date}" data-row-id="${t.id || 0}">
+          <tr data-date="${r.date}" data-row-id="${track.id || 0}">
             <td>${r.date}</td>
-            <td>${r.leads}</td>
-            <td><input class="form-control form-control-sm reach-input"  value="${
-              t.reach || ""
+            <td>${r.total_leads}</td>
+            <td><input class="form-control form-control-sm reach-input" value="${
+              track.reach || ""
             }"></td>
             <td><input class="form-control form-control-sm impressions-input" value="${
-              t.impressions || ""
+              track.impressions || ""
             }"></td>
             <td><input class="form-control form-control-sm spent-input" value="${
-              t.amount_spent || ""
+              track.amount_spent || ""
             }"></td>
             <td>
               <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
               <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
               <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
-              <a class="btn btn-sm btn-primary" href="/lead-data?date_from=${
-                r.date
-              }&date_to=${r.date}">View Leads</a>
+              <a class="btn btn-sm btn-primary" href="${site_url(
+                "/lead-data"
+              )}?date_from=${r.date}&date_to=${r.date}">View Leads</a>
             </td>
-            <td>${conCount}</td>
-            <td>${
-              (
-                d.by_type.find(
-                  (t) => t.attempt_type === "Connected:Relevant"
-                ) || { qty: 0 }
-              ).qty
-            }</td>
-            <td>${
-              (
-                d.by_type.find(
-                  (t) => t.attempt_type === "Connected:Not Relevant"
-                ) || { qty: 0 }
-              ).qty
-            }</td>
-            <td>${
-              (
-                d.by_type.find((t) => t.attempt_type === "Not Connected") || {
-                  qty: 0,
-                }
-              ).qty
-            }</td>
-            <td>${na}</td>
-            <td>${d.scheduled}</td>
-            <td>${d.visit}</td>
-         </tr>
+            <td>${r.connected}</td>
+            <td>${r.relevant}</td>
+            <td>${r.not_relevant}</td>
+            <td>${r.not_connected}</td>
+            <td>${r.na}</td>
+            <td>${r.scheduled_visit}</td>
+            <td>${r.store_visit}</td>
+          </tr>
         `;
         });
+
         $tbody.html(html);
       })
-      .fail((_) => alert("Server error"));
+      .fail(() => alert("Server error"));
   }
 
-  // first load
-  reload();
+  reload(); // initial load
 
-  // Step 2: Edit Mode
+  // --- Edit tracker row ---
   $(document).on("click", ".edit-tracker", function () {
     const $row = $(this).closest("tr");
-    $row.find(".tracker-display").addClass("d-none");
-    $row.find(".tracker-input").removeClass("d-none");
+    $row.find("input").prop("disabled", false);
     $row.find(".edit-tracker").addClass("d-none");
-    $row.find(".save-daily-tracker").removeClass("d-none");
-    $row.find(".cancel-tracker").removeClass("d-none");
+    $row.find(".save-daily-tracker, .cancel-tracker").removeClass("d-none");
     $row.addClass("table-warning shadow-sm");
   });
 
-  // Step 3: Save Button
+  // --- Cancel edit ---
+  $(document).on("click", ".cancel-tracker", function () {
+    const $row = $(this).closest("tr");
+    const original = {
+      reach: $row.find(".reach-input").attr("value"),
+      impressions: $row.find(".impressions-input").attr("value"),
+      spent: $row.find(".spent-input").attr("value"),
+    };
+    $row.find(".reach-input").val(original.reach).prop("disabled", true);
+    $row
+      .find(".impressions-input")
+      .val(original.impressions)
+      .prop("disabled", true);
+    $row.find(".spent-input").val(original.spent).prop("disabled", true);
+    $row.find(".edit-tracker").removeClass("d-none");
+    $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
+    $row.removeClass("table-warning shadow-sm");
+  });
+
+  // --- Save tracker row ---
   $(document).on("click", ".save-daily-tracker", function () {
     const $row = $(this).closest("tr");
     const rowId = $row.data("row-id");
-    const campaign_id = LCM.campaign_id;
     const date = $row.data("date");
-
     const reach = parseInt($row.find(".reach-input").val()) || 0;
     const impressions = parseInt($row.find(".impressions-input").val()) || 0;
     const spent = parseFloat($row.find(".spent-input").val()) || 0;
@@ -122,43 +136,27 @@ jQuery(function ($) {
       action: "lcm_save_daily_tracker",
       nonce: LCM.nonce,
       row_id: rowId,
-      campaign_id,
+      campaign_id: campaignId,
       date,
       reach,
       impressions,
       amount_spent: spent,
     })
-      .done(function (response) {
-        if (response.success) {
-          $row.find(".reach-display").text(reach);
-          $row.find(".impressions-display").text(impressions);
-          $row.find(".spent-display").text(spent);
-          $row.find(".tracker-display").removeClass("d-none");
-          $row.find(".tracker-input").addClass("d-none");
+      .done((res) => {
+        if (res.success) {
+          $row.find(".reach-input").attr("value", reach).prop("disabled", true);
+          $row
+            .find(".impressions-input")
+            .attr("value", impressions)
+            .prop("disabled", true);
+          $row.find(".spent-input").attr("value", spent).prop("disabled", true);
           $row.find(".edit-tracker").removeClass("d-none");
-          $row.find(".save-daily-tracker").addClass("d-none");
+          $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
           $row.removeClass("table-warning shadow-sm");
         } else {
-          alert("Save failed");
+          alert("Save failed.");
         }
       })
-      .fail(function () {
-        alert("Server error");
-      });
-  });
-  $(document).on("click", ".cancel-tracker", function () {
-    const $row = $(this).closest("tr");
-    // Revert inputs to original display values
-    $row.find(".reach-input").val($row.find(".reach-display").text());
-    $row
-      .find(".impressions-input")
-      .val($row.find(".impressions-display").text());
-    $row.find(".spent-input").val($row.find(".spent-display").text());
-    // Toggle back to view mode
-    $row.find(".tracker-display").removeClass("d-none");
-    $row.find(".tracker-input").addClass("d-none");
-    $row.find(".edit-tracker").removeClass("d-none");
-    $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
-    $row.removeClass("table-warning shadow-sm");
+      .fail(() => alert("Server error"));
   });
 });
