@@ -713,99 +713,93 @@ public function update_campaign_daily_totals($campaign_id, $lead_date) {
         );
     }
 }
+
 public function get_campaign_detail_rows() {
   $this->verify();
 
-  $cid   = absint($_GET['campaign_id'] ?? 0);
-  $month = sanitize_text_field($_GET['month'] ?? '');
-  $from  = sanitize_text_field($_GET['from'] ?? '');
-  $to    = sanitize_text_field($_GET['to'] ?? '');
-
-  if (!$cid) wp_send_json_error('Missing campaign ID', 400);
-
   global $wpdb;
 
-  // WHERE clause
+  $cid = absint($_GET['campaign_id'] ?? 0);
+  if (!$cid) wp_send_json_error("Missing campaign ID", 400);
+
+  $from = sanitize_text_field($_GET['from'] ?? '');
+  $to   = sanitize_text_field($_GET['to'] ?? '');
+  $month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
+
+  $year = intval(substr($month, 0, 4));
+  $mon  = intval(substr($month, 5, 2));
+
   $where = $wpdb->prepare("campaign_id = %d", $cid);
 
   if ($from && $to) {
     $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
-  } elseif ($month) {
-    $where .= $wpdb->prepare(" AND MONTH(lead_date) = %d AND YEAR(lead_date) = %d",
-      intval(substr($month, 5, 2)),
-      intval(substr($month, 0, 4))
-    );
+  } else {
+    $where .= $wpdb->prepare(" AND MONTH(lead_date) = %d AND YEAR(lead_date) = %d", $mon, $year);
   }
 
-  // Daily grouped rows
-  $days = $wpdb->get_results("
-    SELECT lead_date AS date,
-           COUNT(*) AS leads,
-           SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-           SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-           SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-           SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled_visit,
-           SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit,
-           MAX(adset) AS adset,
-           MAX(ad_name) AS ad_name
-      FROM {$wpdb->prefix}lcm_leads
+  $rows = $wpdb->get_results(
+    "SELECT 
+      lead_date AS date,
+      COUNT(*) AS leads,
+      SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
+      SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
+      SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
+      SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled,
+      SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
+     FROM {$wpdb->prefix}lcm_leads
      WHERE $where
      GROUP BY lead_date
-     ORDER BY lead_date DESC
-  ", ARRAY_A);
-
-  // Summary
-  $summary = $wpdb->get_row("
-    SELECT COUNT(*) AS total,
-           SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-           SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-           SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-           SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled,
-           SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store
-      FROM {$wpdb->prefix}lcm_leads
-     WHERE $where
-  ");
-
-  // By attempt_type
-  $types = $wpdb->get_results(
-    $wpdb->prepare(
-      "SELECT attempt_type, COUNT(*) AS qty
-         FROM {$wpdb->prefix}lcm_leads
-        WHERE campaign_id = %d
-        GROUP BY attempt_type",
-      $cid
-    ),
+     ORDER BY lead_date DESC",
     ARRAY_A
   );
 
-  // Tracker rows (reach, impressions, spent)
-  $tracker_rows = $wpdb->get_results(
+  $tracker = $wpdb->get_results(
     $wpdb->prepare(
       "SELECT track_date, id, reach, impressions, amount_spent
-         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        WHERE campaign_id = %d",
+       FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+       WHERE campaign_id = %d",
       $cid
-    )
+    ),
+    OBJECT_K
   );
-  $tracker = [];
-  foreach ($tracker_rows as $r) {
-    $tracker[$r->track_date] = [
-      'id'            => (int)$r->id,
-      'reach'         => (int)$r->reach,
-      'impressions'   => (int)$r->impressions,
-      'amount_spent'  => (float)$r->amount_spent,
+
+  // Format tracker for fast lookup
+  $tracker_data = [];
+  foreach ($tracker as $date => $row) {
+    $tracker_data[$date] = [
+      'id' => (int)$row->id,
+      'reach' => (int)$row->reach,
+      'impressions' => (int)$row->impressions,
+      'amount_spent' => (float)$row->amount_spent,
     ];
   }
 
+  // Summary
+  $total_leads = 0;
+  $rel = $nrel = $ncon = $sched = $show = 0;
+  foreach ($rows as $r) {
+    $total_leads += $r['leads'];
+    $rel += $r['relevant'];
+    $nrel += $r['not_relevant'];
+    $ncon += $r['not_connected'];
+    $sched += $r['scheduled'];
+    $show += $r['store_visit'];
+  }
+
   wp_send_json_success([
-    'days'      => $days,
-    'total'     => (int)$summary->total,
-    'scheduled' => (int)$summary->scheduled,
-    'visit'     => (int)$summary->store,
-    'by_type'   => $types,
-    'tracker'   => $tracker,
+    'days' => $rows,
+    'tracker' => $tracker_data,
+    'summary' => [
+      'total' => $total_leads,
+      'relevant' => $rel,
+      'not_relevant' => $nrel,
+      'not_connected' => $ncon,
+      'scheduled' => $sched,
+      'store_visit' => $show,
+    ]
   ]);
 }
+
 
 
 }

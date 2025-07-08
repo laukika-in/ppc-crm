@@ -124,39 +124,83 @@ jQuery(document).ready(function ($) {
   });
 
   // --- Save tracker row ---
-  $(document).on("click", ".save-daily-tracker", function () {
-    const $row = $(this).closest("tr");
-    const rowId = $row.data("row-id");
-    const date = $row.data("date");
-    const reach = parseInt($row.find(".reach-input").val()) || 0;
-    const impressions = parseInt($row.find(".impressions-input").val()) || 0;
-    const spent = parseFloat($row.find(".spent-input").val()) || 0;
+// Save Tracker Row
+$(document).on("click", ".save-daily-tracker", function () {
+  const $row = $(this).closest("tr");
+  const rowId = $row.data("row-id");
+  const campaign_id = LCM.campaign_id;
+  const date = $row.data("date");
 
-    $.post(LCM.ajax_url, {
-      action: "lcm_save_daily_tracker",
-      nonce: LCM.nonce,
-      row_id: rowId,
-      campaign_id: campaignId,
-      date,
-      reach,
-      impressions,
-      amount_spent: spent,
+  const reach = parseInt($row.find(".reach-input").val()) || 0;
+  const impressions = parseInt($row.find(".impressions-input").val()) || 0;
+  const spent = parseFloat($row.find(".spent-input").val()) || 0;
+
+  $.post(LCM.ajax_url, {
+    action: "lcm_save_daily_tracker",
+    nonce: LCM.nonce,
+    row_id: rowId,
+    campaign_id,
+    date,
+    reach,
+    impressions,
+    amount_spent: spent,
+  })
+    .done(function (response) {
+      if (response.success) {
+        // Update cells and refresh table totals
+        $row.find(".reach-input").val(reach);
+        $row.find(".impressions-input").val(impressions);
+        $row.find(".spent-input").val(spent);
+
+        // Visuals
+        $row.removeClass("table-warning shadow-sm");
+        $row.find(".save-daily-tracker").addClass("d-none");
+        $row.find(".cancel-tracker").addClass("d-none");
+        $row.find(".edit-tracker").removeClass("d-none");
+
+        // Reload totals
+        reload();
+      } else {
+        alert("Save failed");
+      }
     })
-      .done((res) => {
-        if (res.success) {
-          $row.find(".reach-input").attr("value", reach).prop("disabled", true);
-          $row
-            .find(".impressions-input")
-            .attr("value", impressions)
-            .prop("disabled", true);
-          $row.find(".spent-input").attr("value", spent).prop("disabled", true);
-          $row.find(".edit-tracker").removeClass("d-none");
-          $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
-          $row.removeClass("table-warning shadow-sm");
-        } else {
-          alert("Save failed.");
-        }
-      })
-      .fail(() => alert("Server error"));
-  });
+    .fail(function () {
+      alert("Server error");
+    });
+});
+
+// Cancel Tracker Edit
+$(document).on("click", ".cancel-tracker", function () {
+  const $row = $(this).closest("tr");
+
+  // Restore old values (text input stays)
+  const oldReach = $row.find(".reach-input").data("old") || 0;
+  const oldImpr = $row.find(".impressions-input").data("old") || 0;
+  const oldSpent = $row.find(".spent-input").data("old") || 0;
+
+  $row.find(".reach-input").val(oldReach);
+  $row.find(".impressions-input").val(oldImpr);
+  $row.find(".spent-input").val(oldSpent);
+
+  $row.removeClass("table-warning shadow-sm");
+  $row.find(".save-daily-tracker").addClass("d-none");
+  $row.find(".cancel-tracker").addClass("d-none");
+  $row.find(".edit-tracker").removeClass("d-none");
+});
+
+// Enable Edit Mode
+$(document).on("click", ".edit-tracker", function () {
+  const $row = $(this).closest("tr");
+
+  // Store original values
+  $row.find(".reach-input").data("old", $row.find(".reach-input").val());
+  $row.find(".impressions-input").data("old", $row.find(".impressions-input").val());
+  $row.find(".spent-input").data("old", $row.find(".spent-input").val());
+
+  $row.addClass("table-warning shadow-sm");
+  $row.find(".edit-tracker").addClass("d-none");
+  $row.find(".save-daily-tracker").removeClass("d-none");
+  $row.find(".cancel-tracker").removeClass("d-none");
+});
+
 });
