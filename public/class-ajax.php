@@ -726,75 +726,103 @@ public function get_campaign_detail_rows() {
     $this->verify();
     global $wpdb;
 
-    // 1) Get inputs
-    $campaign_id = absint($_GET['campaign_id'] ?? 0);
-    $month       = sanitize_text_field($_GET['month'] ?? '');
-    $from        = sanitize_text_field($_GET['from']  ?? '');
-    $to          = sanitize_text_field($_GET['to']    ?? '');
+    // ① Inputs
+    $campaign_id = absint( $_GET['campaign_id'] ?? 0 );
+    $month       = sanitize_text_field( $_GET['month'] ?? '' );
+    $from        = sanitize_text_field( $_GET['from']  ?? '' );
+    $to          = sanitize_text_field( $_GET['to']    ?? '' );
 
-    // 2) Build date filter
-    $where = $wpdb->prepare("WHERE campaign_id = %d", $campaign_id);
+    // ② Build WHERE clause
+    $where = $wpdb->prepare( "WHERE campaign_id = %d", $campaign_id );
     if ( $month ) {
-      list($yr,$mo) = explode('-', $month); // "YYYY-MM"
-      $where .= $wpdb->prepare(" AND DATE_FORMAT(lead_date,'%%Y-%%m') = %s", $month);
+        $where .= $wpdb->prepare(
+            " AND DATE_FORMAT( lead_date, '%%Y-%%m' ) = %s",
+            $month
+        );
     }
     if ( $from ) {
-      $where .= $wpdb->prepare(" AND lead_date >= %s", $from);
+        $where .= $wpdb->prepare( " AND lead_date >= %s", $from );
     }
     if ( $to ) {
-      $where .= $wpdb->prepare(" AND lead_date <= %s", $to);
+        $where .= $wpdb->prepare( " AND lead_date <= %s", $to );
     }
 
-    // 3) Pull lead counts per day
-    $leads = $wpdb->get_results("
-      SELECT lead_date,
-        COUNT(*) as total_leads,
-        SUM(attempt_type='Connected:Relevant') as relevant,
-        SUM(attempt_type='Connected:Not Relevant') as connected_not_relevant,
-        SUM(attempt_type='Not Connected') as not_connected
-      FROM {$wpdb->prefix}lcm_leads
-      {$where}
-      GROUP BY lead_date
-      ORDER BY lead_date
+    // ③ Aggregate leads per day
+    $leads = $wpdb->get_results( "
+        SELECT
+            lead_date,
+            COUNT(*)                                   AS total_leads,
+            SUM(attempt_type = 'Connected:Not Relevant') AS connected,
+            SUM(attempt_type = 'Connected:Relevant')     AS relevant,
+            SUM(attempt_type = 'Not Connected')           AS not_connected,
+            SUM(attempt_type = 'N/A')                     AS not_available,
+            SUM(store_visit_status = 'Store Visit Scheduled') AS scheduled_visit,
+            SUM(store_visit_status = 'Show')                  AS store_visit
+        FROM {$wpdb->prefix}lcm_leads
+        {$where}
+        GROUP BY lead_date
+        ORDER BY lead_date
     ", ARRAY_A );
 
-    // 4) Pull tracker data per day
-    $trackers = $wpdb->get_results($wpdb->prepare("
-      SELECT tracker_date, reach, impressions, amount_spent
-      FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-      WHERE campaign_id=%d
-      ORDER BY tracker_date
-    ", $campaign_id), ARRAY_A);
+    // ④ Pull tracker data (uses `date` column)
+    $trackers = $wpdb->get_results( $wpdb->prepare( "
+        SELECT
+            `date`,
+            reach,
+            impressions,
+            amount_spent
+        FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+        WHERE campaign_id = %d
+        ORDER BY `date`
+    ", $campaign_id ), ARRAY_A );
 
-    // 5) Merge by date
-    $map = [];
-    foreach($trackers as $t){
-      $map[$t['tracker_date']] = $t;
+    // ⑤ Map trackers by date
+    $tracker_map = [];
+    foreach ( $trackers as $t ) {
+        $tracker_map[ $t['date'] ] = $t;
     }
+
+    // ⑥ Merge into rows[]
     $rows = [];
-    foreach($leads as $l){
-      $d = $l['lead_date'];
-      $t = $map[$d] ?? [ 'reach'=>0,'impressions'=>0,'amount_spent'=>0 ];
-      $rows[] = array_merge(
-        [ 'date'=>$d ] + $l,
-        $t
-      );
+    foreach ( $leads as $l ) {
+        $d = $l['lead_date'];
+        $t = $tracker_map[ $d ] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
+        $rows[] = array_merge( [
+            'date'          => $d,
+            'total_leads'   => (int) $l['total_leads'],
+            'connected'     => (int) $l['connected'],
+            'relevant'      => (int) $l['relevant'],
+            'not_connected' => (int) $l['not_connected'],
+            'not_available' => (int) $l['not_available'],
+            'scheduled_visit'=> (int) $l['scheduled_visit'],
+            'store_visit'   => (int) $l['store_visit'],
+        ], $t );
     }
 
-    // 6) Compute summary
+    // ⑦ Compute overall summary
     $summary = [
-      'total_leads'  => array_sum(array_column($rows,'total_leads')),
-      'connected'    => array_sum(array_column($rows,'connected_not_relevant')),
-      'relevant'     => array_sum(array_column($rows,'relevant')),
-      'not_relevant' => 0, // you can split or rename as needed
-      'not_connected'=> array_sum(array_column($rows,'not_connected')),
-      'not_available'=> 0,
-      'scheduled_visit'=>0,
-      'store_visit'  =>0,
+        'total_leads'    => 0,
+        'connected'      => 0,
+        'relevant'       => 0,
+        'not_connected'  => 0,
+        'not_available'  => 0,
+        'scheduled_visit'=> 0,
+        'store_visit'    => 0,
     ];
-    // … fill in remaining summary keys …
+    foreach ( $rows as $r ) {
+        $summary['total_leads']     += $r['total_leads'];
+        $summary['connected']       += $r['connected'];
+        $summary['relevant']        += $r['relevant'];
+        $summary['not_connected']   += $r['not_connected'];
+        $summary['not_available']   += $r['not_available'];
+        $summary['scheduled_visit'] += $r['scheduled_visit'];
+        $summary['store_visit']     += $r['store_visit'];
+    }
 
-    wp_send_json_success([ 'summary'=>$summary, 'rows'=>$rows ]);
+    wp_send_json_success( [
+        'summary' => $summary,
+        'rows'    => $rows,
+    ] );
 }
 
 /**
