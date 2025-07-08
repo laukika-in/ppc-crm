@@ -41,7 +41,7 @@ public function get_leads() {
         global $wpdb;
      $client_id = $is_client
              ? $user->ID
-             : absint( $_GET['client_id'] ?? 0 );
+             : absint( $_REQUEST['client_id'] ?? 0 );
 
         // start with a no-op WHERE clause
         $where = 'WHERE 1=1';

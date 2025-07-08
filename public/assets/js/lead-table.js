@@ -323,14 +323,14 @@ jQuery(function ($) {
         LCM.ajax_url,
         q,
         (res) => {
-          let rows, total; 
-          if (res && res.success === true && res.data) { 
+          let rows, total;
+          if (res && res.success === true && res.data) {
             rows = res.data.rows || [];
             total = res.data.total || 0;
-          } else { 
+          } else {
             rows = res.rows || [];
             total = res.total || 0;
-          } 
+          }
           resolve({ page: p, rows, total });
         },
         "json"
@@ -340,7 +340,7 @@ jQuery(function ($) {
   function load(p = 1) {
     showPreloader();
     return fetchPage(p).then((data) => {
-      lastTotalPages = Math.max(1, Math.ceil(data.total / PER_PAGE));
+      lastTotalPages = Math.ceil(total / PER_PAGE);
       page = data.page;
       cachedPages[page] = data.rows;
       $tbody.html(data.rows.map(rowHtml).join(""));

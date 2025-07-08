@@ -1,218 +1,253 @@
 jQuery(function ($) {
-  const IS_CLIENT = !!LCM.is_client;
-  const CLIENT_ID = LCM.current_client_id;
-  const PER_PAGE = LCM.per_page;
+  // ─── 1) Preloader overlay ─────────────────────────────────────────────────
+  const $preloader = $("#lcm-preloader-camp");
+  function showPreloader() { $preloader.show(); }
+  function hidePreloader() { $preloader.hide(); }
 
-  // Define all columns
+  // ─── 2) Core configuration & cache ────────────────────────────────────────
+  const IS_CLIENT         = !!LCM.is_client;
+  const CLIENT_ID         = LCM.current_client_id;
+  const PER_PAGE          = LCM.per_page;
+  let cachedPages         = {};
+  let lastTotalPages      = 1;
+  let page                = 1;
+
+  // ─── 3) Column definitions ────────────────────────────────────────────────
   const allCols = [
-    ...(!IS_CLIENT
-      ? [["_action", "Action", "action"]]
-      : [["_action", "Action", "action"]]),
-    ...(!IS_CLIENT ? [["client_id", "Client", "select", LCM.clients]] : []),
-    ["campaign_title", "Campaign Title", "text"],
-    [
-      "month",
-      "Month",
-      "select",
-      [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ],
-    ],
-    ["week", "Week", "text"],
-    ["campaign_name", "Campaign Name", "text"],
-    ["campaign_date", "Date", "date"],
-    ["location", "Location", "text"],
-    ["adset", "Adset", "text"],
-    ["leads", "Leads", "readonly"],
-    ["total_reach", "Reach", "readonly"],
-    ["total_impressions", "Impr", "readonly"],
-    ["total_spent", "Spent", "readonly"],
-    ["cost_per_lead", "CPL", "readonly"],
-    ["cpm", "CPM", "number"],
-    ["connected_number", "Connected", "readonly"],
-    ["relevant", "Relevant", "readonly"],
-    ["not_connected", "Not Conn", "readonly"],
-    ["not_relevant", "Not Relevant", "readonly"],
-    ["not_available", "N/A", "readonly"],
-    ["scheduled_store_visit", "Sched Visit", "readonly"],
-    ["store_visit", "Visit", "readonly"],
+    ["_action",            "Action",      "action"],
+    ...(!IS_CLIENT ? [["client_id","Client","select",LCM.clients]] : []),
+    ["campaign_title",     "Campaign",    "text"],
+    ["month",              "Month",       "select",["January","February","March","April","May","June","July","August","September","October","November","December"]],
+    ["week",               "Week",        "text"],
+    ["campaign_name",      "Name",        "text"],
+    ["campaign_date",      "Date",        "date"],
+    ["location",           "Location",    "text"],
+    ["adset",              "Adset",       "text"],
+    ["leads",              "Leads",       "readonly"],
+    ["total_reach",        "Reach",       "readonly"],
+    ["total_impressions",  "Impr",        "readonly"],
+    ["total_spent",        "Spent",       "readonly"],
+    ["cost_per_lead",      "CPL",         "readonly"],
+    ["cpm",                "CPM",         "number"],
+    ["connected_number",   "Connected",   "readonly"],
+    ["relevant",           "Relevant",    "readonly"],
+    ["not_connected",      "Not Conn",    "readonly"],
+    ["not_relevant",       "Not Rel",     "readonly"],
+    ["not_available",      "N/A",         "readonly"],
+    ["scheduled_store_visit","Sched",      "readonly"],
+    ["store_visit",        "Visit",       "readonly"],
   ];
-
-  // Remove client_id column for Clients
+  // remove client_id for client-role
   const cols = IS_CLIENT
-    ? allCols.filter((c) => c[0] !== "client_id")
+    ? allCols.filter(c => c[0] !== "client_id")
     : allCols;
 
-  const $thead = $("#lcm-campaign-table thead");
-  const $tbody = $("#lcm-campaign-table tbody");
-  const $pager = $("#lcm-pager-campaign");
-  const $add = $("#lcm-add-row-campaign");
-  const $filter = $("#lcm-filter-client");
-  const $filterMonth = $("#lcm-filter-month-camp");
-  const $filterLocation = $("#lcm-filter-location-camp");
-  const $filterStore = $("#lcm-filter-store-camp");
+  // ─── 4) DOM references ────────────────────────────────────────────────────
+  const $thead         = $("#lcm-campaign-table thead");
+  const $tbody         = $("#lcm-campaign-table tbody");
+  const $pager         = $("#lcm-pager-campaign");
+  const $add           = $("#lcm-add-row-campaign");
+  const $filterClient  = $("#lcm-filter-client");
+  const $filterMonth   = $("#lcm-filter-month-camp");
+  const $filterLocation= $("#lcm-filter-location-camp");
+  const $filterStore   = $("#lcm-filter-store-camp");
   const $filterConnected = $("#lcm-filter-connected-camp");
 
-  let filterMonth = "";
-  let filterLocation = "";
-  let filterStore = "";
-  let filterConnected = "";
-  let page = 1;
-  filterClient = IS_CLIENT ? CLIENT_ID : "";
+  // ─── 5) Filter state ─────────────────────────────────────────────────────
+  let filterClientVal   = IS_CLIENT ? CLIENT_ID : "";
+  let filterMonthVal    = "";
+  let filterLocationVal = "";
+  let filterStoreVal    = "";
+  let filterConnVal     = "";
 
-  $filterMonth.on("change", function () {
-    filterMonth = this.value;
-    setFilterActive("filter-month-group", !!filterMonth);
-    load(1);
-  });
-
-  $filterLocation.on("input", function () {
-    filterLocation = this.value.trim();
-    setFilterActive("filter-location-group", !!filterLocation);
-    load(1);
-  });
-
-  $filterStore.on("change", function () {
-    filterStore = this.value;
-    setFilterActive("filter-store-group", !!filterStore);
-    load(1);
-  });
-
-  $filterConnected.on("change", function () {
-    filterConnected = this.value;
-    setFilterActive("filter-connected-group", !!filterConnected);
-    load(1);
-  });
-
-  const $filterGroups = $(".lcm-filter-group");
-  const $clearButtons = $(".clear-filter");
-
-  // Header
-  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
-
-  // Helpers
-  const opts = (arr, cur = "") =>
+  // ─── 6) Helpers ──────────────────────────────────────────────────────────
+  const opts = (arr, cur="") =>
     "<option value=''></option>" +
-    arr
-      .map((o) => {
-        const v = Array.isArray(o) ? o[0] : o,
-          t = Array.isArray(o) ? o[1] : o;
-        return `<option value="${v}"${
-          v == cur ? " selected" : ""
-        }>${t}</option>`;
-      })
-      .join("");
-  const collect = ($tr) => {
+      arr.map(o=>{
+        const v = Array.isArray(o)?o[0]:o,
+              t = Array.isArray(o)?o[1]:o;
+        return `<option value="${v}"${v==cur?" selected":""}>${t}</option>`;
+      }).join("");
+
+  const collect = $tr => {
     const data = {};
-    $tr.find("[data-name]").each(function () {
+    $tr.find("[data-name]").each(function(){
       data[this.dataset.name] = $(this).val();
     });
     return data;
   };
 
-  // Build row
-  function rowHtml(r = {}) {
+  function setFilterActive(groupId, on) {
+    $(`#${groupId}`).toggleClass("filter-active", on);
+  }
+
+  function renderPager(totalPages) {
+    const first = 1, last = totalPages;
+    let html = "";
+
+    // helper to add button
+    const addBtn = (num, lbl, icon, disabled=false, active=false) => {
+      const cls = [
+        "btn btn-sm",
+        disabled ? "btn-outline-secondary disabled" : "btn-outline-secondary",
+        active   ? "active" : ""
+      ].join(" ");
+      html += `<button class="${cls}" data-p="${num}">
+                 ${icon?`<i class="${icon}"></i>`:lbl}
+               </button>`;
+    };
+
+    // First / Prev
+    addBtn(first, "First",   "bi bi-chevron-double-left", page===first);
+    addBtn(page-1, "Prev",   "bi bi-chevron-left",        page===first);
+
+    // numeric window
+    const delta = 2;
+    let left  = Math.max(page-delta, first+1);
+    let right = Math.min(page+delta, last-1);
+
+    if (page - first <= delta) left = first+1;
+    if (last - page <= delta)   right = last-1;
+
+    addBtn(1, "1","",false,page===1);
+    if (left>first+1) html += `<span class="btn btn-sm btn-outline-secondary disabled">…</span>`;
+    for(let p=left;p<=right;p++){
+      addBtn(p,String(p),"",false,page===p);
+    }
+    if (right<last-1) html+=`<span class="btn btn-sm btn-outline-secondary disabled">…</span>`;
+    if (last>1)      addBtn(last,String(last),"",false,page===last);
+
+    // Next / Last
+    addBtn(page+1, "Next",  "bi bi-chevron-right",       page===last);
+    addBtn(last,   "Last",  "bi bi-chevron-double-right",page===last);
+
+    $pager.html(html)
+          .find("button")
+          .off("click")
+          .on("click", e => {
+            const p = +e.currentTarget.dataset.p;
+            if (p>=first && p<=last && p!==page) load(p);
+          });
+  }
+
+  function rowHtml(r={}) {
     const saved = !!r.id;
-    let html = `<tr data-id="${r.id || ""}"${
-      saved ? "" : " class='table-warning'"
-    }>`;
-    cols.forEach(([f, _l, typ, opt]) => {
-      const v = r[f] || "",
-        dis = saved ? " disabled" : "";
-      if (typ === "action") {
-        const campaignPostID = r.post_id || r.id; // fallback if post_id missing
-        if (!saved) {
-          html += `<td class="text-center">
+    let html = `<tr data-id="${r.id||""}"${saved?"":" class='table-warning'"}>`;
+    cols.forEach(([f,label,typ,opt])=>{
+      const v = r[f]||"", d = saved?" disabled":"";
+      if (typ==="action") {
+        const postID = r.post_id||r.id;
+        html += saved
+          ? `<td class="text-center">
+               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
+               <button class="btn btn-danger btn-sm del-camp me-1" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
+               <a class="btn btn-info btn-sm" href="/campaign-detail?campaign_id=${postID}">View</a>
+             </td>`
+          : `<td class="text-center">
                <button class="btn btn-success btn-sm save-camp me-1"><i class="bi bi-check-circle-fill"></i></button>
                <button class="btn btn-warning btn-sm cancel-draft me-1"><i class="bi bi-x-lg"></i></button>
              </td>`;
-        } else {
-          html += `<td class="text-center">
-               <button class="btn btn-secondary btn-sm edit-row me-1"><i class="bi bi-pencil-fill"></i></button>
-               <button class="btn btn-danger btn-sm del-camp me-1" data-id="${r.id}"><i class="bi bi-trash-fill"></i></button>
-               <a class="btn btn-sm btn-info" style="width:auto!important" href="/campaign-detail?campaign_id=${campaignPostID}">View</a>
-               
-             </td>`;
-        }
-      } else if (typ === "select") {
-        html += `<td><select class="form-select form-select-sm" data-name="${f}"${dis}>
-                  ${opts(opt, v)}
-                </select></td>`;
-      } else if (typ === "date") {
-        html += `<td><input type="date" class="form-control form-control-sm"
-                         data-name="campaign_date" value="${v}"${dis}></td>`;
-      } else if (typ === "number") {
-        html += `<td><input type="number" step="any" class="form-control form-control-sm"
-                         data-name="${f}" value="${v}"${dis}></td>`;
-      } else if (typ === "readonly") {
-        html += `<td>
-                 <input type="text"
-                        class="form-control lcm-readonly form-control-sm"
-                        data-name="${f}"
-                        value="${v}"
-                        disabled />
-               </td>`;
-      } else {
-        html += `<td><input type="text" class="form-control form-control-sm"
-                         data-name="${f}" value="${v}"${dis}></td>`;
+      }
+      else if (typ==="select") {
+        html += `<td><select class="form-select form-select-sm" data-name="${f}"${d}>${opts(opt,v)}</select></td>`;
+      }
+      else if (typ==="date") {
+        html += `<td><input type="date" class="form-control form-control-sm" data-name="campaign_date" value="${v}"${d}></td>`;
+      }
+      else if (typ==="number") {
+        html += `<td><input type="number" step="any" class="form-control form-control-sm" data-name="${f}" value="${v}"${d}></td>`;
+      }
+      else if (typ==="readonly") {
+        html += `<td><input type="text" class="form-control form-control-sm" data-name="${f}" value="${v}" disabled></td>`;
+      }
+      else {
+        html += `<td><input type="text" class="form-control form-control-sm" data-name="${f}" value="${v}"${d}></td>`;
       }
     });
-    html += "</tr>";
-    return html;
+    return html + "</tr>";
   }
 
-  // Pager & Load
-  function renderPager(total) {
-    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
-    $pager.html(
-      Array.from({ length: pages }, (_, i) => {
-        const n = i + 1;
-        return `<button class="btn btn-outline-secondary ${
-          n === page ? "active" : ""
-        }"
-                      data-p="${n}">${n}</button>`;
-      }).join("")
-    );
-  }
-
-  function load(p = 1) {
+  // ─── 7) Data fetching ────────────────────────────────────────────────────
+  function fetchPage(p=1) {
     const params = {
-      action: "lcm_get_campaigns_json",
-      nonce: LCM.nonce,
-      page: p,
-      per_page: PER_PAGE,
-      month: filterMonth,
-      location: filterLocation,
-      store_visit: filterStore,
-      has_connected: filterConnected,
+      action:           "lcm_get_campaigns_json",
+      nonce:            LCM.nonce,
+      page:             p,
+      per_page:         PER_PAGE,
+      month:            filterMonthVal,
+      location:         filterLocationVal,
+      store_visit:      filterStoreVal,
+      has_connected:    filterConnVal,
+      client_id:        filterClientVal||undefined
     };
-    if (filterClient) params.client_id = filterClient;
-    $.getJSON(LCM.ajax_url, params, (res) => {
-      page = p;
-      $tbody.html(res.rows.map(rowHtml).join(""));
-      renderPager(res.total);
+    return new Promise(resolve=>{
+      $.post(LCM.ajax_url, params, res=>{
+        const rows  = res.success?res.data.rows:[],
+              total = res.success?res.data.total:0;
+        resolve({ page:p, rows, total });
+      },"json");
     });
   }
-  $pager.on("click", "button", (e) => load(+e.currentTarget.dataset.p));
 
-  // Filter for PPC/Admin
-  if (!IS_CLIENT) {
-    $filter.on("change", function () {
-      filterClient = this.value;
-      load(1);
+  function load(p=1) {
+    showPreloader();
+    return fetchPage(p).then(({page:pg,rows,total})=>{
+      page = pg;
+      lastTotalPages = Math.max(1,Math.ceil(total/PER_PAGE));
+      cachedPages[page] = rows;
+      $tbody.html(rows.map(rowHtml).join(""));
+      renderPager(lastTotalPages);
+      LCM_initFlatpickr($tbody);
+      hidePreloader();
+      return { page, rows, total };
     });
   }
+
+  function prefetchAllPages() {
+    for(let p=2; p<=lastTotalPages; p++){
+      setTimeout(()=>fetchPage(p).then(d=>cachedPages[d.page]=d.rows), (p-1)*500);
+    }
+  }
+
+  // ─── 8) Pager click handler ──────────────────────────────────────────────
+  $pager.on("click","button", e=>{
+    const p = +e.currentTarget.dataset.p;
+    if (cachedPages[p]) {
+      page = p;
+      $tbody.html(cachedPages[p].map(rowHtml).join(""));
+      $pager.find("button.active").removeClass("active");
+      $(e.currentTarget).addClass("active");
+    } else {
+      load(p);
+    }
+  });
+
+  // ─── 9) Filters & CRUD bindings ─────────────────────────────────────────
+  $filterClient.on("change",function(){
+    filterClientVal = this.value;
+    load(1);
+  });
+  $filterMonth.on("change",function(){
+    filterMonthVal = this.value;
+    setFilterActive("filter-month-group",!!filterMonthVal);
+    load(1);
+  });
+  $filterLocation.on("input",function(){
+    filterLocationVal = this.value.trim();
+    setFilterActive("filter-location-group",!!filterLocationVal);
+    load(1);
+  });
+  $filterStore.on("change",function(){
+    filterStoreVal = this.value;
+    setFilterActive("filter-store-group",!!filterStoreVal);
+    load(1);
+  });
+  $filterConnected.on("change",function(){
+    filterConnVal = this.value;
+    setFilterActive("filter-connected-group",!!filterConnVal);
+    load(1);
+  });
+
   // Hide add for clients
   //if (IS_CLIENT) $add.hide();
 
