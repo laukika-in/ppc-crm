@@ -130,7 +130,7 @@ class PPC_CRM_Public {
     /**
      * Shortcode: Lead Data Table
      */
-    public function shortcode_lead_table(): string {
+ public function shortcode_lead_table(): string {
             $user        = wp_get_current_user();
             $is_client   = in_array( 'client', (array) $user->roles, true );
 
@@ -186,27 +186,27 @@ class PPC_CRM_Public {
 
             // Render HTML
             ob_start(); ?>
- <div class="d-flex justify-content-between mb-2 flex-wrap lcm-lead-wrapper">
-  <button class="btn btn-sm btn-primary mb-2" id="lcm-add-row-lead">+ Add Lead</button>
+        <div class="d-flex justify-content-between mb-2 flex-wrap lcm-lead-wrapper">
+          <button class="btn btn-sm btn-primary mb-2" id="lcm-add-row-lead">+ Add Lead</button>
 
-  <div class="lcm-filters">
-    <?php if (! $is_client): ?>
-    <div class="filter-item">
-      <select class="form-select form-select-sm" id="lcm-filter-client">
-        <option value="">All Clients</option>
-        <?php foreach ($clients as $c): ?>
-        <option value="<?= esc_attr($c->ID) ?>"><?= esc_html($c->display_name) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <?php endif; ?>
+          <div class="lcm-filters">
+            <?php if (! $is_client): ?>
+            <div class="filter-item">
+              <select class="form-select form-select-sm" id="lcm-filter-client">
+                <option value="">All Clients</option>
+                <?php foreach ($clients as $c): ?>
+                <option value="<?= esc_attr($c->ID) ?>"><?= esc_html($c->display_name) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <?php endif; ?>
 
-    <div class="filter-item">
-      <div class="input-group input-group-sm">
-        <input type="date" id="lcm-filter-date-from" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="From date">
-        <input type="date" id="lcm-filter-date-to" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="To date">
-      </div>
-    </div>
+            <div class="filter-item">
+              <div class="input-group input-group-sm">
+                <input type="date" id="lcm-filter-date-from" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="From date">
+                <input type="date" id="lcm-filter-date-to" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="To date">
+              </div>
+            </div>
 
     <div class="filter-item">
       <select class="form-select form-select-sm" id="lcm-filter-adname">
@@ -327,23 +327,23 @@ class PPC_CRM_Public {
       <tbody><!-- rows via JS --></tbody>
     </table>
   </div>
-</div>    
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="lcmDelModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
-      <div class="modal-body">Are you sure you want to delete this row?</div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-sm btn-danger" id="lcm-confirm-del">Delete</button>
+  </div>    
+  <!-- Delete Confirmation Modal -->
+      <div class="modal fade" id="lcmDelModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Delete Row</h5></div>
+            <div class="modal-body">Are you sure you want to delete this row?</div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-sm btn-danger" id="lcm-confirm-del">Delete</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
               <?php
               return ob_get_clean();
-      }
+ }
 
     /**
      * Shortcode: Campaign Data Table
@@ -416,15 +416,10 @@ class PPC_CRM_Public {
                               </div> <?php endif; ?> 
                         
               <div class="col-auto">
-                 <div class="input-group input-group-sm" id="filter-date-group">
-      <input type="text"
-             id="lcm-filter-date-from-camp"
-             class="form-control form-control-sm flatpickr-date flatpickr-input"
-             placeholder="From date">
-      <input type="text"
-             id="lcm-filter-date-to-camp"
-             class="form-control form-control-sm flatpickr-date flatpickr-input"
-             placeholder="To date">
+                 <div class="input-group input-group-sm">
+        <input type="date" id="lcm-filter-date-from" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="From date">
+        <input type="date" id="lcm-filter-date-to" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="To date">
+      </div>
       <button class="btn btn-outline-secondary clear-filter"
               type="button"
               data-filter="date"
