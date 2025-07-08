@@ -28,7 +28,7 @@ class PPC_CRM_Ajax {
 	public function forbid(){ wp_send_json_error( [ 'msg'=>'Login required' ], 401 ); }
 
 	/* paginated fetch --------------------------------------------------- */
-	public function get_leads() {
+public function get_leads() {
         $this->verify();
         $user      = wp_get_current_user();
         $user_id   = $user->ID;
@@ -43,34 +43,34 @@ class PPC_CRM_Ajax {
              ? $user->ID
              : absint( $_GET['client_id'] ?? 0 );
 
-// start with a no-op WHERE clause
-$where = 'WHERE 1=1';
+        // start with a no-op WHERE clause
+        $where = 'WHERE 1=1';
 
 
-if ( $client_id ) {
-    $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
-}
-        if ( ! empty( $_REQUEST['date_from'] ) ) {
-    $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
-}
-if ( ! empty( $_REQUEST['date_to'] ) ) {
-    $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
-}
-if ( ! empty( $_REQUEST['ad_name'] ) ) {
-    $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_REQUEST['ad_name']) );
-}
-if ( ! empty( $_REQUEST['adset'] ) ) {
-    $where .= $wpdb->prepare( " AND adset = %s", sanitize_text_field($_REQUEST['adset']) );
-}
-if ( ! empty( $_REQUEST['day'] ) ) {
-    $where .= $wpdb->prepare( " AND day = %s", sanitize_text_field($_REQUEST['day']) );
-}
-if ( ! empty( $_REQUEST['client_type'] ) ) {
-    $where .= $wpdb->prepare( " AND client_type = %s", sanitize_text_field($_REQUEST['client_type']) );
-}
-if ( ! empty( $_REQUEST['source'] ) ) {
-    $where .= $wpdb->prepare( " AND source = %s", sanitize_text_field($_REQUEST['source']) );
-}
+        if ( $client_id ) {
+            $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
+        }
+                if ( ! empty( $_REQUEST['date_from'] ) ) {
+            $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
+        }
+        if ( ! empty( $_REQUEST['date_to'] ) ) {
+            $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
+        }
+        if ( ! empty( $_REQUEST['ad_name'] ) ) {
+            $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_REQUEST['ad_name']) );
+        }
+        if ( ! empty( $_REQUEST['adset'] ) ) {
+            $where .= $wpdb->prepare( " AND adset = %s", sanitize_text_field($_REQUEST['adset']) );
+        }
+        if ( ! empty( $_REQUEST['day'] ) ) {
+            $where .= $wpdb->prepare( " AND day = %s", sanitize_text_field($_REQUEST['day']) );
+        }
+        if ( ! empty( $_REQUEST['client_type'] ) ) {
+            $where .= $wpdb->prepare( " AND client_type = %s", sanitize_text_field($_REQUEST['client_type']) );
+        }
+        if ( ! empty( $_REQUEST['source'] ) ) {
+            $where .= $wpdb->prepare( " AND source = %s", sanitize_text_field($_REQUEST['source']) );
+        }
     if ( ! empty( $_REQUEST['attempt_type'] ) ) {
         $where .= $wpdb->prepare(
             " AND attempt_type = %s",
@@ -125,10 +125,8 @@ if ( ! empty( $_REQUEST['source'] ) ) {
             ARRAY_A
         );
         wp_send_json( [ 'total'=>$total, 'rows'=>$rows ] );
-    }
-
-
-	/* create lead ------------------------------------------------------- */
+}
+/* create lead */
 public function create_lead() {
 
 		$this->verify();
