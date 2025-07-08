@@ -176,13 +176,13 @@ jQuery(function ($) {
     let html = "";
 
     // Helper to append a button
-    const addBtn = (
+   const addBtn = (
       pageNum,
       label,
       iconClass,
       disabled = false,
       isActive = false
-    ) => {
+     ) => {
       const cls = [
         "btn",
         "btn-sm",

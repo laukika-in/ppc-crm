@@ -74,8 +74,8 @@ jQuery(function ($) {
   const $filterLocation = $("#lcm-filter-location-camp");
   const $filterStore = $("#lcm-filter-store-camp");
   const $filterConnected = $("#lcm-filter-connected-camp");
-  const $filterDateFrom = $("#lcm-filter-date-from-camp");
-  const $filterDateTo = $("#lcm-filter-date-to-camp");
+  const $filterDateFrom = $("#lcm-filter-date-from");
+  const $filterDateTo = $("#lcm-filter-date-to");
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
   // ─── 5) Filter state ─────────────────────────────────────────────────────
   let filterClientVal = IS_CLIENT ? CLIENT_ID : "";
@@ -321,6 +321,7 @@ jQuery(function ($) {
     setFilterActive("filter-date-group", false);
     load(1);
   });
+
   $(".clear-filter").on("click", function () {
     const f = $(this).data("filter");
     switch (f) {
@@ -351,7 +352,8 @@ jQuery(function ($) {
     dateFormat: "Y-m-d",
     allowInput: true,
   });
-
+  flatpickr($filterDateFrom[0], { dateFormat: "Y-m-d", allowInput: true });
+  flatpickr($filterDateTo[0], { dateFormat: "Y-m-d", allowInput: true });
   // Add draft
   $add.on("click", () => {
     const d = {};
