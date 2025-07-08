@@ -13,7 +13,7 @@ jQuery(function ($) {
   </div>
   <div class="lcm-summary row mb-4"></div>
   <div class="table-responsive">
-    <table class="table table-bordered table-striped table-sm">
+  <table class="table table-bordered table-striped table-hover align-middle">
       <thead>
         <tr>
           <th>Date</th>
@@ -74,17 +74,31 @@ jQuery(function ($) {
   }
 
   // Summary block
-  function renderSummary(s) {
-    const html = `
-      <div class="col">Total Leads: ${s.total_leads}</div>
-      <div class="col">Connected: ${s.connected}</div>
-      <div class="col">Relevant: ${s.relevant}</div>
-      <div class="col">Not Connected: ${s.not_connected}</div>
-      <div class="col">Scheduled Visits: ${s.scheduled_visit}</div>
-      <div class="col">Store Visits: ${s.store_visit}</div>
-    `;
-    $mount.find(".lcm-summary").html(html);
-  }
+function renderSummary(s){
+  const metrics = [
+    ['Total Leads',    s.total_leads],
+    ['Total Connected',s.connected],
+    ['Relevant',       s.relevant],
+    ['Not Relevant',   s.not_relevant],
+    ['Not Connected',  s.not_connected],
+    ['N/A',            s.not_available],
+    ['Scheduled Visits',s.scheduled_visit],
+    ['Store Visits',   s.store_visit],
+  ];
+
+  const html = metrics.map(([label,val])=>`
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+      <div class="card text-center h-100 shadow-sm">
+        <div class="card-body py-2">
+          <h6 class="card-subtitle text-muted mb-1">${label}</h6>
+          <h3 class="card-title mb-0">${val}</h3>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  $mount.find(".lcm-summary").html(`<div class="row gx-2 gy-2 mb-4">${html}</div>`);
+}
 
   // Build table rows
   function renderRows(rows) {
