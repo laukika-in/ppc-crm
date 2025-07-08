@@ -25,7 +25,9 @@ jQuery(document).ready(function ($) {
       }
     }
   );
-
+  $(".flatpickr-detail").each((i, el) => {
+    flatpickr(el, { dateFormat: "Y-m-d", allowInput: true });
+  });
   // Step 2: Edit Mode
   $(document).on("click", ".edit-tracker", function () {
     const $row = $(this).closest("tr");

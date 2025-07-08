@@ -436,6 +436,8 @@ jQuery(function ($) {
     filterCityVal = $filterCity.val().trim();
     load(1);
   });
+  flatpickr($filterDateFrom[0], { dateFormat: "Y-m-d", allowInput: true });
+  flatpickr($filterDateTo[0], { dateFormat: "Y-m-d", allowInput: true });
   // Add draft
   $("#lcm-add-row-lead").on("click", () => {
     const d = {};

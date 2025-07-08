@@ -323,6 +323,11 @@ jQuery(function ($) {
     }
     load(1);
   });
+  flatpickr("#lcm-filter-campaign-date", {
+    dateFormat: "Y-m-d",
+    allowInput: true,
+  });
+
   // Add draft
   $add.on("click", () => {
     const d = {};
