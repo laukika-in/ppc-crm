@@ -419,11 +419,11 @@ class PPC_CRM_Public {
                  <div class="input-group input-group-sm" id="filter-date-group">
       <input type="text"
              id="lcm-filter-date-from-camp"
-             class="form-control form-control-sm flatpickr-date"
+             class="form-control form-control-sm flatpickr-date flatpickr-input"
              placeholder="From date">
       <input type="text"
              id="lcm-filter-date-to-camp"
-             class="form-control form-control-sm flatpickr-date"
+             class="form-control form-control-sm flatpickr-date flatpickr-input"
              placeholder="To date">
       <button class="btn btn-outline-secondary clear-filter"
               type="button"
