@@ -81,7 +81,7 @@ jQuery(function ($) {
   let filterLocationVal = "";
   let filterStoreVal = "";
   let filterConnVal = "";
-
+  $thead.html("<tr>" + cols.map((c) => <th>${c[1]}</th>).join("") + "</tr>");
   // ─── 6) Helpers ──────────────────────────────────────────────────────────
   const opts = (arr, cur = "") =>
     "<option value=''></option>" +
