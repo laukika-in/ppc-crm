@@ -74,6 +74,8 @@ jQuery(function ($) {
   const $filterLocation = $("#lcm-filter-location-camp");
   const $filterStore = $("#lcm-filter-store-camp");
   const $filterConnected = $("#lcm-filter-connected-camp");
+  const $filterDateFrom = $("#lcm-filter-date-from-camp");
+  const $filterDateTo = $("#lcm-filter-date-to-camp");
   $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
   // ─── 5) Filter state ─────────────────────────────────────────────────────
   let filterClientVal = IS_CLIENT ? CLIENT_ID : "";
@@ -81,6 +83,8 @@ jQuery(function ($) {
   let filterLocationVal = "";
   let filterStoreVal = "";
   let filterConnVal = "";
+  let filterDateFrom = "";
+  let filterDateTo = "";
 
   // ─── 6) Helpers ──────────────────────────────────────────────────────────
   const opts = (arr, cur = "") =>
@@ -205,11 +209,13 @@ jQuery(function ($) {
       nonce: LCM.nonce,
       page: p,
       per_page: PER_PAGE,
+      client_id: filterClientVal || undefined,
       month: filterMonthVal,
       location: filterLocationVal,
       store_visit: filterStoreVal,
       has_connected: filterConnVal,
-      client_id: filterClientVal || undefined,
+      date_from: filterDateFrom,
+      date_to: filterDateTo,
     };
     return new Promise((resolve) => {
       $.post(
@@ -297,6 +303,24 @@ jQuery(function ($) {
     load(1);
   });
 
+  $filterDateFrom.on("change", function () {
+    filterDateFrom = this.value;
+    setFilterActive("filter-date-group", !!(filterDateFrom || filterDateTo));
+    load(1);
+  });
+
+  $filterDateTo.on("change", function () {
+    filterDateTo = this.value;
+    setFilterActive("filter-date-group", !!(filterDateFrom || filterDateTo));
+    load(1);
+  });
+  $(".clear-filter[data-filter=date]").on("click", function () {
+    filterDateFrom = filterDateTo = "";
+    $filterDateFrom.val("");
+    $filterDateTo.val("");
+    setFilterActive("filter-date-group", false);
+    load(1);
+  });
   $(".clear-filter").on("click", function () {
     const f = $(this).data("filter");
     switch (f) {

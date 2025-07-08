@@ -416,6 +416,20 @@ class PPC_CRM_Public {
                               </div> <?php endif; ?> 
                         
               <div class="col-auto">
+                 <div class="input-group input-group-sm" id="filter-date-group">
+      <input type="text"
+             id="lcm-filter-date-from-camp"
+             class="form-control form-control-sm flatpickr-date"
+             placeholder="From date">
+      <input type="text"
+             id="lcm-filter-date-to-camp"
+             class="form-control form-control-sm flatpickr-date"
+             placeholder="To date">
+      <button class="btn btn-outline-secondary clear-filter"
+              type="button"
+              data-filter="date"
+              title="Clear date filter">×</button>
+    </div>
               <div class="input-group input-group-sm lcm-filter-group" id="filter-month-group">
               <select id="lcm-filter-month-camp" class="form-select">
                 <option value="">All Months</option>

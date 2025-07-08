@@ -51,12 +51,12 @@ public function get_leads() {
             $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
         }
        if ( ! empty( $_REQUEST['date_from'] ) ) {
-  $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
-}
-if ( ! empty( $_REQUEST['date_to'] ) ) {
-  $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
-}
-        if ( ! empty( $_REQUEST['ad_name'] ) ) {
+        $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
+        }
+        if ( ! empty( $_REQUEST['date_to'] ) ) {
+        $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
+        }
+            if ( ! empty( $_REQUEST['ad_name'] ) ) {
             $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_REQUEST['ad_name']) );
         }
         if ( ! empty( $_REQUEST['adset'] ) ) {
@@ -103,6 +103,7 @@ if ( ! empty( $_REQUEST['date_to'] ) ) {
         $p = '%' . $wpdb->esc_like( $_REQUEST['product_interest'] ) . '%';
         $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
     }
+    
         $city = sanitize_text_field( $_REQUEST['city'] ?? '' );
         if ( $city ) {
             $where .= $wpdb->prepare(
@@ -336,7 +337,12 @@ public function get_campaigns() {
       $where .= " AND store_visit = 0";
     }
   }
-
+    if ( ! empty( $_REQUEST['date_from'] ) ) {
+        $where .= $wpdb->prepare( " AND campaign_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
+    }
+    if ( ! empty( $_REQUEST['date_to'] ) ) {
+        $where .= $wpdb->prepare( " AND campaign_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
+    }
   // Connected filter
   if ( ! empty( $_REQUEST['has_connected'] ) ) {
     if ( $_REQUEST['has_connected'] === 'yes' ) {
