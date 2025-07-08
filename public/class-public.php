@@ -10,6 +10,7 @@ class PPC_CRM_Public {
         add_shortcode( 'lcm_lead_table',     [ $this, 'shortcode_lead_table' ] );
         add_shortcode( 'lcm_campaign_table', [ $this, 'shortcode_campaign_table' ] );
         add_shortcode('campaign_detail_page', [$this, 'render_campaign_detail']);
+add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
 
     }
 
