@@ -749,15 +749,15 @@ public function get_campaign_detail_rows() {
 
     // ③ Aggregate leads per day
     $leads = $wpdb->get_results( "
-        SELECT
-            lead_date,
-            COUNT(*)                                   AS total_leads,
-            SUM(attempt_type = 'Connected:Not Relevant') AS connected,
-            SUM(attempt_type = 'Connected:Relevant')     AS relevant,
-            SUM(attempt_type = 'Not Connected')           AS not_connected,
-            SUM(attempt_type = 'N/A')                     AS not_available,
-            SUM(store_visit_status = 'Store Visit Scheduled') AS scheduled_visit,
-            SUM(store_visit_status = 'Show')                  AS store_visit
+    SELECT
+        lead_date,
+        COUNT(*)                                  AS total_leads,
+        SUM(attempt_type = 'Connected:Not Relevant') AS not_relevant,
+        SUM(attempt_type = 'Connected:Relevant')     AS relevant,
+        SUM(attempt_type = 'Not Connected')           AS not_connected,
+        SUM(attempt_type = 'N/A')                     AS not_available,
+        SUM(store_visit_status = 'Store Visit Scheduled') AS scheduled_visit,
+        SUM(store_visit_status = 'Show')                  AS store_visit
         FROM {$wpdb->prefix}lcm_leads
         {$where}
         GROUP BY lead_date
@@ -766,16 +766,16 @@ public function get_campaign_detail_rows() {
 
     // ④ Pull tracker data (uses `date` column)
     // ④ Pull tracker data (alias track_date → date)
-$trackers = $wpdb->get_results( $wpdb->prepare( "
-    SELECT
-        track_date AS date,
-        reach,
-        impressions,
-        amount_spent
-    FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-    WHERE campaign_id = %d
-    ORDER BY track_date
-", $campaign_id ), ARRAY_A );
+    $trackers = $wpdb->get_results( $wpdb->prepare( "
+        SELECT
+            track_date AS date,
+            reach,
+            impressions,
+            amount_spent
+        FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+        WHERE campaign_id = %d
+        ORDER BY track_date
+    ", $campaign_id ), ARRAY_A );
 
 
     // ⑤ Map trackers by date
@@ -787,17 +787,21 @@ $trackers = $wpdb->get_results( $wpdb->prepare( "
     // ⑥ Merge into rows[]
     $rows = [];
     foreach ( $leads as $l ) {
-        $d = $l['lead_date'];
-        $t = $tracker_map[ $d ] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
+        $d  = $l['lead_date'];
+        $t  = $tracker_map[ $d ] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
+        $ntl = (int)$l['not_relevant'];
+        $rel = (int)$l['relevant'];
+
         $rows[] = array_merge( [
-            'date'          => $d,
-            'total_leads'   => (int) $l['total_leads'],
-            'connected'     => (int) $l['connected'],
-            'relevant'      => (int) $l['relevant'],
-            'not_connected' => (int) $l['not_connected'],
-            'not_available' => (int) $l['not_available'],
-            'scheduled_visit'=> (int) $l['scheduled_visit'],
-            'store_visit'   => (int) $l['store_visit'],
+            'date'            => $d,
+            'total_leads'     => (int)$l['total_leads'],
+            'connected_total' => $ntl + $rel,
+            'relevant'        => $rel,
+            'not_relevant'    => $ntl,
+            'not_connected'   => (int)$l['not_connected'],
+            'not_available'   => (int)$l['not_available'],
+            'scheduled_visit' => (int)$l['scheduled_visit'],
+            'store_visit'     => (int)$l['store_visit'],
         ], $t );
     }
 

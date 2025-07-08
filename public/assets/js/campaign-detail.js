@@ -82,47 +82,64 @@ jQuery(function ($) {
     const $tb = $mount.find("tbody").empty();
     rows.forEach((r) => {
       const $tr = $("<tr>").data(r).appendTo($tb);
+
+      // 1) Date
       $tr.append(`<td>${r.date}</td>`);
+
+      // 2) Reach (editable)
+      $tr.append(`
+      <td>
+        <span class="view reach">${r.reach}</span>
+        <input type="number" class="edit reach form-control form-control-sm d-none" value="${r.reach}"/>
+      </td>`);
+
+      // 3) Impressions (editable)
+      $tr.append(`
+      <td>
+        <span class="view impr">${r.impressions}</span>
+        <input type="number" class="edit impr form-control form-control-sm d-none" value="${r.impressions}"/>
+      </td>`);
+
+      // 4) Amount Spent (editable)
+      $tr.append(`
+      <td>
+        <span class="view spent">${r.amount_spent}</span>
+        <input type="number" step="0.01" class="edit spent form-control form-control-sm d-none" value="${r.amount_spent}"/>
+      </td>`);
+
+      // 5) Total Leads
       $tr.append(`<td>${r.total_leads}</td>`);
 
-      // Reach
-      $tr.append(`
-        <td>
-          <span class="view reach">${r.reach}</span>
-          <input type="number" class="edit reach form-control form-control-sm d-none" value="${r.reach}"/>
-        </td>`);
-
-      // Impressions
-      $tr.append(`
-        <td>
-          <span class="view impr">${r.impressions}</span>
-          <input type="number" class="edit impr form-control form-control-sm d-none" value="${r.impressions}"/>
-        </td>`);
-
-      // Spent
-      $tr.append(`
-        <td>
-          <span class="view spent">${r.amount_spent}</span>
-          <input type="number" step="0.01" class="edit spent form-control form-control-sm d-none" value="${r.amount_spent}"/>
-        </td>`);
-
-      // Calculated columns
-      $tr.append(`<td>${r.connected_not_relevant}</td>`);
+      // 6) Relevant
       $tr.append(`<td>${r.relevant}</td>`);
+
+      // 7) Not Relevant
+      $tr.append(`<td>${r.not_relevant}</td>`);
+
+      // 8) Not Connected
       $tr.append(`<td>${r.not_connected}</td>`);
+
+      // 9) N/A
       $tr.append(`<td>${r.not_available}</td>`);
+
+      // 10) Total Connected
+      $tr.append(`<td>${r.connected_total}</td>`);
+
+      // 11) Scheduled Visit
       $tr.append(`<td>${r.scheduled_visit}</td>`);
+
+      // 12) Store Visited
       $tr.append(`<td>${r.store_visit}</td>`);
 
-      // Actions
+      // 13) Actions
       $tr.append(`
-        <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary edit-row">✏️</button>
-          <button class="btn btn-sm btn-success save-row d-none">💾</button>
-          <button class="btn btn-sm btn-secondary cancel-row d-none">❌</button>
-          <a href="/lead-data?date_from=${r.date}&date_to=${r.date}&campaign_id=${CAMPAIGN_ID}"
-             class="btn btn-sm btn-info">🔍</a>
-        </td>`);
+      <td class="text-center">
+        <button class="btn btn-sm btn-outline-primary edit-row">✏️</button>
+        <button class="btn btn-sm btn-success save-row d-none">💾</button>
+        <button class="btn btn-sm btn-secondary cancel-row d-none">❌</button>
+        <a href="/lead-data?date_from=${r.date}&date_to=${r.date}&campaign_id=${CAMPAIGN_ID}"
+           class="btn btn-sm btn-info">🔍</a>
+      </td>`);
     });
   }
 
