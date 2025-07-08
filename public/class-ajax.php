@@ -613,33 +613,35 @@ public function get_daily_tracker_rows() {
 }
 
 public function get_campaign_leads_json() {
-  $this->verify();
-  $cid = absint( $_GET['campaign_id'] ?? 0 );
-  if ( ! $cid ) wp_send_json_error('Missing campaign ID', 400);
+    $this->verify();
+    global $wpdb;
 
-  global $wpdb;
-  // 1) per-day lead counts
-  $where = $wpdb->prepare( "WHERE campaign_id = %d", $cid );
-
-    $from = sanitize_text_field($_GET['from'] ?? '');
-    $to   = sanitize_text_field($_GET['to']   ?? '');
+    $cid   = absint($_GET['campaign_id'] ?? 0);
+    $from  = sanitize_text_field($_GET['from'] ?? '');
+    $to    = sanitize_text_field($_GET['to']   ?? '');
     $month = sanitize_text_field($_GET['month'] ?? '');
-    $where = "WHERE campaign_id = {$cid}";
-    if ( $from && $to ) {
-        $where .= $wpdb->prepare( " AND lead_date BETWEEN %s AND %s", $from, $to );
-    } elseif ( $month && preg_match('/^(\d{4})-(\d{2})$/',$month,$m) ) {
-        $year  = (int)$m[1];
-        $mon   = (int)$m[2];
-        $where .= $wpdb->prepare( " AND YEAR(lead_date)=%d AND MONTH(lead_date)=%d", $year, $mon );
+
+    if (!$cid) {
+        wp_send_json_error('Missing campaign ID', 400);
     }
-  $days = $wpdb->get_results( $wpdb->prepare(
-    "SELECT lead_date AS date, COUNT(*) AS leads
-       FROM {$wpdb->prefix}lcm_leads
-      WHERE campaign_id = %d
-      GROUP BY lead_date
-      ORDER BY lead_date ASC",
-    $cid
-  ), ARRAY_A );
+
+    // build your WHERE
+    $where = $wpdb->prepare("campaign_id = %d", $cid);
+
+    if ($from && $to) {
+        $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
+    } elseif (preg_match('/^(\d{4})-(\d{2})$/',$month,$m)) {
+        $year = (int)$m[1];
+        $mon  = (int)$m[2];
+        $where .= $wpdb->prepare(" AND YEAR(lead_date)=%d AND MONTH(lead_date)=%d", $year, $mon);
+    }
+
+    $days = $wpdb->get_results("
+        SELECT lead_date AS date, COUNT(*) AS leads
+            FROM {$wpdb->prefix}lcm_leads
+        WHERE $where
+        GROUP BY lead_date
+        ORDER BY lead_date ASC", ARRAY_A);
 
   // 2) summary tallies
   $total_leads = array_sum(wp_list_pluck($days,'leads'));
