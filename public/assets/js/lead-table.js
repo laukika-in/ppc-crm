@@ -340,7 +340,7 @@ jQuery(function ($) {
   function load(p = 1) {
     showPreloader();
     return fetchPage(p).then((data) => {
-      lastTotalPages = Math.ceil(total / PER_PAGE);
+      lastTotalPages = Math.max(1, Math.ceil(data.total / PER_PAGE));
       page = data.page;
       cachedPages[page] = data.rows;
       $tbody.html(data.rows.map(rowHtml).join(""));
