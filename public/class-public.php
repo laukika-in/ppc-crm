@@ -474,7 +474,7 @@ class PPC_CRM_Public {
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
         </div>
- <div class="lcm-campaign-wrapper" style="position: relative;">   
+ <div class="lcm-campaign-wrapper"  id="lcm-preloader-camp"   style="position: relative;">   
   <div id="lcm-preloader" >
   <div class="spinner-border" role="status">
     <span class="visually-hidden">Loading…</span>
