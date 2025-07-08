@@ -112,11 +112,11 @@ $store_visit   = intval( $summary->store_visit );
     </div>
     <div class="col-auto">
       <label for="from" class="form-label">From:</label>
-      <input type="date" id="from" name="from" class="form-control flatpickr-date flatpickr-input" value="<?= esc_attr($from); ?>">
+      <input type="date"  id="lcm-filter-date-from" class="form-control form-control-sm flatpickr-date flatpickr-input flatpickr-detail" value="<?= esc_attr($from); ?>"  placeholder="From date">
     </div>
     <div class="col-auto">
-      <label for="to" class="form-label">To:</label>
-      <input type="date" id="to" name="to" class="form-control flatpickr-date flatpickr-input" value="<?= esc_attr($to); ?>">
+      <label for="to" class="form-label">To:</label>     
+      <input type="date" id="lcm-filter-date-to"  class="form-control form-control-sm flatpickr-date flatpickr-input flatpickr-detail"  value="<?= esc_attr($to); ?>" placeholder="To date">
     </div>
     <div class="col-auto">
       <button type="submit" class="btn btn-primary">Filter</button>

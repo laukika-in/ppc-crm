@@ -414,12 +414,12 @@ class PPC_CRM_Public {
                                 <?php endforeach; ?>
                             </select>
                               </div> <?php endif; ?> 
-                        
-              <div class="col-auto">
-                 <div class="input-group input-group-sm">
+                   <div class="input-group input-group-sm">
         <input type="date" id="lcm-filter-date-from" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="From date">
         <input type="date" id="lcm-filter-date-to" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="To date">
-      </div>
+      </div>     
+              <div class="col-auto">
+                 
       <button class="btn btn-outline-secondary clear-filter"
               type="button"
               data-filter="date"
