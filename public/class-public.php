@@ -64,7 +64,19 @@ add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
             PPC_CRM_VERSION,
             true
         );
-
+        wp_register_script(
+            'flatpickr-monthselect-js',
+            'https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js',
+            [ 'flatpickr-js' ],
+            null,
+            true
+        );
+        wp_register_style(
+            'flatpickr-monthselect-css',
+            'https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css',
+            [ 'flatpickr-css' ],
+            null
+        );
         // Table styling
         wp_register_style(
             'lcm-tables',
@@ -529,13 +541,12 @@ private function render_table( string $which ): string {
     }
  
 public function shortcode_campaign_detail() {
-    wp_enqueue_style('bootstrap-css');
-    wp_enqueue_style('bootstrap-icons');
-    wp_enqueue_style('flatpickr-css');
-    wp_enqueue_script('bootstrap-js');
-    wp_enqueue_script('flatpickr-js');
-    wp_enqueue_script('flatpickr-init');
-    wp_enqueue_script('lcm-campaign-detail');
+wp_enqueue_style( 'flatpickr-css' );
+wp_enqueue_style( 'flatpickr-monthselect-css' );      // ← add this
+wp_enqueue_script( 'flatpickr-js' );
+wp_enqueue_script( 'flatpickr-init' );
+wp_enqueue_script( 'flatpickr-monthselect-js' );      // ← and this
+wp_enqueue_script( 'lcm-campaign-detail' );
 
     wp_localize_script('lcm-campaign-detail', 'LCM', [
       'ajax_url' => admin_url('admin-ajax.php'),
