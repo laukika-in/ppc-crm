@@ -765,16 +765,18 @@ public function get_campaign_detail_rows() {
     ", ARRAY_A );
 
     // ④ Pull tracker data (uses `date` column)
-    $trackers = $wpdb->get_results( $wpdb->prepare( "
-        SELECT
-            `date`,
-            reach,
-            impressions,
-            amount_spent
-        FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        WHERE campaign_id = %d
-        ORDER BY `date`
-    ", $campaign_id ), ARRAY_A );
+    // ④ Pull tracker data (alias track_date → date)
+$trackers = $wpdb->get_results( $wpdb->prepare( "
+    SELECT
+        track_date AS date,
+        reach,
+        impressions,
+        amount_spent
+    FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+    WHERE campaign_id = %d
+    ORDER BY track_date
+", $campaign_id ), ARRAY_A );
+
 
     // ⑤ Map trackers by date
     $tracker_map = [];
