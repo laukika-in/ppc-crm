@@ -103,7 +103,7 @@ $store_visit   = intval( $summary->store_visit );
   <h2>📊 Campaign Daily Report – <?= esc_html($filter_label) ?></h2>
 
   <!-- Filters -->
-  <form method="get" class="row g-2 align-items-center mb-3">
+  <form id="campaign-detail-filters"  method="get" class="row g-2 align-items-center mb-3">
     <input type="hidden" name="page" value="campaign-detail">
     <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_id); ?>">
     <div class="col-auto">
@@ -118,9 +118,7 @@ $store_visit   = intval( $summary->store_visit );
       <label for="to" class="form-label">To:</label>     
       <input type="date" id="lcm-filter-date-to"  class="form-control form-control-sm flatpickr-date flatpickr-input flatpickr-detail"  value="<?= esc_attr($to); ?>" placeholder="To date">
     </div>
-    <div class="col-auto">
-      <button type="submit" class="btn btn-primary">Filter</button>
-    </div>
+    
   </form>
 
   <!-- Summary -->
