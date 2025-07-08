@@ -540,10 +540,8 @@ public function shortcode_campaign_detail() {
       'ajax_url' => admin_url('admin-ajax.php'),
       'nonce'    => wp_create_nonce('lcm_ajax'),
       'campaign_id' => absint($_GET['campaign_id'] ?? 0),
-    ]);
-
-    ob_start();
-    include 'page-campaign-detail.php';
+    ]); 
+  
     return '<div id="lcm-campaign-detail"></div>';
 }
 
