@@ -807,8 +807,7 @@ public function get_campaign_detail_rows() {
 
     // ⑦ Compute overall summary
     $summary = [
-        'total_leads'    => 0,
-        'connected'      => 0,
+        'total_leads'    => 0, 
         'relevant'       => 0,
         'not_connected'  => 0,
         'not_available'  => 0,
@@ -816,14 +815,15 @@ public function get_campaign_detail_rows() {
         'store_visit'    => 0,
     ];
     foreach ( $rows as $r ) {
-        $summary['total_leads']     += $r['total_leads'];
-        $summary['connected']       += $r['connected'];
-        $summary['relevant']        += $r['relevant'];
-        $summary['not_connected']   += $r['not_connected'];
-        $summary['not_available']   += $r['not_available'];
-        $summary['scheduled_visit'] += $r['scheduled_visit'];
-        $summary['store_visit']     += $r['store_visit'];
+    $summary['total_leads']     += $r['total_leads'];
+    $summary['relevant']        += $r['relevant'];
+    $summary['not_relevant']    += $r['not_relevant'];
+    $summary['not_connected']   += $r['not_connected'];
+    $summary['not_available']   += $r['not_available'];
+    $summary['scheduled_visit'] += $r['scheduled_visit'];
+    $summary['store_visit']     += $r['store_visit'];
     }
+$summary['connected'] = $summary['relevant'] + $summary['not_relevant'];
 
     wp_send_json_success( [
         'summary' => $summary,
