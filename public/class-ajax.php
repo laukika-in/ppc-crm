@@ -310,8 +310,8 @@ public function get_campaigns() {
     $is_client = in_array( 'client', (array) $user->roles, true );
 
     global $wpdb;
-    $p  = max(1, (int)($_GET['page'] ?? 1));
-    $pp = max(1, (int)($_GET['per_page'] ?? 100));
+$p  = max(1, (int) ($_REQUEST['page']     ?? 1));
+$pp = max(1, (int) ($_REQUEST['per_page'] ?? 100));
     $o  = ($p - 1) * $pp;
 
     $table = $wpdb->prefix . 'lcm_campaigns';

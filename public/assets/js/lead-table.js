@@ -376,7 +376,7 @@ jQuery(function ($) {
     }
   });
 
-  // ─── 9) Filter & UI event bindings (unchanged) ──────────────────────────
+  // 9) Filter & UI event bindings (unchanged) ──────────────────────────
   if (!IS_CLIENT) {
     $filter.on("change", function () {
       filterClient = this.value;
@@ -446,7 +446,7 @@ jQuery(function ($) {
     initSearchable($new);
     LCM_initFlatpickr($new);
   });
-  // Whenever Client is changed in a draft/edit row, refresh its Adset options:
+
   // Whenever someone picks a Campaign Name, wipe out the Adset
   $tbody.on("change", "select[data-name=ad_name]", function () {
     const $tr = $(this).closest("tr");
