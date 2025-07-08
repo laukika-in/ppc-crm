@@ -6,26 +6,36 @@ jQuery(function ($) {
   // Mount point
   const $mount = $("#lcm-campaign-detail");
   $mount.html(`
-    <div class="d-flex align-items-center mb-3 lcm-detail-filters">
-      <input id="camp-month" class="form-control form-control-sm me-2" type="month"/>
-      <input id="camp-from"  class="form-control form-control-sm me-2" type="date" placeholder="From"/>
-      <input id="camp-to"    class="form-control form-control-sm"     type="date" placeholder="To"/>
-    </div>
-    <div class="lcm-summary row mb-4"></div>
-    <div class="table-responsive">
-      <table class="table table-bordered table-striped table-sm">
-        <thead>
-          <tr>
-            <th>Date</th><th>Leads</th><th>Reach</th><th>Impr</th>
-            <th>Spent</th><th>Connected</th><th>Relevant</th>
-            <th>Not Conn</th><th>N/A</th><th>Sched Visit</th>
-            <th>Store Visit</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  `);
+  <div class="d-flex align-items-center mb-3 lcm-detail-filters">
+    <input id="camp-month" class="form-control form-control-sm me-2" type="month"/>
+    <input id="camp-from"  class="form-control form-control-sm me-2" type="date" placeholder="From"/>
+    <input id="camp-to"    class="form-control form-control-sm"     type="date" placeholder="To"/>
+  </div>
+  <div class="lcm-summary row mb-4"></div>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped table-sm">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Reach</th>
+          <th>Impression</th>
+          <th>Amount Spent</th>
+          <th>Total Leads</th>
+          <th>Relevant</th>
+          <th>Not Relevant</th>
+          <th>Not Connected</th>
+          <th>N/A</th>
+          <th>Total Connected</th>
+          <th>Scheduled Visit</th>
+          <th>Store Visited</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+`);
+
 
   // Initialize Flatpickr
   $("#camp-month").flatpickr({
