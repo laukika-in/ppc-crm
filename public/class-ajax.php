@@ -15,13 +15,21 @@ class PPC_CRM_Ajax {
     add_action( 'wp_ajax_lcm_delete_campaign',    [ $this, 'delete_campaign' ] );
     add_action( 'wp_ajax_lcm_update_lead',     [ $this, 'update_lead' ] );
     add_action( 'wp_ajax_lcm_update_campaign', [ $this, 'update_campaign' ] );
-    add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
-    add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
+    //add_action('wp_ajax_lcm_save_daily_tracker', [ $this, 'save_daily_tracker' ]);
+    //add_action('wp_ajax_lcm_get_daily_tracker_rows', [$this, 'get_daily_tracker_rows']);
  
     add_action( 'wp_ajax_lcm_get_campaign_leads_json', [ $this, 'get_campaign_leads_json' ] );
  
-    add_action('wp_ajax_lcm_get_campaign_detail_rows', [ $this, 'get_campaign_detail_rows' ]);
+    //add_action('wp_ajax_lcm_get_campaign_detail_rows', [ $this, 'get_campaign_detail_rows' ]);
 
+add_action( 'wp_ajax_lcm_get_campaign_detail_rows',   [ $this, 'get_campaign_detail_rows' ] );
+add_action( 'wp_ajax_nopriv_lcm_get_campaign_detail_rows', [ $this, 'forbid' ] );
+
+add_action( 'wp_ajax_lcm_save_daily_tracker',         [ $this, 'save_daily_tracker' ] );
+add_action( 'wp_ajax_nopriv_lcm_save_daily_tracker',  [ $this, 'forbid' ] );
+
+add_action( 'wp_ajax_lcm_update_campaign_daily_totals', [ $this, 'update_campaign_daily_totals' ] );
+add_action( 'wp_ajax_nopriv_lcm_update_campaign_daily_totals', [ $this, 'forbid' ] );
 
 	}
 
@@ -530,86 +538,86 @@ public function delete_campaign(){
 	wp_send_json_success(['total'=>$total]);
 }
 
- public function save_daily_tracker() {
-  check_ajax_referer('lcm_ajax', 'nonce');
-  global $wpdb;
+//  public function save_daily_tracker() {
+//   check_ajax_referer('lcm_ajax', 'nonce');
+//   global $wpdb;
 
-  $row_id = absint($_POST['row_id'] ?? 0);
-  $campaign_post_id = absint($_POST['campaign_id'] ?? 0);
-  $log_date = sanitize_text_field($_POST['date'] ?? '');
-  $reach = absint($_POST['reach'] ?? 0);
-  $impressions = absint($_POST['impressions'] ?? 0);
-  $spent = floatval($_POST['amount_spent'] ?? 0);
+//   $row_id = absint($_POST['row_id'] ?? 0);
+//   $campaign_post_id = absint($_POST['campaign_id'] ?? 0);
+//   $log_date = sanitize_text_field($_POST['date'] ?? '');
+//   $reach = absint($_POST['reach'] ?? 0);
+//   $impressions = absint($_POST['impressions'] ?? 0);
+//   $spent = floatval($_POST['amount_spent'] ?? 0);
 
-  if ($row_id) {
-    // Update existing row
-    $updated = $wpdb->update(
-      $wpdb->prefix . 'lcm_campaign_daily_tracker',
-      [
-        'reach' => $reach,
-        'impressions' => $impressions,
-        'amount_spent' => $spent
-      ],
-      [ 'id' => $row_id ]
-    );
+//   if ($row_id) {
+//     // Update existing row
+//     $updated = $wpdb->update(
+//       $wpdb->prefix . 'lcm_campaign_daily_tracker',
+//       [
+//         'reach' => $reach,
+//         'impressions' => $impressions,
+//         'amount_spent' => $spent
+//       ],
+//       [ 'id' => $row_id ]
+//     );
 
-    if (false === $updated) {
-      wp_send_json_error("Update failed");
-    }
+//     if (false === $updated) {
+//       wp_send_json_error("Update failed");
+//     }
 
-    wp_send_json_success("Updated");
-  } elseif ($campaign_post_id && $log_date) {
-    // Insert new row
-    $inserted = $wpdb->insert(
-        $wpdb->prefix . 'lcm_campaign_daily_tracker',
-        [
-            'campaign_id'   => $campaign_post_id,
-            'track_date'    => $log_date,
-            'reach'         => $reach,
-            'impressions'   => $impressions,
-            'amount_spent'  => $spent
-        ]
-    );
+//     wp_send_json_success("Updated");
+//   } elseif ($campaign_post_id && $log_date) {
+//     // Insert new row
+//     $inserted = $wpdb->insert(
+//         $wpdb->prefix . 'lcm_campaign_daily_tracker',
+//         [
+//             'campaign_id'   => $campaign_post_id,
+//             'track_date'    => $log_date,
+//             'reach'         => $reach,
+//             'impressions'   => $impressions,
+//             'amount_spent'  => $spent
+//         ]
+//     );
 
-    if (!$inserted) {
-      wp_send_json_error("Insert failed");
-    }
+//     if (!$inserted) {
+//       wp_send_json_error("Insert failed");
+//     }
 
-    wp_send_json_success("Inserted");
-  }
+//     wp_send_json_success("Inserted");
+//   }
 
-  wp_send_json_error("Invalid data");
-}
-public function get_daily_tracker_rows() {
-  check_ajax_referer('lcm_ajax', 'nonce');
-  global $wpdb;
+//   wp_send_json_error("Invalid data");
+// }
+// public function get_daily_tracker_rows() {
+//   check_ajax_referer('lcm_ajax', 'nonce');
+//   global $wpdb;
 
-  $campaign_id = absint($_GET['campaign_id'] ?? 0);
-  if (!$campaign_id) {
-    wp_send_json_error('Invalid campaign ID');
-  }
+//   $campaign_id = absint($_GET['campaign_id'] ?? 0);
+//   if (!$campaign_id) {
+//     wp_send_json_error('Invalid campaign ID');
+//   }
 
-  $rows = $wpdb->get_results(
-    $wpdb->prepare(
-      "SELECT id, track_date, reach, impressions, amount_spent
-       FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-       WHERE campaign_id = %d",
-      $campaign_id
-    )
-  );
+//   $rows = $wpdb->get_results(
+//     $wpdb->prepare(
+//       "SELECT id, track_date, reach, impressions, amount_spent
+//        FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+//        WHERE campaign_id = %d",
+//       $campaign_id
+//     )
+//   );
 
-  $result = [];
-  foreach ($rows as $row) {
-    $result[$row->track_date] = [
-      'id' => $row->id,
-      'reach' => $row->reach,
-      'impressions' => $row->impressions,
-      'amount_spent' => $row->amount_spent,
-    ];
-  }
+//   $result = [];
+//   foreach ($rows as $row) {
+//     $result[$row->track_date] = [
+//       'id' => $row->id,
+//       'reach' => $row->reach,
+//       'impressions' => $row->impressions,
+//       'amount_spent' => $row->amount_spent,
+//     ];
+//   }
 
-  wp_send_json_success($result);
-}
+//   wp_send_json_success($result);
+// }
 
 public function get_campaign_leads_json() {
     $this->verify();
@@ -673,133 +681,158 @@ public function get_campaign_leads_json() {
   ]);
 }
 
-public function update_campaign_daily_totals($campaign_id, $lead_date) {
-    global $wpdb;
+// public function update_campaign_daily_totals($campaign_id, $lead_date) {
+//     global $wpdb;
 
-    if (!$campaign_id || !$lead_date) return;
+//     if (!$campaign_id || !$lead_date) return;
 
-    // Recalculate leads for that date
-    $summary = $wpdb->get_row($wpdb->prepare("
-        SELECT
-            COUNT(*) AS total_leads
-        FROM {$wpdb->prefix}lcm_leads
-        WHERE campaign_id = %d AND lead_date = %s
-    ", $campaign_id, $lead_date));
+//     // Recalculate leads for that date
+//     $summary = $wpdb->get_row($wpdb->prepare("
+//         SELECT
+//             COUNT(*) AS total_leads
+//         FROM {$wpdb->prefix}lcm_leads
+//         WHERE campaign_id = %d AND lead_date = %s
+//     ", $campaign_id, $lead_date));
 
-    if (!$summary) return;
+//     if (!$summary) return;
 
-    // Now update or insert into tracker table
-    $existing_id = $wpdb->get_var($wpdb->prepare("
-        SELECT id FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        WHERE campaign_id = %d AND track_date = %s
-    ", $campaign_id, $lead_date));
+//     // Now update or insert into tracker table
+//     $existing_id = $wpdb->get_var($wpdb->prepare("
+//         SELECT id FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+//         WHERE campaign_id = %d AND track_date = %s
+//     ", $campaign_id, $lead_date));
 
-    if ($existing_id) {
-        // Update
-        $wpdb->update(
-            "{$wpdb->prefix}lcm_campaign_daily_tracker",
-            ['leads' => $summary->total_leads],
-            ['id' => $existing_id]
-        );
-    } else {
-        // Insert
-        $wpdb->insert(
-            "{$wpdb->prefix}lcm_campaign_daily_tracker",
-            [
-                'campaign_id' => $campaign_id,
-                'track_date' => $lead_date,
-                'leads'       => $summary->total_leads
-            ]
-        );
-    }
-}
+//     if ($existing_id) {
+//         // Update
+//         $wpdb->update(
+//             "{$wpdb->prefix}lcm_campaign_daily_tracker",
+//             ['leads' => $summary->total_leads],
+//             ['id' => $existing_id]
+//         );
+//     } else {
+//         // Insert
+//         $wpdb->insert(
+//             "{$wpdb->prefix}lcm_campaign_daily_tracker",
+//             [
+//                 'campaign_id' => $campaign_id,
+//                 'track_date' => $lead_date,
+//                 'leads'       => $summary->total_leads
+//             ]
+//         );
+//     }
+// }
 
 public function get_campaign_detail_rows() {
-  $this->verify();
+    $this->verify();
+    global $wpdb;
 
-  global $wpdb;
+    // 1) Get inputs
+    $campaign_id = absint($_GET['campaign_id'] ?? 0);
+    $month       = sanitize_text_field($_GET['month'] ?? '');
+    $from        = sanitize_text_field($_GET['from']  ?? '');
+    $to          = sanitize_text_field($_GET['to']    ?? '');
 
-  $cid = absint($_GET['campaign_id'] ?? 0);
-  if (!$cid) wp_send_json_error("Missing campaign ID", 400);
+    // 2) Build date filter
+    $where = $wpdb->prepare("WHERE campaign_id = %d", $campaign_id);
+    if ( $month ) {
+      list($yr,$mo) = explode('-', $month); // "YYYY-MM"
+      $where .= $wpdb->prepare(" AND DATE_FORMAT(lead_date,'%%Y-%%m') = %s", $month);
+    }
+    if ( $from ) {
+      $where .= $wpdb->prepare(" AND lead_date >= %s", $from);
+    }
+    if ( $to ) {
+      $where .= $wpdb->prepare(" AND lead_date <= %s", $to);
+    }
 
-  $from = sanitize_text_field($_GET['from'] ?? '');
-  $to   = sanitize_text_field($_GET['to'] ?? '');
-  $month = sanitize_text_field($_GET['month'] ?? date('Y-m'));
+    // 3) Pull lead counts per day
+    $leads = $wpdb->get_results("
+      SELECT lead_date,
+        COUNT(*) as total_leads,
+        SUM(attempt_type='Connected:Relevant') as relevant,
+        SUM(attempt_type='Connected:Not Relevant') as connected_not_relevant,
+        SUM(attempt_type='Not Connected') as not_connected
+      FROM {$wpdb->prefix}lcm_leads
+      {$where}
+      GROUP BY lead_date
+      ORDER BY lead_date
+    ", ARRAY_A );
 
-  $year = intval(substr($month, 0, 4));
-  $mon  = intval(substr($month, 5, 2));
+    // 4) Pull tracker data per day
+    $trackers = $wpdb->get_results($wpdb->prepare("
+      SELECT tracker_date, reach, impressions, amount_spent
+      FROM {$wpdb->prefix}lcm_campaign_daily_tracker
+      WHERE campaign_id=%d
+      ORDER BY tracker_date
+    ", $campaign_id), ARRAY_A);
 
-  $where = $wpdb->prepare("campaign_id = %d", $cid);
+    // 5) Merge by date
+    $map = [];
+    foreach($trackers as $t){
+      $map[$t['tracker_date']] = $t;
+    }
+    $rows = [];
+    foreach($leads as $l){
+      $d = $l['lead_date'];
+      $t = $map[$d] ?? [ 'reach'=>0,'impressions'=>0,'amount_spent'=>0 ];
+      $rows[] = array_merge(
+        [ 'date'=>$d ] + $l,
+        $t
+      );
+    }
 
-  if ($from && $to) {
-    $where .= $wpdb->prepare(" AND lead_date BETWEEN %s AND %s", $from, $to);
-  } else {
-    $where .= $wpdb->prepare(" AND MONTH(lead_date) = %d AND YEAR(lead_date) = %d", $mon, $year);
-  }
-
-  $rows = $wpdb->get_results(
-    "SELECT 
-      lead_date AS date,
-      COUNT(*) AS leads,
-      SUM(CASE WHEN attempt_type = 'Connected:Relevant' THEN 1 ELSE 0 END) AS relevant,
-      SUM(CASE WHEN attempt_type = 'Connected:Not Relevant' THEN 1 ELSE 0 END) AS not_relevant,
-      SUM(CASE WHEN attempt_type = 'Not Connected' THEN 1 ELSE 0 END) AS not_connected,
-      SUM(CASE WHEN attempt_status = 'Store Visit Scheduled' THEN 1 ELSE 0 END) AS scheduled,
-      SUM(CASE WHEN store_visit_status = 'Show' THEN 1 ELSE 0 END) AS store_visit
-     FROM {$wpdb->prefix}lcm_leads
-     WHERE $where
-     GROUP BY lead_date
-     ORDER BY lead_date DESC",
-    ARRAY_A
-  );
-
-  $tracker = $wpdb->get_results(
-    $wpdb->prepare(
-      "SELECT track_date, id, reach, impressions, amount_spent
-       FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-       WHERE campaign_id = %d",
-      $cid
-    ),
-    OBJECT_K
-  );
-
-  // Format tracker for fast lookup
-  $tracker_data = [];
-  foreach ($tracker as $date => $row) {
-    $tracker_data[$date] = [
-      'id' => (int)$row->id,
-      'reach' => (int)$row->reach,
-      'impressions' => (int)$row->impressions,
-      'amount_spent' => (float)$row->amount_spent,
+    // 6) Compute summary
+    $summary = [
+      'total_leads'  => array_sum(array_column($rows,'total_leads')),
+      'connected'    => array_sum(array_column($rows,'connected_not_relevant')),
+      'relevant'     => array_sum(array_column($rows,'relevant')),
+      'not_relevant' => 0, // you can split or rename as needed
+      'not_connected'=> array_sum(array_column($rows,'not_connected')),
+      'not_available'=> 0,
+      'scheduled_visit'=>0,
+      'store_visit'  =>0,
     ];
-  }
+    // … fill in remaining summary keys …
 
-  // Summary
-  $total_leads = 0;
-  $rel = $nrel = $ncon = $sched = $show = 0;
-  foreach ($rows as $r) {
-    $total_leads += $r['leads'];
-    $rel += $r['relevant'];
-    $nrel += $r['not_relevant'];
-    $ncon += $r['not_connected'];
-    $sched += $r['scheduled'];
-    $show += $r['store_visit'];
-  }
-
-  wp_send_json_success([
-    'days' => $rows,
-    'tracker' => $tracker_data,
-    'summary' => [
-      'total' => $total_leads,
-      'relevant' => $rel,
-      'not_relevant' => $nrel,
-      'not_connected' => $ncon,
-      'scheduled' => $sched,
-      'store_visit' => $show,
-    ]
-  ]);
+    wp_send_json_success([ 'summary'=>$summary, 'rows'=>$rows ]);
 }
 
+/**
+ * Save updated tracker row
+ */
+public function save_daily_tracker() {
+    $this->verify();
+    global $wpdb;
+
+    $campaign_id = absint($_POST['campaign_id']);
+    $date        = sanitize_text_field($_POST['date']);
+    $reach       = floatval($_POST['reach']);
+    $impressions = floatval($_POST['impressions']);
+    $spent       = floatval($_POST['amount_spent']);
+
+    $table = "{$wpdb->prefix}lcm_campaign_daily_tracker";
+
+    // upsert
+    $wpdb->replace(
+      $table,
+      [ 'campaign_id'=>$campaign_id,
+        'tracker_date'=>$date,
+        'reach'=>$reach,
+        'impressions'=>$impressions,
+        'amount_spent'=>$spent ]
+    );
+
+    wp_send_json_success();
+}
+
+/**
+ * Recalc campaign-level totals (optional)
+ */
+public function update_campaign_daily_totals() {
+    $this->verify();
+    // you can call your existing recalc logic here
+    wp_send_json_success();
+}
 
 
 }

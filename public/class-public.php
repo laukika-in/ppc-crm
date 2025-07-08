@@ -348,14 +348,14 @@ class PPC_CRM_Public {
     /**
      * Shortcode: Campaign Data Table
      */
-    public function shortcode_campaign_table(): string {
+ public function shortcode_campaign_table(): string {
         return $this->render_table( 'campaign' );
-    }
+ }
 
     /**
      * Shared renderer for both tables
      */
-    private function render_table( string $which ): string {
+private function render_table( string $which ): string {
         // Current user & role
         $user      = wp_get_current_user();
         $is_client = in_array( 'client', (array) $user->roles, true );
@@ -508,7 +508,7 @@ class PPC_CRM_Public {
             <tbody></tbody>
         </table>
       </div>
-</div>
+  </div>
 
         <!-- Delete Modal -->
         <div class="modal fade" id="lcmDelModal" tabindex="-1">
@@ -527,7 +527,7 @@ class PPC_CRM_Public {
         return ob_get_clean();
     }
  
-  public function render_campaign_detail() {
+public function shortcode_campaign_detail() {
     wp_enqueue_style('bootstrap-css');
     wp_enqueue_style('bootstrap-icons');
     wp_enqueue_style('flatpickr-css');
@@ -544,6 +544,7 @@ class PPC_CRM_Public {
 
     ob_start();
     include 'page-campaign-detail.php';
-    return ob_get_clean();
-  }
+    return '<div id="lcm-campaign-detail"></div>';
+}
+
 }
