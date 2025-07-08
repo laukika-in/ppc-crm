@@ -216,8 +216,18 @@ jQuery(function ($) {
         LCM.ajax_url,
         params,
         (res) => {
-          const rows = res.success ? res.data.rows : [],
-            total = res.success ? res.data.total : 0;
+          let rows = [],
+            total = 0;
+          // if WP returned a success/data envelope
+          if (res && res.success === true && res.data) {
+            rows = res.data.rows || [];
+            total = res.data.total || 0;
+          }
+          // otherwise fall back to the raw { rows, total } shape
+          else if (res && Array.isArray(res.rows)) {
+            rows = res.rows;
+            total = res.total || 0;
+          }
           resolve({ page: p, rows, total });
         },
         "json"

@@ -308,29 +308,29 @@ public function get_campaigns() {
     $is_client = in_array( 'client', (array) $user->roles, true );
 
     global $wpdb;
-    $p  = max(1, (int)($_GET['page'] ?? 1));
-    $pp = max(1, (int)($_GET['per_page'] ?? 100));
+    $p  = max(1, (int)($_REQUEST['page'] ?? 1));
+    $pp = max(1, (int)($_REQUEST['per_page'] ?? 100));
     $o  = ($p - 1) * $pp;
 
     $table = $wpdb->prefix . 'lcm_campaigns';
     $where = 'WHERE 1=1';
 
   // Month filter
-  if ( ! empty( $_GET['month'] ) ) {
-    $where .= $wpdb->prepare( " AND month = %s", sanitize_text_field( $_GET['month'] ) );
+  if ( ! empty( $_REQUEST['month'] ) ) {
+    $where .= $wpdb->prepare( " AND month = %s", sanitize_text_field( $_REQUEST['month'] ) );
   }
-    $lead_date = sanitize_text_field($_GET['lead_date'] ?? '');
+    $lead_date = sanitize_text_field($_REQUEST['lead_date'] ?? '');
     if ($lead_date) {
         $where .= $wpdb->prepare(" AND lead_date = %s", $lead_date);
     }
   // Location filter (partial match)
-  if ( ! empty( $_GET['location'] ) ) {
-    $where .= $wpdb->prepare( " AND location LIKE %s", '%' . $wpdb->esc_like( $_GET['location'] ) . '%' );
+  if ( ! empty( $_REQUEST['location'] ) ) {
+    $where .= $wpdb->prepare( " AND location LIKE %s", '%' . $wpdb->esc_like( $_REQUEST['location'] ) . '%' );
   }
 
   // Store Visit filter
-  if ( ! empty( $_GET['store_visit'] ) ) {
-    if ( $_GET['store_visit'] === 'yes' ) {
+  if ( ! empty( $_REQUEST['store_visit'] ) ) {
+    if ( $_REQUEST['store_visit'] === 'yes' ) {
       $where .= " AND store_visit > 0";
     } else {
       $where .= " AND store_visit = 0";
@@ -338,8 +338,8 @@ public function get_campaigns() {
   }
 
   // Connected filter
-  if ( ! empty( $_GET['has_connected'] ) ) {
-    if ( $_GET['has_connected'] === 'yes' ) {
+  if ( ! empty( $_REQUEST['has_connected'] ) ) {
+    if ( $_REQUEST['has_connected'] === 'yes' ) {
       $where .= " AND connected_number > 0";
     } else {
       $where .= " AND connected_number = 0";
@@ -348,8 +348,8 @@ public function get_campaigns() {
     // Filter by role
     if ($is_client) {
         $where .= $wpdb->prepare(" AND client_id = %d", $user_id);
-    } elseif (!empty($_GET['client_id'])) {
-        $where .= $wpdb->prepare(" AND client_id = %d", absint($_GET['client_id']));
+    } elseif (!empty($_REQUEST['client_id'])) {
+        $where .= $wpdb->prepare(" AND client_id = %d", absint($_REQUEST['client_id']));
     }
 
     // Total count
