@@ -295,6 +295,11 @@ jQuery(function ($) {
 
   // ─── 7) Data fetching ────────────────────────────────────────────────────
   function fetchPage(p = 1) {
+    console.log("fetchPage:", {
+      date_from: filterDateFrom,
+      date_to: filterDateTo,
+    });
+
     const q = {
       action: "lcm_get_leads_json",
       nonce: LCM.nonce,

@@ -50,12 +50,12 @@ public function get_leads() {
         if ( $client_id ) {
             $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
         }
-                if ( ! empty( $_REQUEST['date_from'] ) ) {
-            $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
-        }
-        if ( ! empty( $_REQUEST['date_to'] ) ) {
-            $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
-        }
+       if ( ! empty( $_REQUEST['date_from'] ) ) {
+  $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
+}
+if ( ! empty( $_REQUEST['date_to'] ) ) {
+  $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
+}
         if ( ! empty( $_REQUEST['ad_name'] ) ) {
             $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_REQUEST['ad_name']) );
         }
