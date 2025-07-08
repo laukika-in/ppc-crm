@@ -621,24 +621,16 @@ public function get_campaign_leads_json() {
   // 1) per-day lead counts
   $where = $wpdb->prepare( "WHERE campaign_id = %d", $cid );
 
-    $from  = sanitize_text_field( $_GET['from'] ?? '' );
-    $to    = sanitize_text_field( $_GET['to']   ?? '' );
-    $month = sanitize_text_field( $_GET['month']?? '' );
-    
+    $from = sanitize_text_field($_GET['from'] ?? '');
+    $to   = sanitize_text_field($_GET['to']   ?? '');
+    $month = sanitize_text_field($_GET['month'] ?? '');
+    $where = "WHERE campaign_id = {$cid}";
     if ( $from && $to ) {
-        // range filter
-        $where .= $wpdb->prepare(
-            " AND lead_date BETWEEN %s AND %s",
-            $from, $to
-        );
-    } elseif ( $month ) {
-        // month picker filter (YYYY-MM)
-        $year  = intval( substr( $month, 0, 4 ) );
-        $mnum  = intval( substr( $month, 5, 2 ) );
-        $where .= $wpdb->prepare(
-            " AND YEAR(lead_date) = %d AND MONTH(lead_date) = %d",
-            $year, $mnum
-        );
+        $where .= $wpdb->prepare( " AND lead_date BETWEEN %s AND %s", $from, $to );
+    } elseif ( $month && preg_match('/^(\d{4})-(\d{2})$/',$month,$m) ) {
+        $year  = (int)$m[1];
+        $mon   = (int)$m[2];
+        $where .= $wpdb->prepare( " AND YEAR(lead_date)=%d AND MONTH(lead_date)=%d", $year, $mon );
     }
   $days = $wpdb->get_results( $wpdb->prepare(
     "SELECT lead_date AS date, COUNT(*) AS leads

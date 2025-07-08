@@ -8,13 +8,13 @@ jQuery(document).ready(function ($) {
     allowInput: true,
     onChange: reload,
   });
-  flatpickr("#from, #to", {
+  flatpickr("#lcm-filter-date-from, #lcm-filter-date-to", {
     dateFormat: "Y-m-d",
     allowInput: true,
     onChange: reload,
   });
 
-  // 2) cache selectors
+  // cache your summary & tbody
   const $summary = {
     total: $("strong:contains('Total Leads')").next(),
     connected: $("strong:contains('Connected')").next(),
@@ -27,11 +27,10 @@ jQuery(document).ready(function ($) {
   };
   const $tbody = $("table.lcm-table tbody");
 
-  // 3) reload function
   function reload() {
     const month = $("#month").val(),
-      from = $("#from").val(),
-      to = $("#to").val();
+      from = $("#lcm-filter-date-from").val(),
+      to = $("#lcm-filter-date-to").val();
 
     $.getJSON(LCM.ajax_url, {
       action: "lcm_get_campaign_leads_json",
@@ -43,14 +42,13 @@ jQuery(document).ready(function ($) {
     })
       .done((res) => {
         if (!res.success) return alert(res.data || "Error loading data");
-
         const d = res.data,
-          days = d.days; // array of {date, leads}
+          days = d.days;
 
-        // 4) render summary
+        // render summary exactly as before…
         $summary.total.text(d.total);
-        $summary.connected.text(d.by_type.reduce((sum, t) => sum + t.qty, 0));
-        // find each type in d.by_type:
+        const conCount = d.by_type.reduce((sum, t) => sum + t.qty, 0);
+        $summary.connected.text(conCount);
         $summary.relevant.text(
           (
             d.by_type.find((t) => t.attempt_type === "Connected:Relevant") || {
@@ -74,47 +72,56 @@ jQuery(document).ready(function ($) {
         );
         $summary.scheduled.text(d.scheduled);
         $summary.store.text(d.visit);
-        // N/A = total – (connected + notConnected)
-        const connected = parseInt($summary.connected.text(), 10),
-          notCon = parseInt($summary.notConnected.text(), 10),
-          na = d.total - (connected + notCon);
+        const na = d.total - conCount;
         $summary.na.text(na);
 
-        // 5) render table body
+        // re-build table body
         let html = "";
         days.forEach((r) => {
-          const track = d.tracker?.[r.date] || {};
-          const rel = (
-            d.by_type.find((t) => t.attempt_type === "Connected:Relevant") || {
-              qty: 0,
-            }
-          ).qty;
-          // …you can compute not_relevant, not_connected etc here as in PHP…
+          const t = d.tracker?.[r.date] || {};
           html += `
-          <tr data-date="${r.date}" data-row-id="${track.id || 0}">
+          <tr data-date="${r.date}" data-row-id="${t.id || 0}">
             <td>${r.date}</td>
             <td>${r.leads}</td>
-            <td><input class="form-control form-control-sm reach-input" value="${
-              track.reach || ""
+            <td><input class="form-control form-control-sm reach-input"  value="${
+              t.reach || ""
             }"></td>
             <td><input class="form-control form-control-sm impressions-input" value="${
-              track.impressions || ""
+              t.impressions || ""
             }"></td>
             <td><input class="form-control form-control-sm spent-input" value="${
-              track.amount_spent || ""
+              t.amount_spent || ""
             }"></td>
             <td>
               <button class="btn btn-sm btn-outline-secondary edit-tracker">✏️</button>
               <button class="btn btn-sm btn-secondary cancel-tracker d-none">❌</button>
               <button class="btn btn-sm btn-success save-daily-tracker d-none">💾</button>
-              <a class="btn btn-sm btn-primary" href="${site_url(
-                "/lead-data"
-              )}?date_from=${r.date}&date_to=${r.date}">View Leads</a>
+              <a class="btn btn-sm btn-primary" href="/lead-data?date_from=${
+                r.date
+              }&date_to=${r.date}">View Leads</a>
             </td>
-            <td>${connected}</td>
-            <td>${rel}</td>
-            <td>${/* not_relevant */ ""}</td>
-            <td>${/* not_connected */ ""}</td>
+            <td>${conCount}</td>
+            <td>${
+              (
+                d.by_type.find(
+                  (t) => t.attempt_type === "Connected:Relevant"
+                ) || { qty: 0 }
+              ).qty
+            }</td>
+            <td>${
+              (
+                d.by_type.find(
+                  (t) => t.attempt_type === "Connected:Not Relevant"
+                ) || { qty: 0 }
+              ).qty
+            }</td>
+            <td>${
+              (
+                d.by_type.find((t) => t.attempt_type === "Not Connected") || {
+                  qty: 0,
+                }
+              ).qty
+            }</td>
             <td>${na}</td>
             <td>${d.scheduled}</td>
             <td>${d.visit}</td>
@@ -126,7 +133,7 @@ jQuery(document).ready(function ($) {
       .fail(() => alert("Server error"));
   }
 
-  // 6) kick off the first load
+  // initial load
   reload();
 
   // Step 2: Edit Mode
