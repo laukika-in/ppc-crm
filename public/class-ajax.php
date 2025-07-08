@@ -115,7 +115,10 @@ if ( $city ) {
         $p  = max(1, (int)($_REQUEST['page']     ?? 1));
 $pp = max(1, (int)($_REQUEST['per_page'] ?? 100));
         $o  = ($p-1)*$pp;
-
+error_log( sprintf(
+  "LCM debug → page=%d, per_page=%d, offset=%d",
+  $p, $pp, $o
+) );
         $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads $where" );
         $rows  = $wpdb->get_results(
             $wpdb->prepare(
