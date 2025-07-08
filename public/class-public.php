@@ -203,8 +203,8 @@ class PPC_CRM_Public {
 
     <div class="filter-item">
       <div class="input-group input-group-sm">
-        <input type="date" id="lcm-filter-date-from" class="form-control form-control-sm" placeholder="From date">
-        <input type="date" id="lcm-filter-date-to" class="form-control form-control-sm" placeholder="To date">
+        <input type="date" id="lcm-filter-date-from" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="From date">
+        <input type="date" id="lcm-filter-date-to" class="form-control form-control-sm flatpickr-date flatpickr-input" placeholder="To date">
       </div>
     </div>
 
@@ -476,29 +476,29 @@ class PPC_CRM_Public {
         </div>
 
        <div class="lcm-campaign-wrapper" style="position: relative;">
-  <!-- the JS is looking for #lcm-preloader-camp -->
-  <div id="lcm-preloader-camp" style="display:none;
-                                      position:absolute;
-                                      top:0; left:0;
-                                      width:100%; height:100%;
-                                      background:rgba(255,255,255,0.8);
-                                      display:flex;
-                                      align-items:center;
-                                      justify-content:center;
-                                      z-index:9999;">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading…</span>
-    </div>
-  </div>
+       <!-- the JS is looking for #lcm-preloader-camp -->
+         <div id="lcm-preloader-camp" style="display:none;
+                                          position:absolute;
+                                          top:0; left:0;
+                                          width:100%; height:100%;
+                                          background:rgba(255,255,255,0.8);
+                                          display:flex;
+                                          align-items:center;
+                                          justify-content:center;
+                                          z-index:9999;">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading…</span>
+        </div>
+      </div>
 
-  <div class="table-responsive lcm-scroll">
-    <table id="<?= esc_attr( $div ); ?>"
-           class="table table-bordered table-striped table-sm lcm-table mb-0"
-           style="table-layout:auto; min-width:1200px;">
-        <thead></thead>
-        <tbody></tbody>
-    </table>
-  </div>
+      <div class="table-responsive lcm-scroll">
+        <table id="<?= esc_attr( $div ); ?>"
+              class="table table-bordered table-striped table-sm lcm-table mb-0"
+              style="table-layout:auto; min-width:1200px;">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+      </div>
 </div>
 
         <!-- Delete Modal -->
