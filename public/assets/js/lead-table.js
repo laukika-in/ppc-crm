@@ -317,23 +317,26 @@ jQuery(function ($) {
       product_interest: filterProductVal,
       city: filterCityVal,
     };
+
     return new Promise((resolve) => {
       $.post(
         LCM.ajax_url,
         q,
         (res) => {
-          // Always resolve, even on WP error, so your prefetch loop won’t hang.
-          resolve({
-            page: p,
-            rows: res.success ? res.data.rows : [],
-            total: res.success ? res.data.total : 0,
-          });
+          let rows, total; 
+          if (res && res.success === true && res.data) { 
+            rows = res.data.rows || [];
+            total = res.data.total || 0;
+          } else { 
+            rows = res.rows || [];
+            total = res.total || 0;
+          } 
+          resolve({ page: p, rows, total });
         },
         "json"
       );
     });
   }
-
   function load(p = 1) {
     showPreloader();
     return fetchPage(p).then((data) => {
