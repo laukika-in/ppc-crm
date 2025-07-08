@@ -50,75 +50,72 @@ $where = 'WHERE 1=1';
 if ( $client_id ) {
     $where .= $wpdb->prepare( " AND client_id = %d", $client_id );
 }
-        if ( ! empty( $_GET['date_from'] ) ) {
-    $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_GET['date_from']) );
+        if ( ! empty( $_REQUEST['date_from'] ) ) {
+    $where .= $wpdb->prepare( " AND lead_date >= %s", sanitize_text_field($_REQUEST['date_from']) );
 }
-if ( ! empty( $_GET['date_to'] ) ) {
-    $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_GET['date_to']) );
+if ( ! empty( $_REQUEST['date_to'] ) ) {
+    $where .= $wpdb->prepare( " AND lead_date <= %s", sanitize_text_field($_REQUEST['date_to']) );
 }
-if ( ! empty( $_GET['ad_name'] ) ) {
-    $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_GET['ad_name']) );
+if ( ! empty( $_REQUEST['ad_name'] ) ) {
+    $where .= $wpdb->prepare( " AND ad_name = %s", sanitize_text_field($_REQUEST['ad_name']) );
 }
-if ( ! empty( $_GET['adset'] ) ) {
-    $where .= $wpdb->prepare( " AND adset = %s", sanitize_text_field($_GET['adset']) );
+if ( ! empty( $_REQUEST['adset'] ) ) {
+    $where .= $wpdb->prepare( " AND adset = %s", sanitize_text_field($_REQUEST['adset']) );
 }
-if ( ! empty( $_GET['day'] ) ) {
-    $where .= $wpdb->prepare( " AND day = %s", sanitize_text_field($_GET['day']) );
+if ( ! empty( $_REQUEST['day'] ) ) {
+    $where .= $wpdb->prepare( " AND day = %s", sanitize_text_field($_REQUEST['day']) );
 }
-if ( ! empty( $_GET['client_type'] ) ) {
-    $where .= $wpdb->prepare( " AND client_type = %s", sanitize_text_field($_GET['client_type']) );
+if ( ! empty( $_REQUEST['client_type'] ) ) {
+    $where .= $wpdb->prepare( " AND client_type = %s", sanitize_text_field($_REQUEST['client_type']) );
 }
-if ( ! empty( $_GET['source'] ) ) {
-    $where .= $wpdb->prepare( " AND source = %s", sanitize_text_field($_GET['source']) );
+if ( ! empty( $_REQUEST['source'] ) ) {
+    $where .= $wpdb->prepare( " AND source = %s", sanitize_text_field($_REQUEST['source']) );
 }
-    if ( ! empty( $_GET['attempt_type'] ) ) {
+    if ( ! empty( $_REQUEST['attempt_type'] ) ) {
         $where .= $wpdb->prepare(
             " AND attempt_type = %s",
-            sanitize_text_field( $_GET['attempt_type'] )
+            sanitize_text_field( $_REQUEST['attempt_type'] )
         );
     }
 
     // Attempt Status filter
-    if ( ! empty( $_GET['attempt_status'] ) ) {
+    if ( ! empty( $_REQUEST['attempt_status'] ) ) {
         $where .= $wpdb->prepare(
             " AND attempt_status = %s",
-            sanitize_text_field( $_GET['attempt_status'] )
+            sanitize_text_field( $_REQUEST['attempt_status'] )
         );
     }
-    if ( ! empty( $_GET['store_visit_status'] ) ) {
-        $where .= $wpdb->prepare( " AND store_visit_status = %s", sanitize_text_field($_GET['store_visit_status']) );
+    if ( ! empty( $_REQUEST['store_visit_status'] ) ) {
+        $where .= $wpdb->prepare( " AND store_visit_status = %s", sanitize_text_field($_REQUEST['store_visit_status']) );
     }
-    if ( ! empty( $_GET['occasion'] ) ) {
-        $where .= $wpdb->prepare( " AND occasion = %s", sanitize_text_field($_GET['occasion']) );
+    if ( ! empty( $_REQUEST['occasion'] ) ) {
+        $where .= $wpdb->prepare( " AND occasion = %s", sanitize_text_field($_REQUEST['occasion']) );
     }
-    if ( ! empty( $_GET['search'] ) ) {
-        $s = '%' . $wpdb->esc_like( $_GET['search'] ) . '%';
+    if ( ! empty( $_REQUEST['search'] ) ) {
+        $s = '%' . $wpdb->esc_like( $_REQUEST['search'] ) . '%';
         $where .= $wpdb->prepare( " AND ( name LIKE %s OR phone_number LIKE %s OR email LIKE %s )", $s, $s, $s );
     }
-    if ( ! empty( $_GET['budget'] ) ) {
-        $b = '%' . $wpdb->esc_like( $_GET['budget'] ) . '%';
+    if ( ! empty( $_REQUEST['budget'] ) ) {
+        $b = '%' . $wpdb->esc_like( $_REQUEST['budget'] ) . '%';
         $where .= $wpdb->prepare( " AND budget LIKE %s", $b );
     }
-    if ( ! empty( $_GET['product_interest'] ) ) {
-        $p = '%' . $wpdb->esc_like( $_GET['product_interest'] ) . '%';
+    if ( ! empty( $_REQUEST['product_interest'] ) ) {
+        $p = '%' . $wpdb->esc_like( $_REQUEST['product_interest'] ) . '%';
         $where .= $wpdb->prepare( " AND product_interest LIKE %s", $p );
     }
- $city = sanitize_text_field( $_GET['city'] ?? '' );
-if ( $city ) {
-    $where .= $wpdb->prepare(
-        " AND location LIKE %s",
-        '%' . $wpdb->esc_like( $city ) . '%'
-    );
-}
+        $city = sanitize_text_field( $_REQUEST['city'] ?? '' );
+        if ( $city ) {
+            $where .= $wpdb->prepare(
+                " AND location LIKE %s",
+                '%' . $wpdb->esc_like( $city ) . '%'
+            );
+        }
  
 
         $p  = max(1, (int)($_REQUEST['page']     ?? 1));
-$pp = max(1, (int)($_REQUEST['per_page'] ?? 100));
-        $o  = ($p-1)*$pp;
-error_log( sprintf(
-  "LCM debug → page=%d, per_page=%d, offset=%d",
-  $p, $pp, $o
-) );
+        $pp = max(1, (int)($_REQUEST['per_page'] ?? 100));
+                $o  = ($p-1)*$pp;
+       
         $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads $where" );
         $rows  = $wpdb->get_results(
             $wpdb->prepare(
@@ -132,7 +129,7 @@ error_log( sprintf(
 
 
 	/* create lead ------------------------------------------------------- */
-	public function create_lead() {
+public function create_lead() {
 
 		$this->verify();
 
@@ -165,8 +162,8 @@ error_log( sprintf(
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
 		],true);
         if ( isset( $data['campaign_id'], $data['lead_date'] ) ) {
-    $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
-}
+        $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
+    }
 
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
@@ -241,7 +238,7 @@ public function update_lead() {
         );
         if ( isset( $data['campaign_id'], $data['lead_date'] ) ) {
     $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
-}
+ }
 
         // Also update the WP post title (UID)
         $lead = $wpdb->get_var( $wpdb->prepare(
@@ -308,7 +305,7 @@ public function update_lead() {
 public function get_campaigns() {
     $this->verify();
 
- $user      = wp_get_current_user();
+    $user      = wp_get_current_user();
     $user_id   = $user->ID;
     $is_client = in_array( 'client', (array) $user->roles, true );
 
@@ -364,30 +361,28 @@ public function get_campaigns() {
     $rows = $wpdb->get_results(
     $wpdb->prepare("SELECT *, not_relevant FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $pp, $o),
     ARRAY_A
-);
+ );
 
-// Attach totals from daily tracker
-foreach ($rows as &$row) {
-    $post_id = (int) $row['post_id'];
-    $totals = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT 
-                SUM(reach) as total_reach, 
-                SUM(impressions) as total_impressions, 
-                SUM(amount_spent) as total_spent 
-             FROM {$wpdb->prefix}lcm_campaign_daily_tracker 
-             WHERE campaign_id = %d",
-            $post_id
-        ),
-        ARRAY_A
-    );
+    // Attach totals from daily tracker
+    foreach ($rows as &$row) {
+        $post_id = (int) $row['post_id'];
+        $totals = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT 
+                    SUM(reach) as total_reach, 
+                    SUM(impressions) as total_impressions, 
+                    SUM(amount_spent) as total_spent 
+                FROM {$wpdb->prefix}lcm_campaign_daily_tracker 
+                WHERE campaign_id = %d",
+                $post_id
+            ),
+            ARRAY_A
+        );
 
-    $row['total_reach']       = (int) ($totals['total_reach'] ?? 0);
-    $row['total_impressions'] = (int) ($totals['total_impressions'] ?? 0);
-    $row['total_spent']       = (float) ($totals['total_spent'] ?? 0);
-}
-
-
+        $row['total_reach']       = (int) ($totals['total_reach'] ?? 0);
+        $row['total_impressions'] = (int) ($totals['total_impressions'] ?? 0);
+        $row['total_spent']       = (float) ($totals['total_spent'] ?? 0);
+    }
     wp_send_json(['total' => $total, 'rows' => $rows]);
 }
 
