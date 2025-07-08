@@ -1,19 +1,18 @@
 jQuery(function ($) {
   // cache
-  const campaignId = LCM.campaign_id;
-  const $tbody = $("table.lcm-table tbody");
-  const $month = $("#month");
-  const $from = $("#lcm-filter-date-from");
-  const $to = $("#lcm-filter-date-to");
+  const $filterMonth = $("#lcm-filter-month"),
+    $filterDateFrom = $("#lcm-filter-date-from"),
+    $filterDateTo = $("#lcm-filter-date-to"),
+    $tbody = $("table.lcm-table tbody");
 
   // wire up flatpickr only on the date inputs:
-  flatpickr($from[0], { dateFormat: "Y-m-d", allowInput: true });
-  flatpickr($to[0], { dateFormat: "Y-m-d", allowInput: true });
+  flatpickr($filterDateFrom[0], { dateFormat: "Y-m-d", allowInput: true });
+  flatpickr($filterDateTo[0], { dateFormat: "Y-m-d", allowInput: true });
 
   // any change fires reload()
-  $month.on("change", reload);
-  $from.on("change", reload);
-  $to.on("change", reload);
+  $filterMonth.on("change", reload);
+  $filterDateFrom.on("change", reload);
+  $filterDateTo.on("change", reload);
 
   function reload() {
     const month = $month.val(),

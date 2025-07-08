@@ -108,7 +108,7 @@ $store_visit   = intval( $summary->store_visit );
     <input type="hidden" name="campaign_id" value="<?= esc_attr($campaign_id); ?>">
     <div class="col-auto">
       <label for="month" class="form-label">Month:</label>
-      <input type="month" id="month" name="month" class="form-control" value="<?= esc_attr($current_month); ?>">
+      <input type="month" id="lcm-filter-mont" name="month" class="form-control" value="<?= esc_attr($current_month); ?>">
     </div>
     <div class="col-auto">
       <label for="from" class="form-label">From:</label>
