@@ -8,8 +8,8 @@ jQuery(function ($) {
   $mount.html(`
   <div class="d-flex align-items-center mb-3 lcm-detail-filters">
     <input id="camp-month" class="form-control form-control-sm me-2" type="month"/>
-    <input id="camp-from"  class="form-control form-control-sm me-2" type="date" placeholder="From"/>
-    <input id="camp-to"    class="form-control form-control-sm"     type="date" placeholder="To"/>
+    <input id="camp-from" class="form-control form-control-sm me-2" type="date" placeholder="From"/>
+    <input id="camp-to" class="form-control form-control-sm" type="date" placeholder="To"/>
   </div>
   <div class="lcm-summary row mb-4"></div>
   <div class="table-responsive">
@@ -35,7 +35,6 @@ jQuery(function ($) {
     </table>
   </div>
 `);
-
 
   // Initialize Flatpickr
   $("#camp-month").flatpickr({

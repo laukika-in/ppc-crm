@@ -756,7 +756,7 @@ public function get_campaign_detail_rows() {
         SUM(attempt_type = 'Connected:Relevant')     AS relevant,
         SUM(attempt_type = 'Not Connected')           AS not_connected,
         SUM(attempt_type = 'N/A')                     AS not_available,
-        SUM(store_visit_status = 'Store Visit Scheduled') AS scheduled_visit,
+        SUM(attempt_status  = 'Store Visit Scheduled') AS scheduled_visit,
         SUM(store_visit_status = 'Show')                  AS store_visit
         FROM {$wpdb->prefix}lcm_leads
         {$where}
