@@ -474,7 +474,12 @@ class PPC_CRM_Public {
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
         </div>
-
+ <div class="lcm-campaign-wrapper" style="position: relative;">   
+  <div id="lcm-preloader" >
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Loading…</span>
+  </div>
+  </div>
         <div class="table-responsive lcm-scroll">
             <table id="<?= esc_attr( $div ); ?>"
                    class="table table-bordered table-striped table-sm lcm-table mb-0"
@@ -483,7 +488,7 @@ class PPC_CRM_Public {
                 <tbody></tbody>
             </table>
         </div>
-
+                </div>
         <!-- Delete Modal -->
         <div class="modal fade" id="lcmDelModal" tabindex="-1">
           <div class="modal-dialog modal-dialog-centered">

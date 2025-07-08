@@ -74,7 +74,7 @@ jQuery(function ($) {
   const $filterLocation = $("#lcm-filter-location-camp");
   const $filterStore = $("#lcm-filter-store-camp");
   const $filterConnected = $("#lcm-filter-connected-camp");
-
+  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
   // ─── 5) Filter state ─────────────────────────────────────────────────────
   let filterClientVal = IS_CLIENT ? CLIENT_ID : "";
   let filterMonthVal = "";
@@ -415,6 +415,6 @@ jQuery(function ($) {
     $g.toggleClass("filter-active", isActive);
   }
 
-  // Init
-  load(1);
+  showPreloader();
+  load(1).then(() => setTimeout(prefetchAllPages, 1000));
 });
