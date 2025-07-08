@@ -16,7 +16,7 @@ jQuery(function ($) {
   const ADNAMES_BY_CLIENT = LCM.adnames_by_client;
 
   let cachedPages = {}; // store fetched rows per page
-
+  let lastTotalPages = 1;
   // ─── 3) Column definitions ────────────────────────────────────────────────
   const cols = [
     ["_action", "Action", "action"],
@@ -317,25 +317,17 @@ jQuery(function ($) {
       product_interest: filterProductVal,
       city: filterCityVal,
     };
-
     return new Promise((resolve) => {
       $.post(
         LCM.ajax_url,
         q,
         (res) => {
-          // support both raw {total,rows} and WP's {success,data:{…}}
-          let rows = [];
-          let total = 0;
-
-          if (res.success === true && res.data) {
-            rows = res.data.rows || [];
-            total = res.data.total || 0;
-          } else {
-            rows = res.rows || [];
-            total = res.total || 0;
-          }
-
-          resolve({ page: p, rows, total });
+          // Always resolve, even on WP error, so your prefetch loop won’t hang.
+          resolve({
+            page: p,
+            rows: res.success ? res.data.rows : [],
+            total: res.success ? res.data.total : 0,
+          });
         },
         "json"
       );
@@ -345,10 +337,11 @@ jQuery(function ($) {
   function load(p = 1) {
     showPreloader();
     return fetchPage(p).then((data) => {
+      lastTotalPages = Math.max(1, Math.ceil(data.total / PER_PAGE));
       page = data.page;
       cachedPages[page] = data.rows;
       $tbody.html(data.rows.map(rowHtml).join(""));
-      renderPager(data.total);
+      renderPager(lastTotalPages);
       initSearchable($tbody);
       LCM_initFlatpickr($tbody);
       hidePreloader();
@@ -357,10 +350,7 @@ jQuery(function ($) {
   }
 
   function prefetchAllPages() {
-    const totalPages = Math.ceil(
-      parseInt($pager.find("button").last().text(), 10)
-    );
-    for (let p = 2; p <= totalPages; p++) {
+    for (let p = 2; p <= lastTotalPages; p++) {
       // schedule each fetch 500ms apart
       setTimeout(() => {
         fetchPage(p).then((data) => {
