@@ -774,10 +774,11 @@ jQuery(function ($) {
   // Render header
   $thead.html(
     "<tr>" +
-      cols.map((c) => `<th class="lcm-sortable">${c[1]}</th>`).join("") +
+      cols
+        .map((c) => `<th class="lcm-sortable" data-sort="${c[0]}">${c[1]}</th>`)
+        .join("") +
       "</tr>"
   );
-
   showPreloader();
   load(1).then(() => {
     hidePreloader();
