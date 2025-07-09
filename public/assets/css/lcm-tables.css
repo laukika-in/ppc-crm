@@ -235,3 +235,32 @@
 #lcm-campaign-detail .table .btn {
   margin-right: 0.25rem;
 }
+.lcm-sortable {
+  cursor: pointer;
+}
+.lcm-sort-asc::after {
+  content: " ▲";
+  font-size: 10px;
+}
+.lcm-sort-desc::after {
+  content: " ▼";
+  font-size: 10px;
+}
+
+.lcm-preloader {
+  text-align: center;
+  padding: 40px;
+}
+.lcm-preloader img {
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

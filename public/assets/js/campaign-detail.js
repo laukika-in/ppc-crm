@@ -51,11 +51,11 @@ jQuery(function ($) {
     <table class="table table-bordered table-striped table-hover align-middle">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Reach</th>
-          <th>Impression</th>
-          <th>Amount Spent</th>
-          <th>Total Leads</th>
+         <th data-sort="date" class="lcm-sortable">Date</th>
+          <th data-sort="reach" class="lcm-sortable">Reach</th>
+          <th data-sort="impressions" class="lcm-sortable">Impression</th>
+          <th data-sort="amount_spent" class="lcm-sortable">Amount Spent</th>
+          <th data-sort="total_leads" class="lcm-sortable">Total Leads</th>
           <th>Relevant</th>
           <th>Not Relevant</th>
           <th>Not Connected</th>
@@ -96,7 +96,18 @@ jQuery(function ($) {
   let month = $("#camp-month").val();
   let from = $("#camp-from").val();
   let to = $("#camp-to").val();
+  let currentSort = { col: "date", dir: "desc" }; // default sort
 
+  $("#campaign-detail-table").on("click", "th.lcm-sortable", function () {
+    const col = $(this).data("sort");
+    const dir =
+      currentSort.col === col && currentSort.dir === "asc" ? "desc" : "asc";
+    currentSort = { col, dir };
+
+    rows.sort(sortBy(col, dir));
+    applySortingIcons("campaign-detail-table", col, dir);
+    renderRows(); // custom function that re-renders rows
+  });
   // Fetch & render
   function reload() {
     $.getJSON(AJAX, {
@@ -112,54 +123,7 @@ jQuery(function ($) {
       renderRows(rows);
     });
   }
-  function initSummaryEdit() {
-    $(".lcm-summary-field").each(function () {
-      const $wrap = $(this);
-      const $val = $wrap.find(".lcm-summary-val");
-      const key = $val.data("key");
-      const val = $val.text();
 
-      $wrap.append(
-        `<i class='ms-2 text-muted fas fa-edit edit-summary-icon' style='cursor:pointer'></i>`
-      );
-
-      $wrap.find(".edit-summary-icon").on("click", function () {
-        $val.replaceWith(
-          `<input type="number" class="form-control form-control-sm lcm-summary-input" data-key="${key}" value="${val}">`
-        );
-        $wrap.append(
-          `<button class='btn btn-sm btn-success ms-2 btn-save-summary'>Save</button>`
-        );
-        $wrap.append(
-          `<button class='btn btn-sm btn-outline-secondary ms-1 btn-cancel-summary'>Cancel</button>`
-        );
-
-        $wrap.find(".btn-save-summary").on("click", function () {
-          const newVal = $wrap.find(".lcm-summary-input").val();
-          $.post(
-            LCM.ajax_url,
-            {
-              action: "lcm_save_summary_field",
-              nonce: LCM.nonce,
-              campaign_id: LCM.campaign_id,
-              field: key,
-              value: newVal,
-            },
-            function () {
-              location.reload();
-            }
-          );
-        });
-
-        $wrap.find(".btn-cancel-summary").on("click", function () {
-          location.reload();
-        });
-      });
-    });
-  }
-  $(document).ready(function () {
-    initSummaryEdit();
-  });
   // Summary block
   function renderSummary(s) {
     const html = `
@@ -172,12 +136,35 @@ jQuery(function ($) {
     `;
     $mount.find(".lcm-summary").html(html);
   }
+  function sortBy(col, dir = "asc") {
+    return function (a, b) {
+      let A = a[col],
+        B = b[col];
+      let isNum = !isNaN(parseFloat(A)) && isFinite(A);
+
+      if (isNum) {
+        A = parseFloat(A);
+        B = parseFloat(B);
+      } else {
+        A = A.toLowerCase?.() || "";
+        B = B.toLowerCase?.() || "";
+      }
+
+      return (A < B ? -1 : A > B ? 1 : 0) * (dir === "asc" ? 1 : -1);
+    };
+  }
+
+  function applySortingIcons(tableId, col, dir) {
+    $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
+    const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
+    $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
+  }
 
   // Build table rows
   function renderRows(rows) {
     const $tb = $mount.find("tbody").empty();
     rows.forEach((r) => {
-      const $tr = $("<tr>").data(r).appendTo($tb);
+      const $tr = $("<tr data-date="${r.reach}" data-row-id="${r.row_id}" >").data(r).appendTo($tb);
 
       // 1) Date
       $tr.append(`<td>${r.date}</td>`);
@@ -186,21 +173,21 @@ jQuery(function ($) {
       $tr.append(`
       <td>
         <span class="view reach">${r.reach}</span>
-        <input type="number" class="edit reach form-control form-control-sm d-none" value="${r.reach}"/>
+        <input type="number" data-type="reach" class="edit editable reach form-control form-control-sm d-none" value="${r.reach}"/>
       </td>`);
 
       // 3) Impressions (editable)
       $tr.append(`
       <td>
         <span class="view impr">${r.impressions}</span>
-        <input type="number" class="edit impr form-control form-control-sm d-none" value="${r.impressions}"/>
+        <input type="number" data-type="impressions" class="edit editable impr form-control form-control-sm d-none" value="${r.impressions}"/>
       </td>`);
 
       // 4) Amount Spent (editable)
       $tr.append(`
       <td>
         <span class="view spent">${r.amount_spent}</span>
-        <input type="number" step="0.01" class="edit spent form-control form-control-sm d-none" value="${r.amount_spent}"/>
+        <input type="number" data-type="amount_spent" step="0.01" class="edit editable spent form-control form-control-sm d-none" value="${r.amount_spent}"/>
       </td>`);
 
       // 5) Total Leads
@@ -309,6 +296,71 @@ jQuery(function ($) {
     reload();
   });
 
+  // Step 2: Edit Mode
+  $(document).on("click", ".edit-tracker", function () {
+    const $row = $(this).closest("tr");
+    $row.find(".tracker-display").addClass("d-none");
+    $row.find(".tracker-input").removeClass("d-none");
+    $row.find(".edit-tracker").addClass("d-none");
+    $row.find(".save-daily-tracker").removeClass("d-none");
+    $row.find(".cancel-tracker").removeClass("d-none");
+    $row.addClass("table-warning shadow-sm");
+  });
+
+  // Step 3: Save Button
+  $(document).on("click", ".save-daily-tracker", function () {
+    const $row = $(this).closest("tr");
+    const rowId = $row.data("row-id");
+    const campaign_id = LCM.campaign_id;
+    const date = $row.data("date");
+
+    const reach = parseInt($row.find(".reach-input").val()) || 0;
+    const impressions = parseInt($row.find(".impressions-input").val()) || 0;
+    const spent = parseFloat($row.find(".spent-input").val()) || 0;
+
+    $.post(LCM.ajax_url, {
+      action: "lcm_save_daily_tracker",
+      nonce: LCM.nonce,
+      row_id: rowId,
+      campaign_id,
+      date,
+      reach,
+      impressions,
+      amount_spent: spent,
+    })
+      .done(function (response) {
+        if (response.success) {
+          $row.find(".reach-display").text(reach);
+          $row.find(".impressions-display").text(impressions);
+          $row.find(".spent-display").text(spent);
+          $row.find(".tracker-display").removeClass("d-none");
+          $row.find(".tracker-input").addClass("d-none");
+          $row.find(".edit-tracker").removeClass("d-none");
+          $row.find(".save-daily-tracker").addClass("d-none");
+          $row.removeClass("table-warning shadow-sm");
+        } else {
+          alert("Save failed");
+        }
+      })
+      .fail(function () {
+        alert("Server error");
+      });
+  });
+  $(document).on("click", ".cancel-tracker", function () {
+    const $row = $(this).closest("tr");
+    // Revert inputs to original display values
+    $row.find(".reach-input").val($row.find(".reach-display").text());
+    $row
+      .find(".impressions-input")
+      .val($row.find(".impressions-display").text());
+    $row.find(".spent-input").val($row.find(".spent-display").text());
+    // Toggle back to view mode
+    $row.find(".tracker-display").removeClass("d-none");
+    $row.find(".tracker-input").addClass("d-none");
+    $row.find(".edit-tracker").removeClass("d-none");
+    $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
+    $row.removeClass("table-warning shadow-sm");
+  });
   // Initial load
   reload();
 });

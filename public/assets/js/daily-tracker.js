@@ -125,6 +125,29 @@ jQuery(function ($) {
       `);
     });
   }
+  function sortBy(col, dir = "asc") {
+    return function (a, b) {
+      let A = a[col],
+        B = b[col];
+      let isNum = !isNaN(parseFloat(A)) && isFinite(A);
+
+      if (isNum) {
+        A = parseFloat(A);
+        B = parseFloat(B);
+      } else {
+        A = A.toLowerCase?.() || "";
+        B = B.toLowerCase?.() || "";
+      }
+
+      return (A < B ? -1 : A > B ? 1 : 0) * (dir === "asc" ? 1 : -1);
+    };
+  }
+
+  function applySortingIcons(tableId, col, dir) {
+    $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
+    const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
+    $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
+  }
 
   function renderPager(totalDays) {
     const pages = Math.ceil(totalDays / PER_PAGE);
@@ -138,18 +161,7 @@ jQuery(function ($) {
       }
     }
   }
-  function sortByColumn(data, column, direction = "asc") {
-    return data.sort((a, b) => {
-      let valA = a[column],
-        valB = b[column];
-      if (typeof valA === "string") valA = valA.toLowerCase();
-      if (typeof valB === "string") valB = valB.toLowerCase();
 
-      if (valA < valB) return direction === "asc" ? -1 : 1;
-      if (valA > valB) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
   // Clear‐filter buttons
   $mount.on("click", ".clear-filter", function () {
     const f = $(this).data("filter");
