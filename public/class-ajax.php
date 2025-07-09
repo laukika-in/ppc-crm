@@ -631,14 +631,14 @@ public function get_campaign_detail_rows() {
     // ─── Aggregate leads/day ──────────────────────────────────────
     $leads = $wpdb->get_results( "
         SELECT
-            lead_date                    AS date,
-            COUNT(*)                     AS total_leads,
-            SUM(attempt_type='Connected:Relevant')     AS relevant,
-            SUM(attempt_type='Connected:Not Relevant') AS not_relevant,
-            SUM(attempt_type='Not Connected')          AS not_connected,
-            SUM(attempt_type='N/A')                    AS not_available,
-            SUM(attempt_status='Store Visit Scheduled') AS scheduled_visit,
-            SUM(store_visit_status='Show')             AS store_visit
+        lead_date AS date,
+        COUNT(*) AS total_leads,
+        SUM(attempt_type='Connected:Relevant') AS relevant,
+        SUM(attempt_type='Connected:Not Relevant') AS not_relevant,
+        SUM(attempt_type='Not Connected') AS not_connected,
+        SUM(attempt_type='N/A') AS not_available,
+        SUM(attempt_status='Store Visit Scheduled') AS scheduled_visit,
+        SUM(store_visit_status='Show') AS store_visit
         FROM {$wpdb->prefix}lcm_leads
         {$where}
         GROUP BY lead_date
@@ -653,7 +653,7 @@ public function get_campaign_detail_rows() {
             impressions,
             amount_spent
         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        {$where}  /* reuse same date filter on track_date */
+        {$where}  
         ORDER BY track_date
     ", ARRAY_A );
 
@@ -682,23 +682,23 @@ public function get_campaign_detail_rows() {
 
     // ─── Summary ──────────────────────────────────────────────────
     $summary = array_fill_keys([
-        'total_leads','relevant','not_relevant',
-        'not_connected','not_available',
-        'scheduled_visit','store_visit','connected'
+    'total_leads','relevant','not_relevant',
+    'not_connected','not_available',
+    'scheduled_visit','store_visit','connected'
     ], 0 );
 
     foreach ( $rows as $r ) {
-        $summary['total_leads']     += $r['total_leads'];
-        $summary['relevant']        += $r['relevant'];
-        $summary['not_relevant']    += $r['not_relevant'];
-        $summary['not_connected']   += $r['not_connected'];
-        $summary['not_available']   += $r['not_available'];
-        $summary['scheduled_visit'] += $r['scheduled_visit'];
-        $summary['store_visit']     += $r['store_visit'];
+    $summary['total_leads']     += (int) ( $r['total_leads']     ?? 0 );
+    $summary['relevant']        += (int) ( $r['relevant']        ?? 0 );
+    $summary['not_relevant']    += (int) ( $r['not_relevant']    ?? 0 );
+    $summary['not_connected']   += (int) ( $r['not_connected']   ?? 0 );
+    $summary['not_available']   += (int) ( $r['not_available']   ?? 0 );
+    $summary['scheduled_visit'] += (int) ( $r['scheduled_visit'] ?? 0 );
+    $summary['store_visit']     += (int) ( $r['store_visit']     ?? 0 );
     }
     $summary['connected'] = $summary['relevant'] + $summary['not_relevant'];
 
-    // ─── Pagination ───────────────────────────────────────────────
+ 
     $total_days = count( $rows );
     $rows       = array_slice( $rows, $offset, $per_page );
 
