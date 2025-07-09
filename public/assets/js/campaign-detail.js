@@ -2,7 +2,7 @@ jQuery(function ($) {
   const AJAX = LCM.ajax_url;
   const NONCE = LCM.nonce;
   const CAMPAIGN_ID = LCM.campaign_id;
-let rows = [];
+  let rows = [];
   // Mount point
   const $mount = $("#lcm-campaign-detail");
   $mount.html(`
@@ -107,7 +107,7 @@ let rows = [];
 
     rows.sort(sortBy(col, dir));
     applySortingIcons("campaign-detail-table", col, dir);
-    renderRows(); // custom function that re-renders rows
+    renderRows(rows); // custom function that re-renders rows
   });
   // Fetch & render
   function reload() {
@@ -119,8 +119,8 @@ let rows = [];
       from,
       to,
     }).done((res) => {
-       const summary = res.data.summary;
-    rows = res.data.rows;
+      const summary = res.data.summary;
+      rows = res.data.rows;
       renderSummary(summary);
       renderRows(rows);
       applySortingIcons(
@@ -175,9 +175,9 @@ let rows = [];
   }
 
   // Build table rows
-  function renderRows(rows) {
+  function renderRows(data = []) {
     const $tb = $mount.find("tbody").empty();
-    rows.forEach((r) => {
+    data.forEach((r) => {
       const $tr = $("<tr>").data(r).appendTo($tb);
       // 1) Date
       $tr.append(`<td>${r.date}</td>`);
