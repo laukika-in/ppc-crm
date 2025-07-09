@@ -2,7 +2,7 @@ jQuery(function ($) {
   const AJAX = LCM.ajax_url;
   const NONCE = LCM.nonce;
   const CAMPAIGN_ID = LCM.campaign_id;
-
+let rows = [];
   // Mount point
   const $mount = $("#lcm-campaign-detail");
   $mount.html(`
@@ -119,8 +119,8 @@ jQuery(function ($) {
       from,
       to,
     }).done((res) => {
-      const { summary, rows } = res.data;
-      rows = res.data.rows;
+       const summary = res.data.summary;
+    rows = res.data.rows;
       renderSummary(summary);
       renderRows(rows);
       applySortingIcons(
