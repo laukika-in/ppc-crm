@@ -751,7 +751,11 @@ jQuery(function ($) {
   }
 
   // Render header
-  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
+  $thead.html(
+    "<tr>" +
+      cols.map((c) => `<th class="lcm-sortable">${c[1]}</th>`).join("") +
+      "</tr>"
+  );
 
   showPreloader();
   load(1).then(() => {
