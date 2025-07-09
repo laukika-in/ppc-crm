@@ -54,10 +54,6 @@ jQuery(function ($) {
   $("#dt-from,#dt-to").flatpickr({ dateFormat: "Y-m-d", allowInput: true });
 
   // State
-  let month = $("#dt-month").val(),
-    from = $("#dt-from").val(),
-    to = $("#dt-to").val(),
-    page = 1;
 
   // Show/hide preloader
   function togglePreloader(show) {
