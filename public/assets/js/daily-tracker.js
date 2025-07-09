@@ -43,7 +43,7 @@ jQuery(function ($) {
         <div class="spinner-border"></div>
       </div>
       <div class="table-responsive">
-        <table class="table table-bordered table-striped table-sm">
+        <table id="lcm-daily-tracker" class="table table-bordered table-striped table-sm">
           <thead>
             <tr>
              <th class="lcm-sortable" data-sort="date">Date <span class="lcm-clear-sort">×</span></th>
@@ -97,6 +97,11 @@ jQuery(function ($) {
         const { summary, rows, total_days } = res.data;
         renderSummary(summary);
         renderRows(rows);
+        applySortingIcons(
+          "lcm-daily-tracker",
+          currentSort?.col,
+          currentSort?.dir
+        );
         renderPager(total_days);
       });
   }
