@@ -273,9 +273,11 @@ jQuery(function ($) {
   }
 
   function applySortingIcons(tableId, col, dir) {
-    $(`#${tableId} th`).removeClass(
-      "lcm-sort-asc lcm-sort-desc lcm-sort-active"
-    );
+    $(`#${tableId} th`)
+      .removeClass("lcm-sort-asc lcm-sort-desc lcm-sort-active")
+      .find(".lcm-clear-sort")
+      .remove();
+
     const $th = $(`#${tableId} th[data-sort="${col}"]`);
     $th.addClass(
       "lcm-sort-active " + (dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc")
@@ -290,6 +292,7 @@ jQuery(function ($) {
   }
   $thead.on("click", "th.lcm-sortable", function () {
     const col = $(this).data("sort");
+
     if (!col) return;
 
     if (currentSortCol === col) {
@@ -305,15 +308,7 @@ jQuery(function ($) {
     $tbody.html(sorted.map(rowHtml).join(""));
     applySortingIcons("lcm-campaign-table", currentSortCol, currentSortDir);
   });
-  $("#lcm-campaign-table").on("click", ".lcm-clear-sort", function (e) {
-    e.stopPropagation(); // Don't trigger the column sort
-    currentSort = { col: "", dir: "" };
-    $(`#lcm-lead-table th`).removeClass("lcm-sort-asc lcm-sort-desc");
-    $(this).remove();
 
-    // Re-load default unsorted rows
-    load(page);
-  });
   $thead.on("click", ".lcm-clear-sort", function (e) {
     e.stopPropagation(); // prevent triggering sort again
     currentSortCol = "";
