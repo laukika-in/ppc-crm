@@ -382,9 +382,13 @@ jQuery(function ($) {
       currentSort.col === col && currentSort.dir === "asc" ? "desc" : "asc";
     currentSort = { col, dir };
 
-    rows.sort(sortBy(col, dir));
-    applySortingIcons("lcm-lead-table", col, dir);
-    renderRows(); // custom function that re-renders rows
+    if (cachedPages[page]) {
+      cachedPages[page].sort(sortBy(col, dir));
+      $tbody.html(cachedPages[page].map(rowHtml).join(""));
+      initSearchable($tbody);
+      LCM_initFlatpickr($tbody);
+      applySortingIcons("lcm-lead-table", col, dir);
+    }
   });
 
   function prefetchAllPages() {
