@@ -246,7 +246,10 @@
   content: " ▼";
   font-size: 10px;
 }
-
+th.lcm-sortable.lcm-sort-asc,
+th.lcm-sortable.lcm-sort-desc {
+  border: 2px solid #ec2121;
+}
 .lcm-preloader {
   text-align: center;
   padding: 40px;
@@ -267,6 +270,7 @@
 .lcm-clear-sort {
   font-weight: bold;
   color: #888;
+  float: right;
 }
 .lcm-clear-sort:hover {
   color: red;

@@ -15,7 +15,8 @@ jQuery(function ($) {
   let cachedPages = {};
   let lastTotalPages = 1;
   let page = 1;
-
+  let currentSortCol = "";
+  let currentSortDir = "asc";
   // ─── 3) Column definitions ────────────────────────────────────────────────
   const allCols = [
     ["_action", "Action", "action"],
@@ -76,7 +77,14 @@ jQuery(function ($) {
   const $filterConnected = $("#lcm-filter-connected-camp");
   const $filterDateFrom = $("#lcm-filter-date-from");
   const $filterDateTo = $("#lcm-filter-date-to");
-  $thead.html("<tr>" + cols.map((c) => `<th>${c[1]}</th>`).join("") + "</tr>");
+  $thead.html(
+    "<tr>" +
+      cols
+        .map((c) => `<th data-sort="${c[0]}" class="lcm-sortable">${c[1]}</th>`)
+        .join("") +
+      "</tr>"
+  );
+
   // ─── 5) Filter state ─────────────────────────────────────────────────────
   let filterClientVal = IS_CLIENT ? CLIENT_ID : "";
   let filterMonthVal = "";
@@ -243,16 +251,21 @@ jQuery(function ($) {
 
   function sortBy(col, dir = "asc") {
     return function (a, b) {
-      let A = a[col],
-        B = b[col];
-      let isNum = !isNaN(parseFloat(A)) && isFinite(A);
+      let A = a[col] ?? "";
+      let B = b[col] ?? "";
+
+      const isNum =
+        !isNaN(parseFloat(A)) &&
+        isFinite(A) &&
+        !isNaN(parseFloat(B)) &&
+        isFinite(B);
 
       if (isNum) {
         A = parseFloat(A);
         B = parseFloat(B);
       } else {
-        A = A.toLowerCase?.() || "";
-        B = B.toLowerCase?.() || "";
+        A = String(A).toLowerCase();
+        B = String(B).toLowerCase();
       }
 
       return (A < B ? -1 : A > B ? 1 : 0) * (dir === "asc" ? 1 : -1);
@@ -260,10 +273,49 @@ jQuery(function ($) {
   }
 
   function applySortingIcons(tableId, col, dir) {
-    $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
-    const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
-    $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
+    $(`#${tableId} th`).removeClass(
+      "lcm-sort-asc lcm-sort-desc lcm-sort-active"
+    );
+    const $th = $(`#${tableId} th[data-sort="${col}"]`);
+    $th.addClass(
+      "lcm-sort-active " + (dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc")
+    );
+
+    // Add clear icon
+    if (!$th.find(".lcm-clear-sort").length) {
+      $th.append(
+        `<span class="lcm-clear-sort ms-1" title="Clear sort" style="cursor:pointer">×</span>`
+      );
+    }
   }
+  $thead.on("click", "th.lcm-sortable", function () {
+    const col = $(this).data("sort");
+    if (!col) return;
+
+    if (currentSortCol === col) {
+      currentSortDir = currentSortDir === "asc" ? "desc" : "asc";
+    } else {
+      currentSortCol = col;
+      currentSortDir = "asc";
+    }
+
+    // Sort and re-render table from cached data
+    const rows = cachedPages[page] || [];
+    const sorted = [...rows].sort(sortBy(currentSortCol, currentSortDir));
+    $tbody.html(sorted.map(rowHtml).join(""));
+    applySortingIcons("lcm-campaign-table", currentSortCol, currentSortDir);
+  });
+  $thead.on("click", ".lcm-clear-sort", function (e) {
+    e.stopPropagation(); // prevent triggering sort again
+    currentSortCol = "";
+    currentSortDir = "asc";
+    $thead.find("th").removeClass("lcm-sort-asc lcm-sort-desc lcm-sort-active");
+    $(this).remove();
+
+    // Reload from cache (unsorted)
+    const rows = cachedPages[page] || [];
+    $tbody.html(rows.map(rowHtml).join(""));
+  });
 
   function load(p = 1) {
     showPreloader();
