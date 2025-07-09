@@ -5,19 +5,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class PPC_CRM_Public {
 
-    public function __construct() {
+  public function __construct() {
         add_action( 'wp_enqueue_scripts', [ $this, 'register_assets' ] );
         add_shortcode( 'lcm_lead_table',     [ $this, 'shortcode_lead_table' ] );
         add_shortcode( 'lcm_campaign_table', [ $this, 'shortcode_campaign_table' ] );
         add_shortcode('campaign_detail_page', [$this, 'render_campaign_detail']);
         add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
         add_shortcode( 'lcm_daily_tracker', [ $this, 'shortcode_daily_tracker' ] );
-    }
+  }
 
     /**
      * Register and enqueue all necessary CSS/JS assets
      */
-    public function register_assets() {
+public function register_assets() {
         $base = plugin_dir_url( __FILE__ );
 
         // Bootstrap CSS & JS
@@ -107,19 +107,21 @@ class PPC_CRM_Public {
         wp_register_script(
             'lcm-campaign-detail',
             $base . 'assets/js/campaign-detail.js',
-            [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
+                [ 'jquery', 'bootstrap-js', 'flatpickr-init', 'flatpickr-monthselect-js' ],
+
             PPC_CRM_VERSION,
             true
         );
         
         // Lead table script
         wp_register_script(
-            'lcm-lead-table',
-            $base . 'assets/js/daily-tracker.js',
-            [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
-            PPC_CRM_VERSION,
-            true
-        );
+          'lcm-daily-tracker',
+          $base . 'assets/js/daily-tracker.js',
+               [ 'jquery', 'bootstrap-js', 'flatpickr-init', 'flatpickr-monthselect-js' ],
+
+          PPC_CRM_VERSION,
+          true
+      );
 
          wp_register_style(
         'select2-css',
@@ -134,21 +136,21 @@ class PPC_CRM_Public {
         '4.1.0',
         true
     );
- wp_register_style(
-        'select2-css',
-        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
-        [],
-        '4.1.0'
-    );
-    wp_register_script(
-        'select2-js',
-        'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
-        [ 'jquery' ],
-        '4.1.0',
-        true
-    );
+  wp_register_style(
+          'select2-css',
+          'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+          [],
+          '4.1.0'
+      );
+      wp_register_script(
+          'select2-js',
+          'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+          [ 'jquery' ],
+          '4.1.0',
+          true
+      );
  
-    }
+}
 
     /**
      * Shortcode: Lead Data Table
@@ -375,9 +377,7 @@ class PPC_CRM_Public {
         return $this->render_table( 'campaign' );
  }
 
-    /**
-     * Shared renderer for both tables
-     */
+ 
 private function render_table( string $which ): string {
         // Current user & role
         $user      = wp_get_current_user();
@@ -531,7 +531,7 @@ private function render_table( string $which ): string {
             <tbody></tbody>
         </table>
       </div>
-  </div>
+    </div>
 
         <!-- Delete Modal -->
         <div class="modal fade" id="lcmDelModal" tabindex="-1">
@@ -548,23 +548,23 @@ private function render_table( string $which ): string {
         </div>
         <?php
         return ob_get_clean();
-    }
+}
  
 public function shortcode_campaign_detail() {
-wp_enqueue_style( 'flatpickr-css' );
-wp_enqueue_style( 'flatpickr-monthselect-css' );      // ← add this
-wp_enqueue_script( 'flatpickr-js' );
-wp_enqueue_script( 'flatpickr-init' );
-wp_enqueue_script( 'flatpickr-monthselect-js' );      // ← and this
-wp_enqueue_script( 'lcm-campaign-detail' );
+  wp_enqueue_style( 'flatpickr-css' );
+  wp_enqueue_style( 'flatpickr-monthselect-css' );      // ← add this
+  wp_enqueue_script( 'flatpickr-js' );
+  wp_enqueue_script( 'flatpickr-init' );
+  wp_enqueue_script( 'flatpickr-monthselect-js' );      // ← and this
+  wp_enqueue_script( 'lcm-campaign-detail' );
 
-    wp_localize_script('lcm-campaign-detail', 'LCM', [
-      'ajax_url' => admin_url('admin-ajax.php'),
-      'nonce'    => wp_create_nonce('lcm_ajax'),
-      'campaign_id' => absint($_GET['campaign_id'] ?? 0),
-    ]); 
-  
-    return '<div id="lcm-campaign-detail"></div>';
+      wp_localize_script('lcm-campaign-detail', 'LCM', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('lcm_ajax'),
+        'campaign_id' => absint($_GET['campaign_id'] ?? 0),
+      ]); 
+    
+      return '<div id="lcm-campaign-detail"></div>';
 }
 
 // ─── add this method below shortcode_campaign_detail() ────────────
