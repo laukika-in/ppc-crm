@@ -3,10 +3,22 @@ jQuery(function ($) {
   const NONCE = LCM.nonce;
   const PER_PAGE = 32;
 
+  let filterCamp = "",
+    month = "",
+    from = "",
+    to = "",
+    page = 1;
+
   // Mount
   const $mount = $("#lcm-daily-tracker");
   $mount.html(`
     <div class="d-flex align-items-center mb-3">
+       <select id="dt-campaign" class="form-select form-select-sm me-2">
+        <option value="">All Campaigns</option>
+        ${LCM.campaigns
+          .map((c) => `<option value="${c[0]}">${c[1]}</option>`)
+          .join("")}
+      </select>
       <input id="dt-month" class="form-control form-control-sm me-2" type="month"/>
       <input id="dt-from"  class="form-control form-control-sm me-2" type="date"   />
       <input id="dt-to"    class="form-control form-control-sm"     type="date"   />
@@ -128,18 +140,49 @@ jQuery(function ($) {
     reload();
   });
 
-  // Filter handlers
-  $("#dt-month").on("change", () => {
-    month = $("#dt-month").val();
+  $("#dt-campaign").on("change", function () {
+    filterCamp = this.value;
     page = 1;
     reload();
   });
+
+  $("#dt-month").on("change", () => {
+    $("#dt-from,#dt-to").val("");
+    month = $("#dt-month").val();
+    from = to = "";
+    page = 1;
+    reload();
+  });
+
   $("#dt-from,#dt-to").on("change", () => {
+    $("#dt-month").val("");
+    month = "";
     from = $("#dt-from").val();
     to = $("#dt-to").val();
     page = 1;
     reload();
   });
+
+  // reload() → include campaign filter
+  function reload() {
+    togglePreloader(true);
+    $.getJSON(AJAX, {
+      action: "lcm_get_daily_tracker_rows",
+      nonce: NONCE,
+      campaign_id: filterCamp,
+      month,
+      from,
+      to,
+      page,
+      per_page: PER_PAGE,
+    })
+      .always(() => togglePreloader(false))
+      .done((res) => {
+        renderSummary(res.data.summary);
+        renderRows(res.data.rows);
+        renderPager(res.data.total_days);
+      });
+  }
 
   // Initial load
   reload();

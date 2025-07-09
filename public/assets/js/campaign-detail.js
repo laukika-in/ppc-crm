@@ -37,19 +37,24 @@ jQuery(function ($) {
 `);
 
   // Initialize Flatpickr
-  $("#camp-month").flatpickr({
-    plugins: [
-      new monthSelectPlugin({
-        shorthand: false,
-        dateFormat: "Y-m",
-        altFormat: "F Y",
-      }),
-    ],
-    defaultDate: new Date(),
+  // Month → clear date range
+  $("#camp-month").on("change", () => {
+    // Clear the from/to inputs
+    $("#camp-from, #camp-to").val("");
+    month = $("#camp-month").val();
+    from = "";
+    to = "";
+    reload();
   });
-  $("#camp-from, #camp-to").flatpickr({
-    dateFormat: "Y-m-d",
-    allowInput: true,
+
+  // From/To → clear month
+  $("#camp-from, #camp-to").on("change", () => {
+    // Clear the month input
+    $("#camp-month").val("");
+    month = "";
+    from = $("#camp-from").val();
+    to = $("#camp-to").val();
+    reload();
   });
 
   // State

@@ -577,11 +577,20 @@ public function shortcode_daily_tracker(): string {
     wp_enqueue_script( 'flatpickr-js' );
     wp_enqueue_script( 'flatpickr-init' );
     wp_enqueue_script( 'lcm-daily-tracker' );
-
+  $camp_posts = get_posts([
+      'post_type'   => 'lcm_campaign',
+      'numberposts' => -1,
+      'fields'      => 'ids',
+    ]);
+    $campaigns = array_map(
+      fn($id) => [ $id, get_the_title($id) ],
+      $camp_posts
+    );
     // localize for JS
     wp_localize_script( 'lcm-daily-tracker', 'LCM', [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('lcm_ajax'),
+          'campaigns'  => $campaigns,
     ] );
 
     // mount point

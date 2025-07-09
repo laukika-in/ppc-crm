@@ -769,6 +769,10 @@ public function get_daily_tracker_rows() {
     if ( $to ) {
         $where .= $wpdb->prepare( " AND lead_date <= %s", $to );
     }
+ $filter_camp = absint( $_GET['campaign_id'] ?? 0 );
+    if ( $filter_camp ) {
+        $where .= $wpdb->prepare( " AND campaign_id = %d", $filter_camp );
+    }
 
     // ③ Lead aggregates by day
     $leads = $wpdb->get_results( "
