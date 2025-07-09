@@ -48,7 +48,7 @@ jQuery(function ($) {
 
   <!-- Data table -->
   <div class="table-responsive">
-    <table class="table table-bordered table-striped table-hover align-middle">
+    <table id="campaign-detail-table" class="table table-bordered table-striped table-hover align-middle">
      <thead>
   <tr>
     <th data-sort="date" class="lcm-sortable">Date <span class="sort-clear">×</span></th>
