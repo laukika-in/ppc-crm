@@ -7,11 +7,46 @@ jQuery(function ($) {
   const $mount = $("#lcm-campaign-detail");
   $mount.html(`
   <div class="d-flex align-items-center mb-3 lcm-detail-filters">
-    <input id="camp-month" class="form-control form-control-sm me-2" type="month"/>
-    <input id="camp-from"  class="form-control form-control-sm me-2" type="date" placeholder="From"/>
-    <input id="camp-to" class="form-control form-control-sm" type="date" placeholder="To"/>
+
+    <!-- Month filter + clear -->
+    <div class="input-group input-group-sm me-2" id="filter-month-group">
+      <input id="camp-month"
+             class="form-control form-control-sm"
+             type="month"
+             value="${new Date().toISOString().slice(0, 7)}" />
+      <button class="btn btn-outline-secondary clear-filter"
+              data-filter="month">&times;</button>
+    </div>
+
+    <!-- From date filter + clear -->
+    <div class="input-group input-group-sm me-2" id="filter-from-group">
+      <input id="camp-from"
+             class="form-control form-control-sm"
+             type="date"
+             placeholder="From" />
+      <button class="btn btn-outline-secondary clear-filter"
+              data-filter="from">&times;</button>
+    </div>
+
+    <!-- To date filter + clear -->
+    <div class="input-group input-group-sm" id="filter-to-group">
+      <input id="camp-to"
+             class="form-control form-control-sm"
+             type="date"
+             placeholder="To" />
+      <button class="btn btn-outline-secondary clear-filter"
+              data-filter="to">&times;</button>
+    </div>
+
   </div>
+
+  <!-- Pagination (will show only if rows > 32) -->
+  <nav class="mb-3"><ul class="pagination"></ul></nav>
+
+  <!-- Summary placeholder -->
   <div class="lcm-summary row mb-4"></div>
+
+  <!-- Data table -->
   <div class="table-responsive">
     <table class="table table-bordered table-striped table-hover align-middle">
       <thead>
@@ -206,6 +241,25 @@ jQuery(function ($) {
       // Optionally refresh campaign totals here
       reload();
     });
+  });
+  $mount.on("click", ".clear-filter", function () {
+    const f = $(this).data("filter");
+    switch (f) {
+      case "month":
+        $("#camp-month").val("");
+        month = "";
+        break;
+      case "from":
+        $("#camp-from").val("");
+        from = "";
+        break;
+      case "to":
+        $("#camp-to").val("");
+        to = "";
+        break;
+    }
+    page = 1;
+    reload();
   });
 
   // Initial load
