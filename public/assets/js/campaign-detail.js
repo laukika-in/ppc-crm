@@ -164,8 +164,7 @@ jQuery(function ($) {
   function renderRows(rows) {
     const $tb = $mount.find("tbody").empty();
     rows.forEach((r) => {
-      const $tr = $("<tr data-date="${r.reach}" data-row-id="${r.row_id}" >").data(r).appendTo($tb);
-
+      const $tr = $("<tr>").data(r).appendTo($tb);
       // 1) Date
       $tr.append(`<td>${r.date}</td>`);
 
