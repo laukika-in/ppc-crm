@@ -120,7 +120,7 @@ jQuery(function ($) {
       to,
     }).done((res) => {
       const { summary, rows } = res.data;
-      rows = newRows;
+      rows = res.data.rows;
       renderSummary(summary);
       renderRows(rows);
       applySortingIcons(
