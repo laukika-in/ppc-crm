@@ -746,7 +746,7 @@ public function get_daily_tracker_rows() {
     global $wpdb;
 
     // ① Read filters + pagination
-     $campaign_id = absint( $_GET['campaign_id'] ?? 0 );
+    $campaign_id = absint( $_GET['campaign_id'] ?? 0 );
     $month       = sanitize_text_field( $_GET['month'] ?? '' );
     $from        = sanitize_text_field( $_GET['from']  ?? '' );
     $to          = sanitize_text_field( $_GET['to']    ?? '' );
@@ -787,7 +787,7 @@ public function get_daily_tracker_rows() {
         FROM {$wpdb->prefix}lcm_leads
         {$where}
         GROUP BY lead_date
-        ORDER BY lead_date
+        ORDER BY lead_date DESC
     ", ARRAY_A );
 
     // ④ Tracker data by day
@@ -799,7 +799,7 @@ public function get_daily_tracker_rows() {
             amount_spent
         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
         {$where}      /* same date filter on track_date */
-        ORDER BY track_date
+        ORDER BY track_date DESC
     ", ARRAY_A );
 
     // ⑤ Merge leads + trackers
