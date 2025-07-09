@@ -646,14 +646,15 @@ public function get_campaign_detail_rows() {
     ", ARRAY_A );
 
     // ─── Pull trackers/day ────────────────────────────────────────
+    $track_where = str_replace('lead_date', 'track_date', $where);
     $trackers = $wpdb->get_results( "
         SELECT
-            track_date AS date,
+            track_date   AS date,
             reach,
             impressions,
             amount_spent
         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        {$where}  
+        {$track_where}
         ORDER BY track_date
     ", ARRAY_A );
 
