@@ -46,18 +46,18 @@ jQuery(function ($) {
         <table id="lcm-daily-tracker" class="table table-bordered table-striped table-sm">
           <thead>
             <tr>
-             <th class="lcm-sortable" data-sort="date">Date <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="reach">Reach <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="impressions">Impr <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="amount_spent">Spent <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="total_leads">Leads <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="relevant">Relevant <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="not_relevant">Not Relevant <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="not_connected">Not Connected <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="not_available">N/A <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="connected_total">Connected <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="scheduled_visit">Sched Visit <span class="lcm-clear-sort">×</span></th>
-    <th class="lcm-sortable" data-sort="store_visit">Store Visit <span class="lcm-clear-sort">×</span></th>
+             <th class="lcm-sortable" data-sort="date">Date</th>
+    <th class="lcm-sortable" data-sort="reach">Reach</th>
+    <th class="lcm-sortable" data-sort="impressions">Impr</th>
+    <th class="lcm-sortable" data-sort="amount_spent">Spent</th>
+    <th class="lcm-sortable" data-sort="total_leads">Leads</th>
+    <th class="lcm-sortable" data-sort="relevant">Relevant</th>
+    <th class="lcm-sortable" data-sort="not_relevant">Not Relevant</th>
+    <th class="lcm-sortable" data-sort="not_connected">Not Connected</th>
+    <th class="lcm-sortable" data-sort="not_available">N/A</th>
+    <th class="lcm-sortable" data-sort="connected_total">Connected</th>
+    <th class="lcm-sortable" data-sort="scheduled_visit">Sched Visit</th>
+    <th class="lcm-sortable" data-sort="store_visit">Store Visit</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -96,7 +96,11 @@ jQuery(function ($) {
       .done((res) => {
         const { summary, rows, total_days } = res.data;
         renderSummary(summary);
-        renderRows(rows);
+        let sortedRows = [...rows];
+        if (currentSort) {
+          sortedRows.sort(sortBy(currentSort.col, currentSort.dir));
+        }
+        renderRows(sortedRows);
         applySortingIcons(
           "lcm-daily-tracker",
           currentSort?.col,
@@ -162,16 +166,23 @@ jQuery(function ($) {
     };
   }
   function applySortingIcons(tableId, col, dir) {
-    $(`#${tableId} th`).removeClass(
-      "lcm-sort-asc lcm-sort-desc lcm-sort-active"
-    );
+    $(`#${tableId} th`)
+      .removeClass("lcm-sort-asc lcm-sort-desc lcm-sort-active")
+      .find(".lcm-clear-sort")
+      .remove();
 
-    if (!col) return; // No sort to apply
+    if (!col) return;
 
     const $th = $(`#${tableId} th[data-sort="${col}"]`);
     $th.addClass(
       "lcm-sort-active " + (dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc")
     );
+
+    if (!$th.find(".lcm-clear-sort").length) {
+      $th.append(
+        `<span class="lcm-clear-sort ms-1" title="Clear sort" style="cursor:pointer">×</span>`
+      );
+    }
   }
 
   $mount.on("click", "th.lcm-sortable", function () {
