@@ -10,8 +10,8 @@ class PPC_CRM_Public {
         add_shortcode( 'lcm_lead_table',     [ $this, 'shortcode_lead_table' ] );
         add_shortcode( 'lcm_campaign_table', [ $this, 'shortcode_campaign_table' ] );
         add_shortcode('campaign_detail_page', [$this, 'render_campaign_detail']);
-add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
-
+        add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
+        add_shortcode( 'lcm_daily_tracker', [ $this, 'shortcode_daily_tracker' ] );
     }
 
     /**
@@ -111,6 +111,16 @@ add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
             PPC_CRM_VERSION,
             true
         );
+        
+        // Lead table script
+        wp_register_script(
+            'lcm-lead-table',
+            $base . 'assets/js/daily-tracker.js',
+            [ 'jquery', 'bootstrap-js', 'flatpickr-init' ],
+            PPC_CRM_VERSION,
+            true
+        );
+
          wp_register_style(
         'select2-css',
         'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
@@ -555,6 +565,27 @@ wp_enqueue_script( 'lcm-campaign-detail' );
     ]); 
   
     return '<div id="lcm-campaign-detail"></div>';
+}
+
+// ─── add this method below shortcode_campaign_detail() ────────────
+public function shortcode_daily_tracker(): string {
+    // enqueue styles + scripts
+    wp_enqueue_style ( 'bootstrap-css' );
+    wp_enqueue_style ( 'bootstrap-icons' );
+    wp_enqueue_style ( 'flatpickr-css' );
+    wp_enqueue_script( 'bootstrap-js' );
+    wp_enqueue_script( 'flatpickr-js' );
+    wp_enqueue_script( 'flatpickr-init' );
+    wp_enqueue_script( 'lcm-daily-tracker' );
+
+    // localize for JS
+    wp_localize_script( 'lcm-daily-tracker', 'LCM', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('lcm_ajax'),
+    ] );
+
+    // mount point
+    return '<div id="lcm-daily-tracker"></div>';
 }
 
 }
