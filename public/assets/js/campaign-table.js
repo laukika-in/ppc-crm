@@ -305,6 +305,15 @@ jQuery(function ($) {
     $tbody.html(sorted.map(rowHtml).join(""));
     applySortingIcons("lcm-campaign-table", currentSortCol, currentSortDir);
   });
+  $("#lcm-campaign-table").on("click", ".lcm-clear-sort", function (e) {
+    e.stopPropagation(); // Don't trigger the column sort
+    currentSort = { col: "", dir: "" };
+    $(`#lcm-lead-table th`).removeClass("lcm-sort-asc lcm-sort-desc");
+    $(this).remove();
+
+    // Re-load default unsorted rows
+    load(page);
+  });
   $thead.on("click", ".lcm-clear-sort", function (e) {
     e.stopPropagation(); // prevent triggering sort again
     currentSortCol = "";
