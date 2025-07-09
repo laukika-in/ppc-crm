@@ -49,23 +49,24 @@ jQuery(function ($) {
   <!-- Data table -->
   <div class="table-responsive">
     <table class="table table-bordered table-striped table-hover align-middle">
-      <thead>
-        <tr>
-         <th data-sort="date" class="lcm-sortable">Date</th>
-          <th data-sort="reach" class="lcm-sortable">Reach</th>
-          <th data-sort="impressions" class="lcm-sortable">Impression</th>
-          <th data-sort="amount_spent" class="lcm-sortable">Amount Spent</th>
-          <th data-sort="total_leads" class="lcm-sortable">Total Leads</th>
-          <th>Relevant</th>
-          <th>Not Relevant</th>
-          <th>Not Connected</th>
-          <th>N/A</th>
-          <th>Total Connected</th>
-          <th>Scheduled Visit</th>
-          <th>Store Visited</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+     <thead>
+  <tr>
+    <th data-sort="date" class="lcm-sortable">Date <span class="sort-clear">×</span></th>
+    <th data-sort="reach" class="lcm-sortable">Reach <span class="sort-clear">×</span></th>
+    <th data-sort="impressions" class="lcm-sortable">Impression <span class="sort-clear">×</span></th>
+    <th data-sort="amount_spent" class="lcm-sortable">Amount Spent <span class="sort-clear">×</span></th>
+    <th data-sort="total_leads" class="lcm-sortable">Total Leads <span class="sort-clear">×</span></th>
+    <th data-sort="relevant" class="lcm-sortable">Relevant <span class="sort-clear">×</span></th>
+    <th data-sort="not_relevant" class="lcm-sortable">Not Relevant <span class="sort-clear">×</span></th>
+    <th data-sort="not_connected" class="lcm-sortable">Not Connected <span class="sort-clear">×</span></th>
+    <th data-sort="not_available" class="lcm-sortable">N/A <span class="sort-clear">×</span></th>
+    <th data-sort="connected_total" class="lcm-sortable">Total Connected <span class="sort-clear">×</span></th>
+    <th data-sort="scheduled_visit" class="lcm-sortable">Scheduled Visit <span class="sort-clear">×</span></th>
+    <th data-sort="store_visit" class="lcm-sortable">Store Visited <span class="sort-clear">×</span></th>
+    <th>Actions</th>
+  </tr>
+</thead>
+
       <tbody></tbody>
     </table>
   </div>
@@ -121,6 +122,11 @@ jQuery(function ($) {
       const { summary, rows } = res.data;
       renderSummary(summary);
       renderRows(rows);
+      applySortingIcons(
+        "campaign-detail-table",
+        currentSort.col,
+        currentSort.dir
+      );
     });
   }
 
@@ -138,22 +144,26 @@ jQuery(function ($) {
   }
   function sortBy(col, dir = "asc") {
     return function (a, b) {
-      let A = a[col],
-        B = b[col];
-      let isNum = !isNaN(parseFloat(A)) && isFinite(A);
+      let A = a[col] ?? "";
+      let B = b[col] ?? "";
+
+      const isNum =
+        !isNaN(parseFloat(A)) &&
+        isFinite(A) &&
+        !isNaN(parseFloat(B)) &&
+        isFinite(B);
 
       if (isNum) {
         A = parseFloat(A);
         B = parseFloat(B);
       } else {
-        A = A.toLowerCase?.() || "";
-        B = B.toLowerCase?.() || "";
+        A = String(A).toLowerCase();
+        B = String(B).toLowerCase();
       }
 
       return (A < B ? -1 : A > B ? 1 : 0) * (dir === "asc" ? 1 : -1);
     };
   }
-
   function applySortingIcons(tableId, col, dir) {
     $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
     const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
@@ -359,6 +369,11 @@ jQuery(function ($) {
     $row.find(".edit-tracker").removeClass("d-none");
     $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
     $row.removeClass("table-warning shadow-sm");
+  });
+  $mount.on("click", ".sort-clear", function (e) {
+    e.stopPropagation();
+    currentSort = { col: "date", dir: "desc" }; // or null if you want no sort
+    reload();
   });
   // Initial load
   reload();
