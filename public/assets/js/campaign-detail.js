@@ -165,7 +165,10 @@ jQuery(function ($) {
     };
   }
   function applySortingIcons(tableId, col, dir) {
-    $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
+    $(`#${tableId} th`)
+      .removeClass("lcm-sort-asc lcm-sort-desc")
+      .find(".lcm-clear-sort")
+      .remove();
     const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
     $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
   }

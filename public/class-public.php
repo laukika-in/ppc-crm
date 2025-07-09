@@ -573,12 +573,15 @@ public function shortcode_campaign_detail() {
  
 public function shortcode_daily_tracker(): string {
     // enqueue styles + scripts
-    wp_enqueue_style ( 'bootstrap-css' );
-    wp_enqueue_style ( 'bootstrap-icons' );
-    wp_enqueue_style ( 'flatpickr-css' );
-    wp_enqueue_script( 'bootstrap-js' );
-    wp_enqueue_script( 'flatpickr-js' );
-    wp_enqueue_script( 'flatpickr-init' );
+     wp_enqueue_style( 'bootstrap-css' );
+            wp_enqueue_style( 'bootstrap-icons' );
+            wp_enqueue_style( 'flatpickr-css' );
+            wp_enqueue_style( 'lcm-tables' );
+            wp_enqueue_script( 'bootstrap-js' );
+            wp_enqueue_script( 'flatpickr-js' );
+            wp_enqueue_script( 'flatpickr-init' ); 
+            wp_enqueue_style( 'select2-css' );
+            wp_enqueue_script( 'select2-js' );
     wp_enqueue_script( 'lcm-daily-tracker' );
   $camp_posts = get_posts([
       'post_type'   => 'lcm_campaign',
