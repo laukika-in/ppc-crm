@@ -99,7 +99,7 @@ jQuery(function ($) {
   let to = $("#camp-to").val();
   let currentSort = { col: "date", dir: "desc" }; // default sort
 
-  $("#campaign-detail-table").on("click", "th.lcm-sortable", function () {
+  $mount.on("click", "th.lcm-sortable", function () {
     const col = $(this).data("sort");
     const dir =
       currentSort.col === col && currentSort.dir === "asc" ? "desc" : "asc";

@@ -275,3 +275,15 @@ th.lcm-sortable.lcm-sort-desc {
 .lcm-clear-sort:hover {
   color: red;
 }
+th.lcm-sortable .sort-clear {
+  visibility: hidden;
+  margin-left: 4px;
+  color: #999;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+th.lcm-sortable.lcm-sort-asc .sort-clear,
+th.lcm-sortable.lcm-sort-desc .sort-clear {
+  visibility: visible;
+}
