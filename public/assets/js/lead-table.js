@@ -353,16 +353,21 @@ jQuery(function ($) {
   }
   function sortBy(col, dir = "asc") {
     return function (a, b) {
-      let A = a[col],
-        B = b[col];
-      let isNum = !isNaN(parseFloat(A)) && isFinite(A);
+      let A = a[col] ?? "";
+      let B = b[col] ?? "";
+
+      const isNum =
+        !isNaN(parseFloat(A)) &&
+        isFinite(A) &&
+        !isNaN(parseFloat(B)) &&
+        isFinite(B);
 
       if (isNum) {
         A = parseFloat(A);
         B = parseFloat(B);
       } else {
-        A = A.toLowerCase?.() || "";
-        B = B.toLowerCase?.() || "";
+        A = String(A).toLowerCase();
+        B = String(B).toLowerCase();
       }
 
       return (A < B ? -1 : A > B ? 1 : 0) * (dir === "asc" ? 1 : -1);
