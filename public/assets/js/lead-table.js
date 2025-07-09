@@ -374,6 +374,18 @@ jQuery(function ($) {
     const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
     $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
   }
+  let currentSort = { col: "date", dir: "desc" }; // default sort
+
+  $("#lcm-lead-table").on("click", "th.lcm-sortable", function () {
+    const col = $(this).data("sort");
+    const dir =
+      currentSort.col === col && currentSort.dir === "asc" ? "desc" : "asc";
+    currentSort = { col, dir };
+
+    rows.sort(sortBy(col, dir));
+    applySortingIcons("lcm-lead-table", col, dir);
+    renderRows(); // custom function that re-renders rows
+  });
 
   function prefetchAllPages() {
     for (let p = 2; p <= lastTotalPages; p++) {
