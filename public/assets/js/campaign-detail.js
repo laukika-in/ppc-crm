@@ -106,7 +106,7 @@ jQuery(function ($) {
     currentSort = { col, dir };
 
     rows.sort(sortBy(col, dir));
-    applySortingIcons("campaign-detail-table", col, dir);
+
     renderRows(rows); // custom function that re-renders rows
   });
   // Fetch & render
