@@ -375,10 +375,22 @@ jQuery(function ($) {
   }
 
   function applySortingIcons(tableId, col, dir) {
-    $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
+    const $ths = $(`#${tableId} th`);
+    $ths
+      .removeClass("lcm-sort-asc lcm-sort-desc")
+      .find(".lcm-clear-sort")
+      .remove();
+
+    const $active = $ths.filter(`[data-sort="${col}"]`);
     const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
-    $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
+    $active.addClass(className);
+
+    // Add a clear sort icon (×)
+    $active.append(
+      `<span class="lcm-clear-sort" style="cursor:pointer; margin-left:5px;">&times;</span>`
+    );
   }
+
   let currentSort = { col: "date", dir: "desc" }; // default sort
 
   $("#lcm-lead-table").on("click", "th.lcm-sortable", function () {
@@ -770,7 +782,15 @@ jQuery(function ($) {
       }
     }, 500);
   }
+  $("#lcm-lead-table").on("click", ".lcm-clear-sort", function (e) {
+    e.stopPropagation(); // Don't trigger the column sort
+    currentSort = { col: "", dir: "" };
+    $(`#lcm-lead-table th`).removeClass("lcm-sort-asc lcm-sort-desc");
+    $(this).remove();
 
+    // Re-load default unsorted rows
+    load(page);
+  });
   // Render header
   $thead.html(
     "<tr>" +

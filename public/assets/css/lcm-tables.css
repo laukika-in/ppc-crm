@@ -264,3 +264,10 @@
     transform: rotate(360deg);
   }
 }
+.lcm-clear-sort {
+  font-weight: bold;
+  color: #888;
+}
+.lcm-clear-sort:hover {
+  color: red;
+}
