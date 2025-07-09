@@ -375,6 +375,17 @@ jQuery(function ($) {
       load(p).then(() => hidePreloader());
     }
   });
+function sortByColumn(data, column, direction = 'asc') {
+  return data.sort((a, b) => {
+    let valA = a[column], valB = b[column];
+    if (typeof valA === 'string') valA = valA.toLowerCase();
+    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+    if (valA < valB) return direction === 'asc' ? -1 : 1;
+    if (valA > valB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
 
   // 9) Filter & UI event bindings (unchanged) ──────────────────────────
   if (!IS_CLIENT) {

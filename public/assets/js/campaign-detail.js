@@ -112,7 +112,54 @@ jQuery(function ($) {
       renderRows(rows);
     });
   }
+  function initSummaryEdit() {
+    $(".lcm-summary-field").each(function () {
+      const $wrap = $(this);
+      const $val = $wrap.find(".lcm-summary-val");
+      const key = $val.data("key");
+      const val = $val.text();
 
+      $wrap.append(
+        `<i class='ms-2 text-muted fas fa-edit edit-summary-icon' style='cursor:pointer'></i>`
+      );
+
+      $wrap.find(".edit-summary-icon").on("click", function () {
+        $val.replaceWith(
+          `<input type="number" class="form-control form-control-sm lcm-summary-input" data-key="${key}" value="${val}">`
+        );
+        $wrap.append(
+          `<button class='btn btn-sm btn-success ms-2 btn-save-summary'>Save</button>`
+        );
+        $wrap.append(
+          `<button class='btn btn-sm btn-outline-secondary ms-1 btn-cancel-summary'>Cancel</button>`
+        );
+
+        $wrap.find(".btn-save-summary").on("click", function () {
+          const newVal = $wrap.find(".lcm-summary-input").val();
+          $.post(
+            LCM.ajax_url,
+            {
+              action: "lcm_save_summary_field",
+              nonce: LCM.nonce,
+              campaign_id: LCM.campaign_id,
+              field: key,
+              value: newVal,
+            },
+            function () {
+              location.reload();
+            }
+          );
+        });
+
+        $wrap.find(".btn-cancel-summary").on("click", function () {
+          location.reload();
+        });
+      });
+    });
+  }
+  $(document).ready(function () {
+    initSummaryEdit();
+  });
   // Summary block
   function renderSummary(s) {
     const html = `

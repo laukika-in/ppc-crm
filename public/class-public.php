@@ -566,8 +566,7 @@ public function shortcode_campaign_detail() {
     
       return '<div id="lcm-campaign-detail"></div>';
 }
-
-// ─── add this method below shortcode_campaign_detail() ────────────
+ 
 public function shortcode_daily_tracker(): string {
     // enqueue styles + scripts
     wp_enqueue_style ( 'bootstrap-css' );

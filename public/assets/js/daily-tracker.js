@@ -138,7 +138,18 @@ jQuery(function ($) {
       }
     }
   }
+  function sortByColumn(data, column, direction = "asc") {
+    return data.sort((a, b) => {
+      let valA = a[column],
+        valB = b[column];
+      if (typeof valA === "string") valA = valA.toLowerCase();
+      if (typeof valB === "string") valB = valB.toLowerCase();
 
+      if (valA < valB) return direction === "asc" ? -1 : 1;
+      if (valA > valB) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
   // Clear‐filter buttons
   $mount.on("click", ".clear-filter", function () {
     const f = $(this).data("filter");
