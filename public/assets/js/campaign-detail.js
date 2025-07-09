@@ -98,6 +98,7 @@ jQuery(function ($) {
   let from = $("#camp-from").val();
   let to = $("#camp-to").val();
   let currentSort = { col: "date", dir: "desc" }; // default sort
+  let rows = [];
 
   $mount.on("click", "th.lcm-sortable", function () {
     const col = $(this).data("sort");
@@ -120,6 +121,7 @@ jQuery(function ($) {
       to,
     }).done((res) => {
       const { summary, rows } = res.data;
+      rows = fetchedRows;
       renderSummary(summary);
       renderRows(rows);
       applySortingIcons(
