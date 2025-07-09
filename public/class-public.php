@@ -551,11 +551,15 @@ private function render_table( string $which ): string {
 }
  
 public function shortcode_campaign_detail() {
-  wp_enqueue_style( 'flatpickr-css' );
-  wp_enqueue_style( 'flatpickr-monthselect-css' );      // ← add this
-  wp_enqueue_script( 'flatpickr-js' );
-  wp_enqueue_script( 'flatpickr-init' );
-  wp_enqueue_script( 'flatpickr-monthselect-js' );      // ← and this
+   wp_enqueue_style( 'bootstrap-css' );
+            wp_enqueue_style( 'bootstrap-icons' );
+            wp_enqueue_style( 'flatpickr-css' );
+            wp_enqueue_style( 'lcm-tables' );
+            wp_enqueue_script( 'bootstrap-js' );
+            wp_enqueue_script( 'flatpickr-js' );
+            wp_enqueue_script( 'flatpickr-init' ); 
+            wp_enqueue_style( 'select2-css' );
+            wp_enqueue_script( 'select2-js' );
   wp_enqueue_script( 'lcm-campaign-detail' );
 
       wp_localize_script('lcm-campaign-detail', 'LCM', [
