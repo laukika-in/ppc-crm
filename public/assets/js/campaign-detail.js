@@ -106,7 +106,11 @@ jQuery(function ($) {
     currentSort = { col, dir };
 
     rows.sort(sortBy(col, dir));
-
+    applySortingIcons(
+      "campaign-detail-table",
+      currentSort.col,
+      currentSort.dir
+    );
     renderRows(rows); // custom function that re-renders rows
   });
   // Fetch & render
@@ -123,11 +127,6 @@ jQuery(function ($) {
       rows = res.data.rows;
       renderSummary(summary);
       renderRows(rows);
-      applySortingIcons(
-        "campaign-detail-table",
-        currentSort.col,
-        currentSort.dir
-      );
     });
   }
 
