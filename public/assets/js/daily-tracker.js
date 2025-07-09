@@ -2,7 +2,7 @@ jQuery(function ($) {
   const AJAX = LCM.ajax_url;
   const NONCE = LCM.nonce;
   const PER_PAGE = 32;
-
+  let currentSort = null;
   // State
   let filterCamp = "",
     month = "",
@@ -46,10 +46,18 @@ jQuery(function ($) {
         <table class="table table-bordered table-striped table-sm">
           <thead>
             <tr>
-              <th>Date</th><th>Reach</th><th>Impr</th><th>Spent</th>
-              <th>Leads</th><th>Relevant</th><th>Not Relevant</th>
-              <th>Not Connected</th><th>N/A</th><th>Connected</th>
-              <th>Sched Visit</th><th>Store Visit</th>
+             <th class="lcm-sortable" data-sort="date">Date <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="reach">Reach <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="impressions">Impr <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="amount_spent">Spent <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="total_leads">Leads <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="relevant">Relevant <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="not_relevant">Not Relevant <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="not_connected">Not Connected <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="not_available">N/A <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="connected_total">Connected <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="scheduled_visit">Sched Visit <span class="lcm-clear-sort">×</span></th>
+    <th class="lcm-sortable" data-sort="store_visit">Store Visit <span class="lcm-clear-sort">×</span></th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -103,6 +111,7 @@ jQuery(function ($) {
       <div class="col">N/A: ${s.not_available}</div>
       <div class="col">Scheduled: ${s.scheduled_visit}</div>
       <div class="col">Visited: ${s.store_visit}</div>
+      
     `);
   }
 
@@ -127,28 +136,51 @@ jQuery(function ($) {
   }
   function sortBy(col, dir = "asc") {
     return function (a, b) {
-      let A = a[col],
-        B = b[col];
-      let isNum = !isNaN(parseFloat(A)) && isFinite(A);
+      let A = a[col] ?? "";
+      let B = b[col] ?? "";
+
+      const isNum =
+        !isNaN(parseFloat(A)) &&
+        isFinite(A) &&
+        !isNaN(parseFloat(B)) &&
+        isFinite(B);
 
       if (isNum) {
         A = parseFloat(A);
         B = parseFloat(B);
       } else {
-        A = A.toLowerCase?.() || "";
-        B = B.toLowerCase?.() || "";
+        A = String(A).toLowerCase();
+        B = String(B).toLowerCase();
       }
 
       return (A < B ? -1 : A > B ? 1 : 0) * (dir === "asc" ? 1 : -1);
     };
   }
-
   function applySortingIcons(tableId, col, dir) {
-    $(`#${tableId} th`).removeClass("lcm-sort-asc lcm-sort-desc");
-    const className = dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc";
-    $(`#${tableId} th[data-sort="${col}"]`).addClass(className);
+    $(`#${tableId} th`).removeClass(
+      "lcm-sort-asc lcm-sort-desc lcm-sort-active"
+    );
+
+    if (!col) return; // No sort to apply
+
+    const $th = $(`#${tableId} th[data-sort="${col}"]`);
+    $th.addClass(
+      "lcm-sort-active " + (dir === "asc" ? "lcm-sort-asc" : "lcm-sort-desc")
+    );
   }
 
+  $mount.on("click", "th.lcm-sortable", function () {
+    const col = $(this).data("sort");
+    const dir =
+      currentSort?.col === col && currentSort.dir === "asc" ? "desc" : "asc";
+    currentSort = { col, dir };
+    reload();
+  });
+  $mount.on("click", ".lcm-clear-sort", function (e) {
+    e.stopPropagation();
+    currentSort = null;
+    reload();
+  });
   function renderPager(totalDays) {
     const pages = Math.ceil(totalDays / PER_PAGE);
     const $ul = $mount.find(".pagination").empty();
