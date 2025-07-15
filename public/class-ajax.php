@@ -889,22 +889,81 @@ public function export_csv() {
     $tracker_table   = $wpdb->prefix . 'lcm_campaign_daily_tracker';
 
     header('Content-Type: text/csv; charset=utf-8');
+    $where = [];
+
+        if (current_user_can('client')) {
+            $user_id = get_current_user_id();
+            $where[] = "l.client_id = {$user_id}";
+        } elseif (!empty($_GET['client_id'])) {
+            $client_id = absint($_GET['client_id']);
+            $where[] = "l.client_id = {$client_id}";
+        }
+
+        if (!empty($_GET['from']) && !empty($_GET['to'])) {
+            $from = esc_sql($_GET['from']);
+            $to   = esc_sql($_GET['to']);
+            $where[] = "l.lead_date BETWEEN '{$from}' AND '{$to}'";
+        }
+
+        if (!empty($_GET['source'])) {
+            $where[] = $wpdb->prepare("l.source = %s", $_GET['source']);
+        }
+        if (!empty($_GET['client_type'])) {
+            $where[] = $wpdb->prepare("l.client_type = %s", $_GET['client_type']);
+        }
+        if (!empty($_GET['ad_name'])) {
+            $where[] = $wpdb->prepare("l.ad_name = %d", absint($_GET['ad_name']));
+        }
+        if (!empty($_GET['adset'])) {
+            $where[] = $wpdb->prepare("l.adset = %d", absint($_GET['adset']));
+        }
+        if (!empty($_GET['day'])) {
+            $where[] = $wpdb->prepare("l.day = %s", $_GET['day']);
+        }
+        if (!empty($_GET['attempt_type'])) {
+            $where[] = $wpdb->prepare("l.attempt_type = %s", $_GET['attempt_type']);
+        }
+        if (!empty($_GET['attempt_status'])) {
+            $where[] = $wpdb->prepare("l.attempt_status = %s", $_GET['attempt_status']);
+        }
+        if (!empty($_GET['store_visit_status'])) {
+            $where[] = $wpdb->prepare("l.store_visit_status = %s", $_GET['store_visit_status']);
+        }
+        if (!empty($_GET['occasion'])) {
+            $where[] = $wpdb->prepare("l.occasion = %s", $_GET['occasion']);
+        }
+        if (!empty($_GET['city'])) {
+            $where[] = $wpdb->prepare("l.city LIKE %s", '%' . $wpdb->esc_like($_GET['city']) . '%');
+        }
+        if (!empty($_GET['budget'])) {
+            $where[] = $wpdb->prepare("l.budget LIKE %s", '%' . $wpdb->esc_like($_GET['budget']) . '%');
+        }
+        if (!empty($_GET['product'])) {
+            $where[] = $wpdb->prepare("l.product_interest LIKE %s", '%' . $wpdb->esc_like($_GET['product']) . '%');
+        }
+        if (!empty($_GET['text'])) {
+            $text = '%' . $wpdb->esc_like($_GET['text']) . '%';
+            $where[] = "(l.lead_name LIKE '{$text}' OR l.phone LIKE '{$text}' OR l.email LIKE '{$text}')";
+        }
+
+        $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
     switch ($type) {
         case 'leads':
             header('Content-Disposition: attachment; filename="lcm-leads.csv"');
 
             $sql = "
-                SELECT
-                  l.*,
-                  u.display_name      AS client_label,
-                  c1.campaign_name    AS ad_name_label,
-                  c2.adset            AS adset_label
-                FROM {$leads_table} l
-                LEFT JOIN {$users_table}        u  ON u.ID          = l.client_id
-                LEFT JOIN {$campaigns_table}    c1 ON c1.post_id    = l.ad_name
-                LEFT JOIN {$campaigns_table}    c2 ON c2.post_id    = l.adset
-            ";
+                    SELECT
+                    l.*,
+                    u.display_name      AS client_label,
+                    c1.campaign_name    AS ad_name_label,
+                    c2.adset            AS adset_label
+                    FROM {$leads_table} l
+                    LEFT JOIN {$users_table}        u  ON u.ID          = l.client_id
+                    LEFT JOIN {$campaigns_table}    c1 ON c1.post_id    = l.ad_name
+                    LEFT JOIN {$campaigns_table}    c2 ON c2.post_id    = l.adset
+                    {$where_clause}
+                ";
 
             $rows = $wpdb->get_results($sql, ARRAY_A);
 

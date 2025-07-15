@@ -428,20 +428,26 @@ jQuery(function ($) {
   }
 
   $(document).on("click", ".export-csv-leads", () => {
-    console.log(
-      $("#filter-from").val(),
-      $("#filter-to").val(),
-      $("#filter-source").val(),
-      $("#filter-client-type").val()
-    );
     const params = new URLSearchParams({
       action: "lcm_export_csv",
       type: "leads",
       nonce: LCM.nonce,
-      source: $("#filter-source").val() || "",
-      client_type: $("#filter-client-type").val() || "",
-      from: $("#filter-from").val() || "",
-      to: $("#filter-to").val() || "",
+      from: $("#lcm-filter-date-from").val(),
+      to: $("#lcm-filter-date-to").val(),
+      source: $("#lcm-filter-source").val(),
+      client_type: $("#lcm-filter-client-type").val(),
+      ad_name: $("#lcm-filter-adname").val(),
+      adset: $("#lcm-filter-adset").val(),
+      day: $("#lcm-filter-day").val(),
+      attempt_type: $("#lcm-filter-attempt-type").val(),
+      attempt_status: $("#lcm-filter-attempt-status").val(),
+      store_visit_status: $("#lcm-filter-store-visit-status").val(),
+      occasion: $("#lcm-filter-occasion").val(),
+      city: $("#lcm-filter-city").val(),
+      text: $("#lcm-filter-text").val(),
+      budget: $("#lcm-filter-budget").val(),
+      product: $("#lcm-filter-product").val(),
+      client_id: $("#lcm-filter-client").val(),
     });
 
     window.location = `${LCM.ajax_url}?${params.toString()}`;
