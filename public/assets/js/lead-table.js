@@ -426,14 +426,14 @@ jQuery(function ($) {
       }, (p - 1) * 500);
     }
   }
-  // after your filter‑init code runs:
-  $(".lcm-filters").append(
-    '<button class="btn btn-sm btn-outline-secondary export-csv ms-auto">Export CSV</button>'
+  // 1) After you set up your filters, append export button:
+  $("#lcm-filter-city").after(
+    ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
   );
 
-  // clicking it fires the download
-  $(".lcm-filters").on("click", ".export-csv", () => {
-    window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=leads`;
+  // 2) Handle click with nonce
+  $(document).on("click", ".export-csv-leads", () => {
+    window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=leads&nonce=${LCM.nonce}`;
   });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
