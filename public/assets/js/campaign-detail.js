@@ -290,9 +290,15 @@ jQuery(function ($) {
     };
     $.post(AJAX, payload, null, "json")
       .done((res) => {
-        if (res.success) reload();
-        else alert("Save failed: " + (res.data?.message || "unknown"));
+        if (res.success) {
+          // re‑apply the returned row_id to the <tr>
+          $tr.attr("data-row-id", res.data.row_id);
+          reload();
+        } else {
+          alert("Save failed");
+        }
       })
+
       .fail(() => alert("Server error, please try again."));
   });
 
