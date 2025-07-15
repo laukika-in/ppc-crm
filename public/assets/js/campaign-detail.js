@@ -184,23 +184,29 @@ jQuery(function ($) {
       // 2) Reach (editable)
       $tr.append(`
       <td>
-        <span class="view reach">${r.reach}</span>
-        <input type="number" data-type="reach" class="edit editable reach form-control form-control-sm d-none" value="${r.reach}"/>
-      </td>`);
+  <span class="reach-display">${r.reach}</span>
+  <input type="number" data-type="reach"
+         class="reach-input form-control form-control-sm d-none"
+         value="${r.reach}"/>
+</td>`);
 
       // 3) Impressions (editable)
       $tr.append(`
       <td>
-        <span class="view impr">${r.impressions}</span>
-        <input type="number" data-type="impressions" class="edit editable impr form-control form-control-sm d-none" value="${r.impressions}"/>
-      </td>`);
+  <span class="impressions-display">${r.impressions}</span>
+  <input type="number" data-type="impressions"
+         class="impressions-input form-control form-control-sm d-none"
+         value="${r.impressions}"/>
+</td>`);
 
       // 4) Amount Spent (editable)
       $tr.append(`
       <td>
-        <span class="view spent">${r.amount_spent}</span>
-        <input type="number" data-type="amount_spent" step="0.01" class="edit editable spent form-control form-control-sm d-none" value="${r.amount_spent}"/>
-      </td>`);
+  <span class="spent-display">${r.amount_spent}</span>
+  <input type="number" step="0.01" data-type="amount_spent"
+         class="spent-input form-control form-control-sm d-none"
+         value="${r.amount_spent}"/>
+</td>`);
 
       // 5) Total Leads
       $tr.append(`<td>${r.total_leads}</td>`);
@@ -268,26 +274,31 @@ jQuery(function ($) {
     reload();
   });
 
+  // in campaign-detail.js, after renderRows()
   $mount.on("click", ".save-row", function () {
     const $tr = $(this).closest("tr");
-    const data = $tr.data();
-    data.reach = $tr.find(".edit.reach").val();
-    data.impressions = $tr.find(".edit.impr").val();
-    data.amount_spent = $tr.find(".edit.spent").val();
+    const date = $tr.data("date");
+    const reach = parseInt($tr.find(".reach-input").val(), 10) || 0;
+    const impressions = parseInt($tr.find(".impressions-input").val(), 10) || 0;
+    const amount_spent = parseFloat($tr.find(".spent-input").val()) || 0;
 
     $.post(AJAX, {
       action: "lcm_save_daily_tracker",
       nonce: NONCE,
       campaign_id: CAMPAIGN_ID,
-      date: data.date,
-      reach: data.reach,
-      impressions: data.impressions,
-      amount_spent: data.amount_spent,
-    }).done(() => {
-      // Optionally refresh campaign totals here
-      reload();
-    });
+      date,
+      reach,
+      impressions,
+      amount_spent,
+    })
+      .done(() => {
+        reload();
+      })
+      .fail(() => {
+        alert("Failed to save. Please try again.");
+      });
   });
+
   $mount.on("click", ".clear-filter", function () {
     const f = $(this).data("filter");
     switch (f) {
@@ -319,45 +330,6 @@ jQuery(function ($) {
     $row.addClass("table-warning shadow-sm");
   });
 
-  // Step 3: Save Button
-  $(document).on("click", ".save-row", function () {
-    const $row = $(this).closest("tr");
-    const rowId = $row.data("row-id");
-    const campaign_id = LCM.campaign_id;
-    const date = $row.data("date");
-
-    const reach = parseInt($row.find(".reach-input").val()) || 0;
-    const impressions = parseInt($row.find(".impressions-input").val()) || 0;
-    const spent = parseFloat($row.find(".spent-input").val()) || 0;
-
-    $.post(LCM.ajax_url, {
-      action: "lcm_save_daily_tracker",
-      nonce: LCM.nonce,
-      row_id: rowId,
-      campaign_id,
-      date,
-      reach,
-      impressions,
-      amount_spent: spent,
-    })
-      .done(function (response) {
-        if (response.success) {
-          $row.find(".reach-display").text(reach);
-          $row.find(".impressions-display").text(impressions);
-          $row.find(".spent-display").text(spent);
-          $row.find(".tracker-display").removeClass("d-none");
-          $row.find(".tracker-input").addClass("d-none");
-          $row.find(".edit-tracker").removeClass("d-none");
-          $row.find(".save-row").addClass("d-none");
-          $row.removeClass("table-warning shadow-sm");
-        } else {
-          alert("Save failed");
-        }
-      })
-      .fail(function () {
-        alert("Server error");
-      });
-  });
   $(document).on("click", ".cancel-tracker", function () {
     const $row = $(this).closest("tr");
     // Revert inputs to original display values
