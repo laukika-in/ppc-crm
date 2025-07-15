@@ -430,31 +430,30 @@ jQuery(function ($) {
     ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
   );
 
-  // 2) Handle click with nonce
   $(".export-csv-leads").on("click", function () {
     const from = $("#filter-from").val();
     const to = $("#filter-to").val();
+    const campaignId = $("#filter-campaign").val();
     const adName = $("#filter-adname").val();
     const adset = $("#filter-adset").val();
-    const campaign = $("#filter-campaign").val();
-    const clientId = $("#filter-client").val(); // visible only for admin
+    const clientId = $("#filter-client").val();
 
-    const filters = {
+    const query = {
       action: "lcm_export_csv",
       type: "leads",
       nonce: LCM.nonce,
     };
 
-    if (from) filters.from = from;
-    if (to) filters.to = to;
-    if (adName) filters.ad_name = adName;
-    if (adset) filters.adset = adset;
-    if (campaign) filters.campaign_id = campaign;
-    if (clientId) filters.client_id = clientId;
+    if (from) query.from = from;
+    if (to) query.to = to;
+    if (campaignId) query.campaign_id = campaignId;
+    if (adName) query.ad_name = adName;
+    if (adset) query.adset = adset;
+    if (clientId) query.client_id = clientId;
 
-    const queryString = new URLSearchParams(filters).toString();
-    const exportUrl = `${LCM.ajax_url}?${queryString}`;
-
+    const exportUrl = `${LCM.ajax_url}?${new URLSearchParams(
+      query
+    ).toString()}`;
     window.open(exportUrl, "_blank");
   });
 
