@@ -714,27 +714,47 @@ public function save_daily_tracker() {
     $this->verify();
     global $wpdb;
 
-    $campaign_id = absint($_POST['campaign_id']);
-    $date        = sanitize_text_field($_POST['date']);
-    $reach       = floatval($_POST['reach']);
-    $impressions = floatval($_POST['impressions']);
-    $spent       = floatval($_POST['amount_spent']);
+    // pull in everything
+    $campaign_id = absint( $_POST['campaign_id'] );
+    $date        = sanitize_text_field( $_POST['date'] );
+    $reach       = floatval( $_POST['reach'] );
+    $impressions = floatval( $_POST['impressions'] );
+    $spent       = floatval( $_POST['amount_spent'] );
+    $row_id      = isset( $_POST['row_id'] ) ? absint( $_POST['row_id'] ) : 0;
 
     $table = "{$wpdb->prefix}lcm_campaign_daily_tracker";
 
-    // upsert
-    $wpdb->replace(
-      $table,
-      [ 'campaign_id'=>$campaign_id,
-        'tracker_date'=>$date,
-        'reach'=>$reach,
-        'impressions'=>$impressions,
-        'amount_spent'=>$spent ]
-    );
+    if ( $row_id ) {
+        // existing row → do an UPDATE by primary key
+        $wpdb->update(
+            $table,
+            [
+                'reach'        => $reach,
+                'impressions'  => $impressions,
+                'amount_spent' => $spent,
+            ],
+            [ 'id' => $row_id ]
+        );
+    } else {
+        // no row_id → upsert by (campaign_id,tracker_date)
+        $wpdb->replace(
+            $table,
+            [
+                'campaign_id'  => $campaign_id,
+                'tracker_date' => $date,
+                'reach'        => $reach,
+                'impressions'  => $impressions,
+                'amount_spent' => $spent,
+            ]
+        );
+        // replace() deletes+reinserts → grab the new insert_id
+        $row_id = $wpdb->insert_id;
+    }
 
-    wp_send_json_success();
+    // return the row_id so your JS can re‑set it on the <tr>
+    wp_send_json_success( [ 'row_id' => $row_id ] );
 }
- 
+
 public function update_campaign_daily_totals() {
     $this->verify();
     // you can call your existing recalc logic here
