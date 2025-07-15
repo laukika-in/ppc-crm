@@ -216,9 +216,23 @@ jQuery(function ($) {
       '<button class="btn btn-sm btn-outline-secondary export-csv-daily ms-auto">Export CSV</button>'
     );
 
-  // 2) Wire up click, passing nonce
   $mount.on("click", ".export-csv-daily", () => {
-    window.location = `${AJAX}?action=lcm_export_csv&type=daily_tracker&nonce=${NONCE}`;
+    const campaign = $("#dt-campaign").val();
+    const month = $("#dt-month").val();
+    const from = $("#dt-from").val();
+    const to = $("#dt-to").val();
+
+    const params = new URLSearchParams({
+      action: "lcm_export_csv",
+      type: "daily_tracker",
+      nonce: NONCE,
+      campaign_id: campaign,
+      month: month,
+      from: from,
+      to: to,
+    });
+
+    window.location = `${AJAX}?${params.toString()}`;
   });
 
   // Clear‐filter buttons

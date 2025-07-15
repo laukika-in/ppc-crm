@@ -1025,7 +1025,45 @@ $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
             unset($row);
             break;
 
-        case 'daily_tracker':
+       case 'daily_tracker':
+        header('Content-Disposition: attachment; filename="lcm-daily-tracker.csv"');
+
+        $where = [];
+
+        if (!empty($_GET['campaign_id'])) {
+            $cid = absint($_GET['campaign_id']);
+            $where[] = "t.campaign_id = {$cid}";
+        }
+
+        if (!empty($_GET['month'])) {
+            $month = esc_sql($_GET['month']);
+            $where[] = "DATE_FORMAT(t.track_date, '%Y-%m') = '{$month}'";
+        } elseif (!empty($_GET['from']) && !empty($_GET['to'])) {
+            $from = esc_sql($_GET['from']);
+            $to   = esc_sql($_GET['to']);
+            $where[] = "t.track_date BETWEEN '{$from}' AND '{$to}'";
+        }
+
+        $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $sql = "
+            SELECT
+            t.*,
+            c.campaign_title AS campaign_label
+            FROM {$tracker_table} t
+            LEFT JOIN {$campaigns_table} c ON c.post_id = t.campaign_id
+            {$where_clause}
+        ";
+
+        $rows = $wpdb->get_results($sql, ARRAY_A);
+
+        foreach ($rows as &$row) {
+            $row['campaign_id'] = $row['campaign_label'] ?? $row['campaign_id'];
+            unset($row['campaign_label']);
+        }
+        unset($row);
+        break;
+
         case 'campaign_detail':
             header('Content-Disposition: attachment; filename="lcm-campaign-detail.csv"');
 
