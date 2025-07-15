@@ -433,29 +433,26 @@ jQuery(function ($) {
 
   // 2) Handle click with nonce
   $(document).on("click", ".export-csv-leads", function () {
-    const from = $("#lead-from").val() || "";
-    const to = $("#lead-to").val() || "";
-    const campaign = $("#lead-campaign").val() || "";
-    const client = LCM.is_admin ? $("#lead-client").val() || "" : "";
-    console.log(
-      "From:",
-      from,
-      "To:",
-      to,
-      "Campaign:",
-      campaign,
-      "Client:",
-      client
-    );
-
     const params = new URLSearchParams({
       action: "lcm_export_csv",
       type: "leads",
       nonce: LCM.nonce,
-      from,
-      to,
-      campaign_id: campaign,
-      client_id: client,
+      from: filterDateFrom,
+      to: filterDateTo,
+      campaign_id: filterAdNameVal,
+      adset: filterAdsetVal,
+      client_id: filterClient,
+      day: filterDayVal,
+      source: filterSourceVal,
+      client_type: filterClientTypeVal,
+      attempt_type: filterAttemptTypeVal,
+      attempt_status: filterAttemptStatusVal,
+      store_visit_status: filterStoreVal,
+      occasion: filterOccasionVal,
+      search: filterTextVal,
+      budget: filterBudgetVal,
+      product_interest: filterProductVal,
+      city: filterCityVal,
     });
 
     const url = `${LCM.ajax_url}?${params.toString()}`;
