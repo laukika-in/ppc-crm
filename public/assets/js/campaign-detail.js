@@ -348,7 +348,7 @@ jQuery(function ($) {
           $row.find(".tracker-display").removeClass("d-none");
           $row.find(".tracker-input").addClass("d-none");
           $row.find(".edit-tracker").removeClass("d-none");
-          $row.find(".save-daily-tracker").addClass("d-none");
+          $row.find(".save-row").addClass("d-none");
           $row.removeClass("table-warning shadow-sm");
         } else {
           alert("Save failed");
@@ -370,7 +370,7 @@ jQuery(function ($) {
     $row.find(".tracker-display").removeClass("d-none");
     $row.find(".tracker-input").addClass("d-none");
     $row.find(".edit-tracker").removeClass("d-none");
-    $row.find(".save-daily-tracker, .cancel-tracker").addClass("d-none");
+    $row.find(".save-row, .cancel-tracker").addClass("d-none");
     $row.removeClass("table-warning shadow-sm");
   });
   $mount.on("click", ".sort-clear", function (e) {
