@@ -428,11 +428,11 @@ jQuery(function ($) {
   }
   // 1) After you set up your filters, append export button:
   $("#lcm-filter-city").after(
-    ' <button class="btn btn-sm btn-outline-secondary export-leads">Export CSV</button>'
+    ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
   );
 
   // 2) Handle click with nonce
-  $("#export-leads").on("click", function () {
+  $(document).on("click", ".export-csv-leads", () => {
     const from = $("#filter-from").val();
     const to = $("#filter-to").val();
     const campaign = $("#filter-campaign").val();
