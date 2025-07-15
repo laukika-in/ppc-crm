@@ -879,75 +879,102 @@ public function get_daily_tracker_rows() {
 }
 
 public function export_csv() {
-    // Nonce check
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'lcm_ajax')) {
-    wp_die('-1');
-}
- 
+    $this->verify();
     global $wpdb;
-    $type = sanitize_text_field($_POST['type'] ?? '');
-    $from = sanitize_text_field($_POST['from'] ?? '');
-    $to = sanitize_text_field($_POST['to'] ?? '');
-    $client_id   = absint($_POST['client_id'] ?? 0);
-    $campaign_id = absint($_POST['campaign_id'] ?? 0);
-    $adset       = absint($_POST['adset'] ?? 0);
 
-    $lead_tbl   = "{$wpdb->prefix}lcm_leads";
-    $camp_tbl   = "{$wpdb->prefix}lcm_campaigns";
-    $users_tbl  = $wpdb->users;
+    $type = isset($_GET['type']) ? sanitize_key($_GET['type']) : '';
 
-    if ($type === 'leads') {
-        $where = "WHERE 1=1";
-        if ($from)        $where .= $wpdb->prepare(" AND l.created_at >= %s", $from);
-        if ($to)          $where .= $wpdb->prepare(" AND l.created_at <= %s", $to);
-        if ($client_id)   $where .= $wpdb->prepare(" AND l.client_id = %d", $client_id);
-        if ($campaign_id) $where .= $wpdb->prepare(" AND l.campaign_id = %d", $campaign_id);
-        if ($adset)       $where .= $wpdb->prepare(" AND l.adset = %d", $adset);
+    $leads_table     = $wpdb->prefix . 'lcm_leads';
+    $campaigns_table = $wpdb->prefix . 'lcm_campaigns';
+    $users_table     = $wpdb->users;
+    $tracker_table   = $wpdb->prefix . 'lcm_campaign_daily_tracker';
 
-        // Restrict for client role
-        if (current_user_can('client')) {
-            $user_id = get_current_user_id();
-            $where .= $wpdb->prepare(" AND l.client_id = %d", $user_id);
-        }
+    header('Content-Type: text/csv; charset=utf-8');
 
-        $sql = "
-            SELECT
-              l.*,
-              u.display_name        AS client_label,
-              c_main.campaign_title AS campaign_label,
-              c_ad.campaign_name    AS ad_name_label,
-              c_as.adset            AS adset_label
-            FROM {$lead_tbl} l
-            LEFT JOIN {$users_tbl}  u      ON l.client_id   = u.ID
-            LEFT JOIN {$camp_tbl}   c_main ON l.campaign_id = c_main.post_id
-            LEFT JOIN {$camp_tbl}   c_ad   ON l.ad_name     = c_ad.post_id
-            LEFT JOIN {$camp_tbl}   c_as   ON l.adset       = c_as.post_id
-            $where
-            ORDER BY l.created_at DESC
-        ";
+    switch ($type) {
+        case 'leads':
+            header('Content-Disposition: attachment; filename="lcm-leads.csv"');
 
-        $rows = $wpdb->get_results($sql, ARRAY_A);
+            $sql = "
+                SELECT
+                  l.*,
+                  u.display_name      AS client_label,
+                  c1.campaign_name    AS ad_name_label,
+                  c2.adset            AS adset_label
+                FROM {$leads_table} l
+                LEFT JOIN {$users_table}        u  ON u.ID          = l.client_id
+                LEFT JOIN {$campaigns_table}    c1 ON c1.post_id    = l.ad_name
+                LEFT JOIN {$campaigns_table}    c2 ON c2.post_id    = l.adset
+            ";
 
-        if (!$rows) {
-            wp_die('No data found');
-        }
+            $rows = $wpdb->get_results($sql, ARRAY_A);
 
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="leads_export_' . date('Ymd_His') . '.csv"');
-        $output = fopen('php://output', 'w');
+            foreach ($rows as &$row) {
+                $row['client_id'] = $row['client_label'] ?? '';
+                // campaign_id remains as-is
+                $row['ad_name']   = $row['ad_name_label'] ?? '';
+                $row['adset']     = $row['adset_label'] ?? '';
+                unset($row['client_label'], $row['ad_name_label'], $row['adset_label']);
+            }
+            unset($row);
+            break;
 
-        // Header
-        fputcsv($output, array_keys($rows[0]));
+        case 'campaigns':
+            header('Content-Disposition: attachment; filename="lcm-campaigns.csv"');
 
-        foreach ($rows as $row) {
-            fputcsv($output, $row);
-        }
+            $sql = "
+                SELECT
+                  c.*,
+                  u.display_name AS client_label
+                FROM {$campaigns_table} c
+                LEFT JOIN {$users_table} u ON u.ID = c.client_id
+            ";
 
-        fclose($output);
-        exit;
+            $rows = $wpdb->get_results($sql, ARRAY_A);
+
+            foreach ($rows as &$row) {
+                $row['client_id'] = $row['client_label'] ?? '';
+                unset($row['client_label']);
+            }
+            unset($row);
+            break;
+
+        case 'daily_tracker':
+        case 'campaign_detail':
+            header('Content-Disposition: attachment; filename="lcm-daily-tracker.csv"');
+
+            $sql = "
+                SELECT
+                  t.*,
+                  c.campaign_title AS campaign_label
+                FROM {$tracker_table} t
+                LEFT JOIN {$campaigns_table} c ON c.post_id = t.campaign_id
+            ";
+
+            $rows = $wpdb->get_results($sql, ARRAY_A);
+
+            foreach ($rows as &$row) {
+                $row['campaign_id'] = $row['campaign_label'] ?? $row['campaign_id'];
+                unset($row['campaign_label']);
+            }
+            unset($row);
+            break;
+
+        default:
+            wp_send_json_error('Invalid export type');
     }
 
-    wp_die('Invalid export type');
+    if (empty($rows)) {
+        wp_send_json_error('No records found');
+    }
+
+    $out = fopen('php://output', 'w');
+    fputcsv($out, array_keys($rows[0]));
+    foreach ($rows as $row) {
+        fputcsv($out, $row);
+    }
+    fclose($out);
+    exit;
 }
 
 

@@ -431,48 +431,30 @@ jQuery(function ($) {
     ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
   );
 
-  $(document).on("click", ".export-csv-leads", function () {
-    const form = $("<form>", {
-      method: "POST",
-      action: LCM.ajax_url,
-      target: "_blank",
-    });
+  $(".export-csv-leads").on("click", function () {
+    const from = $("#filter-from").val();
+    const to = $("#filter-to").val();
+    const adName = $("#filter-adname").val();
+    const adset = $("#filter-adset").val();
+    const campaign = $("#filter-campaign").val();
+    const clientId = $("#filter-client").val(); // visible only for admin
 
     const filters = {
       action: "lcm_export_csv",
       type: "leads",
-      nonce: LCM.nonce, // 🔐 MUST be included!
-      from: filterDateFrom,
-      to: filterDateTo,
-      client_id: filterClient,
-      campaign_id: filterAdNameVal,
-      adset: filterAdsetVal,
-      day: filterDayVal,
-      client_type: filterClientTypeVal,
-      source: filterSourceVal,
-      attempt_type: filterAttemptTypeVal,
-      attempt_status: filterAttemptStatusVal,
-      store_visit_status: filterStoreVal,
-      occasion: filterOccasionVal,
-      search: filterTextVal,
-      budget: filterBudgetVal,
-      product_interest: filterProductVal,
-      city: filterCityVal,
     };
 
-    $.each(filters, function (key, value) {
-      form.append(
-        $("<input>", {
-          type: "hidden",
-          name: key,
-          value: value,
-        })
-      );
-    });
+    if (from) filters.from = from;
+    if (to) filters.to = to;
+    if (adName) filters.ad_name = adName;
+    if (adset) filters.adset = adset;
+    if (campaign) filters.campaign_id = campaign;
+    if (clientId) filters.client_id = clientId;
 
-    $("body").append(form);
-    form.submit();
-    form.remove();
+    const queryString = new URLSearchParams(filters).toString();
+    const exportUrl = `${LCM.ajax_url}?${queryString}`;
+
+    window.open(exportUrl, "_blank");
   });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
