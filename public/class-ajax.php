@@ -37,9 +37,19 @@ add_action('wp_ajax_nopriv_lcm_get_export_status', [ $this, 'get_export_status' 
 add_action('lcm_process_export_job',        [ $this, 'process_export_job' ], 10, 1 );
 	}
 
-private function verify() {
-    check_ajax_referer( 'lcm_ajax', 'nonce' );
-    if ( ! current_user_can( 'read' ) ) wp_send_json_error( [ 'msg'=>'No permission' ], 403 );
+private function verify() { 
+    $incoming = isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '(none)';
+    error_log( "LCM AJAX: Incoming nonce = {$incoming}" );
+
+    // check_ajax_referer with $die = false
+    $ok = check_ajax_referer( 'lcm_ajax', 'nonce', false );
+    if ( ! $ok ) {
+        error_log( "LCM AJAX: Nonce verification FAILED" );
+        return false;
+    }
+
+    error_log( "LCM AJAX: Nonce verification passed" );
+    return true;
 }
 public function forbid(){ wp_send_json_error( [ 'msg'=>'Login required' ], 401 ); }
 
@@ -882,7 +892,14 @@ public function get_daily_tracker_rows() {
 public function start_export_job() {
     $this->verify();
     global $wpdb;
-
+    error_log( 'LCM start_export_job POST: ' . print_r( $_POST, true ) );
+ if ( ! $this->verify() ) {
+        // send a JSON error back instead of 400-dying
+        wp_send_json_error(
+          [ 'message' => 'Invalid AJAX nonce' ],
+          400
+        );
+    }
     $type    = sanitize_text_field( $_POST['export_type'] );          // 'leads','campaigns','daily'
     $filters = json_decode( wp_unslash( $_POST['filters'] ), true );
                   
@@ -931,7 +948,8 @@ public function process_export_job( $args ) {
     );
     if ( ! $job ) return;
 
-    $filters     = json_decode( $job['filters'], true );
+    $filters = json_decode( wp_unslash( $_POST['filters'] ), true );
+
     $type        = $job['export_type'];
     $export_dir  = wp_upload_dir()['basedir'] . '/lcm-exports';
     wp_mkdir_p( $export_dir );

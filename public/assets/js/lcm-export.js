@@ -61,7 +61,7 @@ jQuery(function ($) {
         action: "lcm_start_export",
         nonce: LCMExport.nonce,
         export_type: screen,
-        filters:     JSON.stringify(filters)
+        filters: JSON.stringify(filters)
       },
       function (res) {
         const jobId = res.data.job_id;
