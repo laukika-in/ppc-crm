@@ -895,29 +895,59 @@ public function export_csv() {
         case 'leads':
             header('Content-Disposition: attachment; filename="lcm-leads.csv"');
 
+            $where = ['1=1'];
+            $params = [];
+
+            if (!empty($_GET['from'])) {
+                $where[] = 'l.date >= %s';
+                $params[] = $_GET['from'];
+            }
+            if (!empty($_GET['to'])) {
+                $where[] = 'l.date <= %s';
+                $params[] = $_GET['to'];
+            }
+            if (!empty($_GET['campaign_id'])) {
+                $where[] = 'l.campaign_id = %d';
+                $params[] = absint($_GET['campaign_id']);
+            }
+
+            // Restrict to current client if role is 'client'
+            if (!current_user_can('manage_options')) {
+                $current_user_id = get_current_user_id();
+                $where[] = 'l.client_id = %d';
+                $params[] = $current_user_id;
+            } elseif (!empty($_GET['client_id'])) {
+                $where[] = 'l.client_id = %d';
+                $params[] = absint($_GET['client_id']);
+            }
+
+            $where_sql = implode(' AND ', $where);
+
             $sql = "
                 SELECT
-                  l.*,
-                  u.display_name      AS client_label,
-                  c1.campaign_name    AS ad_name_label,
-                  c2.adset            AS adset_label
+                l.*,
+                u.display_name      AS client_label,
+                c1.campaign_name    AS ad_name_label,
+                c2.adset            AS adset_label
                 FROM {$leads_table} l
-                LEFT JOIN {$users_table}        u  ON u.ID          = l.client_id
-                LEFT JOIN {$campaigns_table}    c1 ON c1.post_id    = l.ad_name
-                LEFT JOIN {$campaigns_table}    c2 ON c2.post_id    = l.adset
+                LEFT JOIN {$users_table}        u  ON u.ID       = l.client_id
+                LEFT JOIN {$campaigns_table}    c1 ON c1.post_id = l.ad_name
+                LEFT JOIN {$campaigns_table}    c2 ON c2.post_id = l.adset
+                WHERE {$where_sql}
             ";
 
-            $rows = $wpdb->get_results($sql, ARRAY_A);
+            $prepared_sql = $wpdb->prepare($sql, $params);
+            $rows = $wpdb->get_results($prepared_sql, ARRAY_A);
 
             foreach ($rows as &$row) {
                 $row['client_id'] = $row['client_label'] ?? '';
-                // campaign_id remains as-is
                 $row['ad_name']   = $row['ad_name_label'] ?? '';
                 $row['adset']     = $row['adset_label'] ?? '';
                 unset($row['client_label'], $row['ad_name_label'], $row['adset_label']);
             }
             unset($row);
             break;
+
 
         case 'campaigns':
             header('Content-Disposition: attachment; filename="lcm-campaigns.csv"');
