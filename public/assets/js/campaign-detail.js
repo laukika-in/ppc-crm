@@ -186,7 +186,7 @@ jQuery(function ($) {
       <td>
   <span class="reach-display">${r.reach}</span>
   <input type="number" data-type="reach"
-         class="reach-input form-control form-control-sm d-none"
+         class="edit editable reach-input form-control form-control-sm d-none"
          value="${r.reach}"/>
 </td>`);
 
@@ -195,7 +195,7 @@ jQuery(function ($) {
       <td>
   <span class="impressions-display">${r.impressions}</span>
   <input type="number" data-type="impressions"
-         class="impressions-input form-control form-control-sm d-none"
+         class="edit editable impressions-input form-control form-control-sm d-none"
          value="${r.impressions}"/>
 </td>`);
 
@@ -204,7 +204,7 @@ jQuery(function ($) {
       <td>
   <span class="spent-display">${r.amount_spent}</span>
   <input type="number" step="0.01" data-type="amount_spent"
-         class="spent-input form-control form-control-sm d-none"
+         class="edit editable spent-input form-control form-control-sm d-none"
          value="${r.amount_spent}"/>
 </td>`);
 
