@@ -431,7 +431,6 @@ jQuery(function ($) {
     ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
   );
 
-  // 2) Handle click with nonce
   $(document).on("click", ".export-csv-leads", function () {
     const form = $("<form>", {
       method: "POST",
@@ -442,7 +441,7 @@ jQuery(function ($) {
     const filters = {
       action: "lcm_export_csv",
       type: "leads",
-      nonce: LCM.nonce,
+      nonce: LCM.nonce, // 🔐 MUST be included!
       from: filterDateFrom,
       to: filterDateTo,
       client_id: filterClient,

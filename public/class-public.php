@@ -12,7 +12,6 @@ class PPC_CRM_Public {
         add_shortcode('campaign_detail_page', [$this, 'render_campaign_detail']);
         add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
         add_shortcode( 'lcm_daily_tracker', [ $this, 'shortcode_daily_tracker' ] );
-        
   }
 
     /**
@@ -603,6 +602,5 @@ public function shortcode_daily_tracker(): string {
     // mount point
     return '<div id="lcm-daily-tracker"></div>';
 }
-
 
 }

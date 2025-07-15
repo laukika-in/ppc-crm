@@ -880,13 +880,13 @@ public function get_daily_tracker_rows() {
 
 public function export_csv() {
     // Nonce check
-    if ( ! isset($_POST['nonce']) || ! wp_verify_nonce($_POST['nonce'], 'lcm_nonce') ) {
+    if (
+    ! isset($_POST['nonce']) ||
+    ! wp_verify_nonce($_POST['nonce'], 'lcm_ajax') // ✅ Match this!
+    ) {
         wp_die('-1');
     }
-wp_localize_script('your-leads-js-handle', 'LCM', [
-    'ajax_url' => admin_url('admin-ajax.php'),
-    'nonce'    => wp_create_nonce('lcm_nonce'),
-]);
+ 
     global $wpdb;
     $type = sanitize_text_field($_POST['type'] ?? '');
 
