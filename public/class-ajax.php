@@ -992,7 +992,8 @@ if (current_user_can('client')) {
 if (!empty($_GET['from']) && !empty($_GET['to'])) {
     $from = esc_sql($_GET['from']);
     $to   = esc_sql($_GET['to']);
-    $where[] = "c.date BETWEEN '{$from}' AND '{$to}'";
+    $where[] = "c.campaign_date BETWEEN '{$from}' AND '{$to}'";
+
 }
 
 if (!empty($_GET['month'])) {
