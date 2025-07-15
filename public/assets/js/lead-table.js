@@ -428,6 +428,12 @@ jQuery(function ($) {
   }
 
   $(document).on("click", ".export-csv-leads", () => {
+    console.log(
+      $("#filter-from").val(),
+      $("#filter-to").val(),
+      $("#filter-source").val(),
+      $("#filter-client-type").val()
+    );
     const params = new URLSearchParams({
       action: "lcm_export_csv",
       type: "leads",
