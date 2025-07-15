@@ -775,22 +775,21 @@ public function get_daily_tracker_rows() {
     $offset      = ($page - 1) * $per_page;
 
     // ② Build WHERE
-    $where = "WHERE 1=1";
+    $tracker_where = "WHERE 1=1";
     if ( $month ) {
-        $where .= $wpdb->prepare(
-            " AND DATE_FORMAT(lead_date,'%%Y-%%m') = %s",
+        $tracker_where .= $wpdb->prepare(
+            " AND DATE_FORMAT(track_date,'%%Y-%%m') = %s",
             $month
         );
     }
     if ( $from ) {
-        $where .= $wpdb->prepare( " AND lead_date >= %s", $from );
+        $tracker_where .= $wpdb->prepare( " AND track_date >= %s", $from );
     }
     if ( $to ) {
-        $where .= $wpdb->prepare( " AND lead_date <= %s", $to );
+        $tracker_where .= $wpdb->prepare( " AND track_date <= %s", $to );
     }
- $filter_camp = absint( $_GET['campaign_id'] ?? 0 );
     if ( $filter_camp ) {
-        $where .= $wpdb->prepare( " AND campaign_id = %d", $filter_camp );
+        $tracker_where .= $wpdb->prepare( " AND campaign_id = %d", $filter_camp );
     }
 
     // ③ Lead aggregates by day
@@ -818,7 +817,7 @@ public function get_daily_tracker_rows() {
             impressions,
             amount_spent
         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        {$where}      /* same date filter on track_date */
+        {$where}    
         ORDER BY track_date DESC
     ", ARRAY_A );
 
@@ -893,7 +892,7 @@ public function export_csv() {
     switch ($type) {
         case 'leads':
             header('Content-Disposition: attachment; filename="lcm-leads.csv"');
-$where = [];
+        $where = [];
 
         if (current_user_can('client')) {
             $user_id = get_current_user_id();
@@ -979,42 +978,42 @@ $where = [];
 
         case 'campaigns':
             header('Content-Disposition: attachment; filename="lcm-campaigns.csv"');
-$where = [];
+        $where = [];
 
-if (current_user_can('client')) {
-    $user_id = get_current_user_id();
-    $where[] = "c.client_id = {$user_id}";
-} elseif (!empty($_GET['client_id'])) {
-    $client_id = absint($_GET['client_id']);
-    $where[] = "c.client_id = {$client_id}";
-}
+        if (current_user_can('client')) {
+            $user_id = get_current_user_id();
+            $where[] = "c.client_id = {$user_id}";
+        } elseif (!empty($_GET['client_id'])) {
+            $client_id = absint($_GET['client_id']);
+            $where[] = "c.client_id = {$client_id}";
+        }
 
-if (!empty($_GET['from']) && !empty($_GET['to'])) {
-    $from = esc_sql($_GET['from']);
-    $to   = esc_sql($_GET['to']);
-    $where[] = "c.campaign_date BETWEEN '{$from}' AND '{$to}'";
+        if (!empty($_GET['from']) && !empty($_GET['to'])) {
+            $from = esc_sql($_GET['from']);
+            $to   = esc_sql($_GET['to']);
+            $where[] = "c.campaign_date BETWEEN '{$from}' AND '{$to}'";
 
-}
+        }
 
-if (!empty($_GET['month'])) {
-    $month = esc_sql($_GET['month']);
-    $where[] = $wpdb->prepare("c.month = %s", $month);
-}
+        if (!empty($_GET['month'])) {
+            $month = esc_sql($_GET['month']);
+            $where[] = $wpdb->prepare("c.month = %s", $month);
+        }
 
-if (!empty($_GET['location'])) {
-    $where[] = $wpdb->prepare("c.location LIKE %s", '%' . $wpdb->esc_like($_GET['location']) . '%');
-}
+        if (!empty($_GET['location'])) {
+            $where[] = $wpdb->prepare("c.location LIKE %s", '%' . $wpdb->esc_like($_GET['location']) . '%');
+        }
 
-$where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+        $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
-            $sql = "
-    SELECT
-      c.*,
-      u.display_name AS client_label
-    FROM {$campaigns_table} c
-    LEFT JOIN {$users_table} u ON u.ID = c.client_id
-    {$where_clause}
-";
+                    $sql = "
+            SELECT
+            c.*,
+            u.display_name AS client_label
+            FROM {$campaigns_table} c
+            LEFT JOIN {$users_table} u ON u.ID = c.client_id
+            {$where_clause}
+        ";
 
             $rows = $wpdb->get_results($sql, ARRAY_A);
 
@@ -1111,7 +1110,7 @@ $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
     if (empty($rows)) {
         wp_send_json_error('No records found');
     }
-error_log('Filters received: ' . json_encode($_GET));
+    error_log('Filters received: ' . json_encode($_GET));
     $out = fopen('php://output', 'w');
     fputcsv($out, array_keys($rows[0]));
     foreach ($rows as $row) {
