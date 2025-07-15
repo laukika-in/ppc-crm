@@ -432,22 +432,23 @@ jQuery(function ($) {
   );
 
   // 2) Handle click with nonce
-  $(document).on("click", ".export-csv-leads", () => {
-    const from = $("#filter-from").val();
-    const to = $("#filter-to").val();
-    const campaign = $("#filter-campaign").val();
-    const client = LCM.is_admin ? $("#filter-client").val() : ""; // only if admin
+  $(document).on("click", ".export-csv-leads", function () {
+    const from = $("#filter-from").val() || "";
+    const to = $("#filter-to").val() || "";
+    const campaign = $("#filter-campaign").val() || "";
+    const client = LCM.is_admin ? $("#filter-client").val() || "" : "";
 
     const params = new URLSearchParams({
       action: "lcm_export_csv",
       type: "leads",
+      nonce: LCM.nonce,
       from,
       to,
       campaign_id: campaign,
       client_id: client,
     });
 
-    const url = LCM.ajax_url + "?" + params.toString();
+    const url = `${LCM.ajax_url}?${params.toString()}`;
     window.open(url, "_blank");
   });
 
