@@ -475,34 +475,7 @@ private function render_table( string $which ): string {
                       title="Clear location filter">&times;</button>
             </div>
           </div>
-
-          <div class="col-auto">
-            <div class="input-group input-group-sm lcm-filter-group" id="filter-store-group">
-              <select id="lcm-filter-store-camp" class="form-select">
-                <option value="">All Store Visits</option>
-                <option value="yes">Visited</option>
-                <option value="no">Not Visited</option>
-              </select>
-              <button type="button"
-                      class="btn btn-outline-secondary clear-filter"
-                      data-filter="store"
-                      title="Clear store-visit filter">&times;</button>
-            </div>
-          </div>
-
-          <div class="col-auto">
-            <div class="input-group input-group-sm lcm-filter-group" id="filter-connected-group">
-              <select id="lcm-filter-connected-camp" class="form-select">
-                <option value="">All Connected</option>
-                <option value="yes">Has Connected Calls</option>
-                <option value="no">No Connected Calls</option>
-              </select>
-              <button type="button"
-                      class="btn btn-outline-secondary clear-filter"
-                      data-filter="connected"
-                      title="Clear connected filter">&times;</button>
-            </div>
-          </div>
+  
         </div>
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
