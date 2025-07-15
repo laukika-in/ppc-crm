@@ -29,10 +29,10 @@ class PPC_CRM_Ajax {
 
     add_action( 'wp_ajax_lcm_update_campaign_daily_totals', [ $this, 'update_campaign_daily_totals' ] );
     add_action( 'wp_ajax_nopriv_lcm_update_campaign_daily_totals', [ $this, 'forbid' ] );
-add_action( 'wp_ajax_lcm_export_csv', [ $this, 'export_csv' ] );
-add_action( 'wp_ajax_nopriv_lcm_export_csv', [ $this, 'export_csv' ] );
+    add_action( 'wp_ajax_lcm_export_csv',    [ $this, 'export_csv' ] );
+        add_action( 'wp_ajax_nopriv_lcm_export_csv', [ $this, 'export_csv' ] );
 
-	}
+ }
 
 private function verify() {
     check_ajax_referer( 'lcm_ajax', 'nonce' );
@@ -876,143 +876,168 @@ public function get_daily_tracker_rows() {
         'total_days' => $total_days,
     ]);
 }
+
 public function export_csv() {
-    $this->verify(); // nonce + permission check
-    global $wpdb;
+        $this->verify(); // your nonce + capability check
+        global $wpdb;
 
-    $type      = sanitize_key( $_GET['type'] );
-    $users_tbl = $wpdb->users;
-    $camp_tbl  = $wpdb->prefix . 'lcm_campaigns';
-    $lead_tbl  = $wpdb->prefix . 'lcm_leads';
-    $dt_tbl    = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+        // Determine which dataset to export
+        $type      = isset( $_GET['type'] ) ? sanitize_key( $_GET['type'] ) : '';
+        $users_tbl = $wpdb->users;
+        $camp_tbl  = $wpdb->prefix . 'lcm_campaigns';
+        $lead_tbl  = $wpdb->prefix . 'lcm_leads';
+        $dt_tbl    = $wpdb->prefix . 'lcm_campaign_daily_tracker';
 
-    // open output
-    header( 'Content-Type: text/csv; charset=utf-8' );
-    switch ( $type ) {
-        case 'leads':
-            header( 'Content-Disposition: attachment; filename="lcm-leads.csv"' );
-            $rows = $wpdb->get_results( "SELECT * FROM {$lead_tbl}", ARRAY_A );
-            if ( empty( $rows ) ) wp_send_json_error( 'No leads to export' );
+        // Always stream as CSV
+        header( 'Content-Type: text/csv; charset=utf-8' );
 
-            // collect distinct IDs
-            $client_ids   = array_unique( wp_list_pluck( $rows, 'client_id' ) );
-            $camp_ids     = array_unique( wp_list_pluck( $rows, 'campaign_id' ) );
-            $ad_name_ids  = array_unique( wp_list_pluck( $rows, 'ad_name' ) );
-            $adset_ids    = array_unique( wp_list_pluck( $rows, 'adset' ) );
-            $all_camp_ids = array_filter( array_unique(
-                array_merge( $camp_ids, $ad_name_ids, $adset_ids )
-            ), 'intval' );
-           
-            // build user map
-            $user_map = [];
-            $all_ids  = implode( ',', array_map( 'absint', $all_camp_ids ) );
-                if ( $all_ids ) {
-                    $camps = $wpdb->get_results(
-                        "SELECT id, campaign_name, adset
-                        FROM {$camp_tbl}
-                        WHERE id IN ({$all_ids})",
+        switch ( $type ) {
+
+            // ─── LEADS ───────────────────────────────────────────────────────────
+            case 'leads':
+                header( 'Content-Disposition: attachment; filename="lcm-leads.csv"' );
+                $rows = $wpdb->get_results( "SELECT * FROM {$lead_tbl}", ARRAY_A );
+                if ( empty( $rows ) ) {
+                    wp_send_json_error( 'No leads to export' );
+                }
+
+                // Collect all IDs we need to map
+                $client_ids   = array_unique( wp_list_pluck( $rows, 'client_id' ) );
+                $camp_ids     = array_unique( wp_list_pluck( $rows, 'campaign_id' ) );
+                $ad_name_ids  = array_unique( wp_list_pluck( $rows, 'ad_name' ) );
+                $adset_ids    = array_unique( wp_list_pluck( $rows, 'adset' ) );
+
+                // Build safe IN‑clauses
+                $user_list = implode( ',', array_map( 'absint', $client_ids ) );
+                $all_camp_ids = array_filter( array_merge( $camp_ids, $ad_name_ids, $adset_ids ), 'intval' );
+                $camp_list = implode( ',', array_map( 'absint', $all_camp_ids ) );
+
+                // 1) Map client_id → user display_name
+                $user_map = [];
+                if ( $user_list ) {
+                    $users = $wpdb->get_results(
+                        "SELECT ID, display_name
+                           FROM {$users_tbl}
+                          WHERE ID IN ({$user_list})",
                         ARRAY_A
                     );
-                foreach ( $users as $u ) {
-                    $user_map[ $u['ID'] ] = $u['display_name'];
+                    foreach ( $users as $u ) {
+                        $user_map[ $u['ID'] ] = $u['display_name'];
+                    }
                 }
-            }
 
-            // build campaign→name + campaign→adset maps
-            $camp_name_map  = [];
-            $camp_adset_map = [];
-            if ( $ids_list ) {
-                $camps = $wpdb->get_results(
-                    "SELECT id, campaign_name, adset FROM {$camp_tbl} WHERE id IN ({$ids_list})",
-                    ARRAY_A
-                );
-                foreach ( $camps as $c ) {
-                    $camp_name_map[ $c['id'] ]  = $c['campaign_name'];
-                    $camp_adset_map[ $c['id'] ] = $c['adset'];
+                // 2) Map campaign_id, ad_name → campaign_title; adset → adset
+                $camp_title_map = [];
+                $camp_adset_map = [];
+                if ( $camp_list ) {
+                    $camps = $wpdb->get_results(
+                        "SELECT id, campaign_title, adset
+                           FROM {$camp_tbl}
+                          WHERE id IN ({$camp_list})",
+                        ARRAY_A
+                    );
+                    foreach ( $camps as $c ) {
+                        $camp_title_map[ $c['id'] ]  = $c['campaign_title'];
+                        $camp_adset_map[ $c['id'] ] = $c['adset'];
+                    }
                 }
-            }
 
-            // rewrite rows
-            foreach ( $rows as &$r ) {
-                $r['client_id']   = $user_map[   $r['client_id']   ] ?? '';
-                $r['campaign_id'] = $camp_name_map[ $r['campaign_id'] ] ?? '';
-                $r['ad_name']     = $camp_name_map[ $r['ad_name']     ] ?? '';
-                $r['adset']       = $camp_adset_map[ $r['adset']      ] ?? '';
-            }
-            unset( $r );
+                // 3) Rewrite each row
+                foreach ( $rows as &$r ) {
+                    $r['client_id']   = $user_map[   $r['client_id']   ] ?? '';
+                    $r['campaign_id'] = $camp_title_map[ $r['campaign_id'] ] ?? '';
+                    $r['ad_name']     = $camp_title_map[ $r['ad_name']     ] ?? '';
+                    $r['adset']       = $camp_adset_map[ $r['adset']       ] ?? '';
+                }
+                unset( $r );
 
-            $out = fopen( 'php://output', 'w' );
-            fputcsv( $out, array_keys( $rows[0] ) );
-            foreach ( $rows as $r ) {
-                fputcsv( $out, $r );
-            }
-            fclose( $out );
-            exit;
+                // 4) Output
+                $out = fopen( 'php://output', 'w' );
+                fputcsv( $out, array_keys( $rows[0] ) );
+                foreach ( $rows as $r ) {
+                    fputcsv( $out, $r );
+                }
+                fclose( $out );
+                exit;
 
-        case 'campaigns':
-            header( 'Content-Disposition: attachment; filename="lcm-campaigns.csv"' );
-            $rows = $wpdb->get_results( "SELECT * FROM {$camp_tbl}", ARRAY_A );
-            if ( empty( $rows ) ) wp_send_json_error( 'No campaigns to export' );
+            // ─── CAMPAIGNS ────────────────────────────────────────────────────────
+            case 'campaigns':
+                header( 'Content-Disposition: attachment; filename="lcm-campaigns.csv"' );
+                $rows = $wpdb->get_results( "SELECT * FROM {$camp_tbl}", ARRAY_A );
+                if ( empty( $rows ) ) {
+                    wp_send_json_error( 'No campaigns to export' );
+                }
 
-            // map client_id → display_name
-            $client_ids = array_unique( wp_list_pluck( $rows, 'client_id' ) );
-            $ids        = implode( ',', array_map( 'absint', $client_ids ) );
-            $users      = $wpdb->get_results(
-                "SELECT ID, display_name FROM {$users_tbl} WHERE ID IN ({$ids})",
-                ARRAY_A
-            );
-            $user_map   = [];
-            foreach ( $users as $u ) {
-                $user_map[ $u['ID'] ] = $u['display_name'];
-            }
-            foreach ( $rows as &$r ) {
-                $r['client_id'] = $user_map[ $r['client_id'] ] ?? '';
-            }
-            unset( $r );
+                // Map client_id → user display_name
+                $client_ids = array_unique( wp_list_pluck( $rows, 'client_id' ) );
+                $user_list  = implode( ',', array_map( 'absint', $client_ids ) );
+                $user_map   = [];
+                if ( $user_list ) {
+                    $users = $wpdb->get_results(
+                        "SELECT ID, display_name
+                           FROM {$users_tbl}
+                          WHERE ID IN ({$user_list})",
+                        ARRAY_A
+                    );
+                    foreach ( $users as $u ) {
+                        $user_map[ $u['ID'] ] = $u['display_name'];
+                    }
+                }
+                foreach ( $rows as &$r ) {
+                    $r['client_id'] = $user_map[ $r['client_id'] ] ?? '';
+                }
+                unset( $r );
 
-            $out = fopen( 'php://output', 'w' );
-            fputcsv( $out, array_keys( $rows[0] ) );
-            foreach ( $rows as $r ) {
-                fputcsv( $out, $r );
-            }
-            fclose( $out );
-            exit;
+                $out = fopen( 'php://output', 'w' );
+                fputcsv( $out, array_keys( $rows[0] ) );
+                foreach ( $rows as $r ) {
+                    fputcsv( $out, $r );
+                }
+                fclose( $out );
+                exit;
 
-        case 'daily_tracker':
-        case 'campaign_detail':
-            header( 'Content-Disposition: attachment; filename="lcm-daily-tracker.csv"' );
-            $rows = $wpdb->get_results( "SELECT * FROM {$dt_tbl}", ARRAY_A );
-            if ( empty( $rows ) ) wp_send_json_error( 'No tracker data to export' );
+            // ─── DAILY TRACKER & CAMPAIGN DETAIL ──────────────────────────────────
+            case 'daily_tracker':
+            case 'campaign_detail':
+                header( 'Content-Disposition: attachment; filename="lcm-daily-tracker.csv"' );
+                $rows = $wpdb->get_results( "SELECT * FROM {$dt_tbl}", ARRAY_A );
+                if ( empty( $rows ) ) {
+                    wp_send_json_error( 'No tracker data to export' );
+                }
 
-            // map campaign_id → campaign_name
-            $camp_ids = array_unique( wp_list_pluck( $rows, 'campaign_id' ) );
-            $ids      = implode( ',', array_map( 'absint', $camp_ids ) );
-            $camps    = $wpdb->get_results(
-                "SELECT id, campaign_name FROM {$camp_tbl} WHERE id IN ({$ids})",
-                ARRAY_A
-            );
-            $camp_map = [];
-            foreach ( $camps as $c ) {
-                $camp_map[ $c['id'] ] = $c['campaign_name'];
-            }
-            foreach ( $rows as &$r ) {
-                $r['campaign_id'] = $camp_map[ $r['campaign_id'] ] ?? '';
-            }
-            unset( $r );
+                // Map campaign_id → campaign_title
+                $camp_ids  = array_unique( wp_list_pluck( $rows, 'campaign_id' ) );
+                $camp_list = implode( ',', array_map( 'absint', $camp_ids ) );
+                $camp_map  = [];
+                if ( $camp_list ) {
+                    $camps = $wpdb->get_results(
+                        "SELECT id, campaign_title
+                           FROM {$camp_tbl}
+                          WHERE id IN ({$camp_list})",
+                        ARRAY_A
+                    );
+                    foreach ( $camps as $c ) {
+                        $camp_map[ $c['id'] ] = $c['campaign_title'];
+                    }
+                }
+                foreach ( $rows as &$r ) {
+                    $r['campaign_id'] = $camp_map[ $r['campaign_id'] ] ?? '';
+                }
+                unset( $r );
 
-            $out = fopen( 'php://output', 'w' );
-            fputcsv( $out, array_keys( $rows[0] ) );
-            foreach ( $rows as $r ) {
-                fputcsv( $out, $r );
-            }
-            fclose( $out );
-            exit;
+                $out = fopen( 'php://output', 'w' );
+                fputcsv( $out, array_keys( $rows[0] ) );
+                foreach ( $rows as $r ) {
+                    fputcsv( $out, $r );
+                }
+                fclose( $out );
+                exit;
 
-        default:
-            wp_send_json_error( 'Invalid export type' );
+            // ─── INVALID TYPE ────────────────────────────────────────────────────
+            default:
+                wp_send_json_error( 'Invalid export type' );
+        }
     }
-}
-
 
 }
  
