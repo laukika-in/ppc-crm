@@ -764,8 +764,7 @@ public function update_campaign_daily_totals() {
 public function get_daily_tracker_rows() {
     $this->verify();
     global $wpdb;
-
-    // ① Read filters + pagination
+ 
     $campaign_id = absint( $_GET['campaign_id'] ?? 0 );
     $month       = sanitize_text_field( $_GET['month'] ?? '' );
     $from        = sanitize_text_field( $_GET['from']  ?? '' );
@@ -773,6 +772,11 @@ public function get_daily_tracker_rows() {
     $page        = max(1, (int)($_GET['page'] ?? 1));
     $per_page    = 32;
     $offset      = ($page - 1) * $per_page;
+
+    // ✅ Apply default month if no filter
+    if (empty($month) && empty($from) && empty($to)) {
+        $month = date('Y-m'); // auto-load current month
+    }
 
     // ② Build WHERE clause for leads (uses lead_date)
     $where = "WHERE 1=1";
