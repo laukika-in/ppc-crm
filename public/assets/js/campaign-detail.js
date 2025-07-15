@@ -314,13 +314,13 @@ jQuery(function ($) {
     $row.find(".tracker-display").addClass("d-none");
     $row.find(".tracker-input").removeClass("d-none");
     $row.find(".edit-tracker").addClass("d-none");
-    $row.find(".save-daily-tracker").removeClass("d-none");
+    $row.find(".save-row").removeClass("d-none");
     $row.find(".cancel-tracker").removeClass("d-none");
     $row.addClass("table-warning shadow-sm");
   });
 
   // Step 3: Save Button
-  $(document).on("click", ".save-daily-tracker", function () {
+  $(document).on("click", ".save-row", function () {
     const $row = $(this).closest("tr");
     const rowId = $row.data("row-id");
     const campaign_id = LCM.campaign_id;
