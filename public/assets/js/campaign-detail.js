@@ -295,11 +295,25 @@ jQuery(function ($) {
       impressions,
       amount_spent: spent,
     })
-      .done(() => {
-        reload();
+      .done(function (response) {
+        if (response.success) {
+          $row.find(".reach-input").val($row.find(".reach-display").text());
+          $row
+            .find(".impressions-input")
+            .val($row.find(".impressions-display").text());
+          $row.find(".spent-input").val($row.find(".spent-display").text());
+          // Toggle back to view mode
+          $row.find(".tracker-display").removeClass("d-none");
+          $row.find(".tracker-input").addClass("d-none");
+          $row.find(".edit-tracker").removeClass("d-none");
+          $row.find(".save-row, .cancel-tracker").addClass("d-none");
+          $row.removeClass("table-warning shadow-sm");
+        } else {
+          alert("Save failed");
+        }
       })
-      .fail(() => {
-        alert("Failed to save. Please try again.");
+      .fail(function () {
+        alert("Server error");
       });
   });
 
