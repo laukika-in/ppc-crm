@@ -911,7 +911,7 @@ public function export_csv() {
 
             foreach ($rows as &$row) {
                 $row['client_id'] = $row['client_label'] ?? '';
-                // keep campaign_id as is (post_id)
+                // campaign_id remains as-is
                 $row['ad_name']   = $row['ad_name_label'] ?? '';
                 $row['adset']     = $row['adset_label'] ?? '';
                 unset($row['client_label'], $row['ad_name_label'], $row['adset_label']);
@@ -946,7 +946,7 @@ public function export_csv() {
             $sql = "
                 SELECT
                   t.*,
-                  c.campaign_name AS campaign_label
+                  c.campaign_title AS campaign_label
                 FROM {$tracker_table} t
                 LEFT JOIN {$campaigns_table} c ON c.post_id = t.campaign_id
             ";
