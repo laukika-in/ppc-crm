@@ -433,30 +433,29 @@ jQuery(function ($) {
   $(".export-csv-leads").on("click", function () {
     const from = $("#filter-from").val();
     const to = $("#filter-to").val();
-    const campaignId = $("#filter-campaign").val();
     const adName = $("#filter-adname").val();
     const adset = $("#filter-adset").val();
+    const campaign = $("#filter-campaign").val();
     const clientId = $("#filter-client").val();
 
-    const query = {
+    const filters = {
       action: "lcm_export_csv",
       type: "leads",
-      nonce: LCM.nonce,
+      nonce: LCM.nonce, // 👈 add this line
     };
 
-    if (from) query.from = from;
-    if (to) query.to = to;
-    if (campaignId) query.campaign_id = campaignId;
-    if (adName) query.ad_name = adName;
-    if (adset) query.adset = adset;
-    if (clientId) query.client_id = clientId;
+    if (from) filters.from = from;
+    if (to) filters.to = to;
+    if (adName) filters.ad_name = adName;
+    if (adset) filters.adset = adset;
+    if (campaign) filters.campaign_id = campaign;
+    if (clientId) filters.client_id = clientId;
 
-    const exportUrl = `${LCM.ajax_url}?${new URLSearchParams(
-      query
-    ).toString()}`;
+    const queryString = new URLSearchParams(filters).toString();
+    const exportUrl = `${LCM.ajax_url}?${queryString}`;
+
     window.open(exportUrl, "_blank");
   });
-
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
     const p = +e.currentTarget.dataset.p;
