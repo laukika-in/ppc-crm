@@ -59,9 +59,9 @@ jQuery(function ($) {
       LCMExport.ajax_url,
       {
         action: "lcm_start_export",
-         security:    LCMExport.nonce, 
+        security: LCMExport.nonce,
         export_type: screen,
-         filters:     JSON.stringify(filters)
+        // filters:     JSON.stringify(filters)
       },
       function (res) {
         const jobId = res.data.job_id;
@@ -70,7 +70,7 @@ jQuery(function ($) {
             LCMExport.ajax_url,
             {
               action: "lcm_get_export_status",
-               security: LCMExport.nonce, 
+              security: LCMExport.nonce,
               job_id: jobId,
             },
             function (res2) {
