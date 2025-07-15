@@ -363,7 +363,7 @@ wp_localize_script(
   <div class="lcm-export-progress" style="flex:1; margin-left:1rem;">
     <div class="bar" style="width:0; background:#0073aa; color:#fff; text-align:center;">0%</div>
   </div>
-</div>
+  </div>
   </div>
   <!-- Preloader overlay -->
   <div style="position: relative;">   

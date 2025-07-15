@@ -3,7 +3,7 @@ jQuery(function ($) {
   function gatherFilters(screen) {
     const f = {};
 
-    if (screen === "lead-data") {
+    if (screen === "leads") {
       f.client = $("#lcm-filter-client").val() || "";
       f.date_from = $("#lcm-filter-date-from").val() || "";
       f.date_to = $("#lcm-filter-date-to").val() || "";
@@ -44,7 +44,7 @@ jQuery(function ($) {
     const $btn = $(this).prop("disabled", true);
     const screen = $btn.data("export-screen"); // 'leads','campaigns','daily'
     const filters = gatherFilters(screen);
-    console.log(screen);
+
     // show or reset progress UI
     let $progress = $btn.siblings(".lcm-export-progress");
     if (!$progress.length) {
@@ -59,9 +59,9 @@ jQuery(function ($) {
       LCMExport.ajax_url,
       {
         action: "lcm_start_export",
-        nonce: LCMExport.nonce,
+         security:    LCMExport.nonce, 
         export_type: screen,
-        filters: filters,
+         filters:     JSON.stringify(filters)
       },
       function (res) {
         const jobId = res.data.job_id;
@@ -70,7 +70,7 @@ jQuery(function ($) {
             LCMExport.ajax_url,
             {
               action: "lcm_get_export_status",
-              nonce: LCMExport.nonce,
+               security: LCMExport.nonce, 
               job_id: jobId,
             },
             function (res2) {

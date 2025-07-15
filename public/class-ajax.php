@@ -884,7 +884,8 @@ public function start_export_job() {
     global $wpdb;
 
     $type    = sanitize_text_field( $_POST['export_type'] );          // 'leads','campaigns','daily'
-    $filters = wp_unslash( $_POST['filters'] );                       // array of your current filters
+    $filters = json_decode( wp_unslash( $_POST['filters'] ), true );
+                  
     $f_json  = wp_json_encode( $filters );
 
     $table = $wpdb->prefix . 'lcm_export_jobs';
