@@ -714,7 +714,6 @@ public function save_daily_tracker() {
     $this->verify();
     global $wpdb;
 
-    // pull in everything
     $campaign_id = absint( $_POST['campaign_id'] );
     $date        = sanitize_text_field( $_POST['date'] );
     $reach       = floatval( $_POST['reach'] );
@@ -725,7 +724,7 @@ public function save_daily_tracker() {
     $table = "{$wpdb->prefix}lcm_campaign_daily_tracker";
 
     if ( $row_id ) {
-        // existing row → do an UPDATE by primary key
+        // Update existing row by primary key
         $wpdb->update(
             $table,
             [
@@ -736,22 +735,20 @@ public function save_daily_tracker() {
             [ 'id' => $row_id ]
         );
     } else {
-        // no row_id → upsert by (campaign_id,tracker_date)
+        // Insert new row (upsert by date)
         $wpdb->replace(
             $table,
             [
                 'campaign_id'  => $campaign_id,
-                'tracker_date' => $date,
+                'track_date'   => $date,        // <-- use the actual column name
                 'reach'        => $reach,
                 'impressions'  => $impressions,
                 'amount_spent' => $spent,
             ]
         );
-        // replace() deletes+reinserts → grab the new insert_id
         $row_id = $wpdb->insert_id;
     }
 
-    // return the row_id so your JS can re‑set it on the <tr>
     wp_send_json_success( [ 'row_id' => $row_id ] );
 }
 
