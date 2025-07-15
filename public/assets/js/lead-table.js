@@ -430,30 +430,9 @@ jQuery(function ($) {
     ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
   );
 
-  $(".export-csv-leads").on("click", function () {
-    const from = $("#filter-from").val();
-    const to = $("#filter-to").val();
-    const adName = $("#filter-adname").val();
-    const adset = $("#filter-adset").val();
-    const campaign = $("#filter-campaign").val();
-    const clientId = $("#filter-client").val(); // Only shown to admins
-
-    const filters = {
-      action: "lcm_export_csv",
-      type: "leads",
-    };
-
-    if (from) filters.from = from;
-    if (to) filters.to = to;
-    if (adName) filters.ad_name = adName;
-    if (adset) filters.adset = adset;
-    if (campaign) filters.campaign_id = campaign;
-    if (clientId) filters.client_id = clientId;
-
-    const queryString = new URLSearchParams(filters).toString();
-    const exportUrl = `${LCM.ajax_url}?${queryString}`;
-
-    window.open(exportUrl, "_blank");
+  // 2) Handle click with nonce
+  $(document).on("click", ".export-csv-leads", () => {
+    window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=leads&nonce=${LCM.nonce}`;
   });
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
