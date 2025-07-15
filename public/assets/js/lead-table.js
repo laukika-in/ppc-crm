@@ -452,35 +452,38 @@ jQuery(function ($) {
       $("<input>", {
         type: "hidden",
         name: "from",
-        value: $("#lead-from").val(),
+        value: $("#lead-from").val() || "",
       })
     );
     $form.append(
-      $("<input>", { type: "hidden", name: "to", value: $("#lead-to").val() })
+      $("<input>", {
+        type: "hidden",
+        name: "to",
+        value: $("#lead-to").val() || "",
+      })
     );
     $form.append(
       $("<input>", {
         type: "hidden",
         name: "campaign_id",
-        value: $("#filter-campaign").val(),
+        value: $("#filter-campaign").val() || "",
       })
     );
     $form.append(
       $("<input>", {
         type: "hidden",
         name: "adset",
-        value: $("#filter-adset").val(),
+        value: $("#filter-adset").val() || "",
       })
     );
     $form.append(
       $("<input>", {
         type: "hidden",
         name: "client_id",
-        value: $("#filter-client").val(),
+        value: $("#filter-client").val() || "",
       })
     );
 
-    // Append to body, submit, then remove
     $form.appendTo("body").submit().remove();
   });
 
