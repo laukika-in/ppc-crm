@@ -161,7 +161,10 @@ public function register_assets() {
 wp_localize_script(
     'lcm-export',
     'LCMExport',
-    [ 'ajax_url' => admin_url( 'admin-ajax.php' ) ]
+    [
+    'ajax_url' => admin_url( 'admin-ajax.php' ),
+    'nonce'    => wp_create_nonce( 'lcm_ajax' ),  
+  ]
 );
 }
 

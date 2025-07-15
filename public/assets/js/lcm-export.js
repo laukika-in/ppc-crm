@@ -59,6 +59,7 @@ jQuery(function ($) {
       LCMExport.ajax_url,
       {
         action: "lcm_start_export",
+        nonce:       LCMExport.nonce,
         export_type: screen,
         filters: filters,
       },
@@ -69,6 +70,7 @@ jQuery(function ($) {
             LCMExport.ajax_url,
             {
               action: "lcm_get_export_status",
+              nonce:  LCMExport.nonce,  
               job_id: jobId,
             },
             function (res2) {

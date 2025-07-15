@@ -29,8 +29,10 @@ class PPC_CRM_Ajax {
 
     add_action( 'wp_ajax_lcm_update_campaign_daily_totals', [ $this, 'update_campaign_daily_totals' ] );
     add_action( 'wp_ajax_nopriv_lcm_update_campaign_daily_totals', [ $this, 'forbid' ] );
-add_action('wp_ajax_lcm_start_export',      [ $this, 'start_export_job' ] );
-add_action('wp_ajax_lcm_get_export_status', [ $this, 'get_export_status' ] );
+ 
+add_action('wp_ajax_nopriv_lcm_start_export',      [ $this, 'start_export_job' ] );
+add_action('wp_ajax_nopriv_lcm_get_export_status', [ $this, 'get_export_status' ] );
+
 // Background hook (ActionScheduler or WP‑Cron)
 add_action('lcm_process_export_job',        [ $this, 'process_export_job' ], 10, 1 );
 	}
