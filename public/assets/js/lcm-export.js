@@ -44,7 +44,7 @@ jQuery(function ($) {
     const $btn = $(this).prop("disabled", true);
     const screen = $btn.data("export-screen"); // 'leads','campaigns','daily'
     const filters = gatherFilters(screen);
-
+    console.log(screen);
     // show or reset progress UI
     let $progress = $btn.siblings(".lcm-export-progress");
     if (!$progress.length) {
