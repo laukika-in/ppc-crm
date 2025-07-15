@@ -770,11 +770,29 @@ public function get_daily_tracker_rows() {
     $month       = sanitize_text_field( $_GET['month'] ?? '' );
     $from        = sanitize_text_field( $_GET['from']  ?? '' );
     $to          = sanitize_text_field( $_GET['to']    ?? '' );
-    $page        = max(1, (int)($_GET['page']     ?? 1));
-    $per_page    = 32;                        // fixed page size
+    $page        = max(1, (int)($_GET['page'] ?? 1));
+    $per_page    = 32;
     $offset      = ($page - 1) * $per_page;
 
-    // ② Build WHERE
+    // ② Build WHERE clause for leads (uses lead_date)
+    $where = "WHERE 1=1";
+    if ( $month ) {
+        $where .= $wpdb->prepare(
+            " AND DATE_FORMAT(lead_date,'%%Y-%%m') = %s",
+            $month
+        );
+    }
+    if ( $from ) {
+        $where .= $wpdb->prepare( " AND lead_date >= %s", $from );
+    }
+    if ( $to ) {
+        $where .= $wpdb->prepare( " AND lead_date <= %s", $to );
+    }
+    if ( $campaign_id ) {
+        $where .= $wpdb->prepare( " AND campaign_id = %d", $campaign_id );
+    }
+
+    // ③ Build WHERE clause for tracker (uses track_date)
     $tracker_where = "WHERE 1=1";
     if ( $month ) {
         $tracker_where .= $wpdb->prepare(
@@ -788,11 +806,11 @@ public function get_daily_tracker_rows() {
     if ( $to ) {
         $tracker_where .= $wpdb->prepare( " AND track_date <= %s", $to );
     }
-    if ( $filter_camp ) {
-        $tracker_where .= $wpdb->prepare( " AND campaign_id = %d", $filter_camp );
+    if ( $campaign_id ) {
+        $tracker_where .= $wpdb->prepare( " AND campaign_id = %d", $campaign_id );
     }
 
-    // ③ Lead aggregates by day
+    // ④ Lead aggregates by day
     $leads = $wpdb->get_results( "
         SELECT
             lead_date        AS date,
@@ -809,7 +827,7 @@ public function get_daily_tracker_rows() {
         ORDER BY lead_date DESC
     ", ARRAY_A );
 
-    // ④ Tracker data by day
+    // ⑤ Tracker data by day
     $trackers = $wpdb->get_results( "
         SELECT
             track_date    AS date,
@@ -817,21 +835,21 @@ public function get_daily_tracker_rows() {
             impressions,
             amount_spent
         FROM {$wpdb->prefix}lcm_campaign_daily_tracker
-        {$where}    
+        {$tracker_where}
         ORDER BY track_date DESC
     ", ARRAY_A );
 
-    // ⑤ Merge leads + trackers
+    // ⑥ Merge leads + trackers
     $map = [];
     foreach ( $trackers as $t ) {
         $map[ $t['date'] ] = $t;
     }
     $rows = [];
     foreach ( $leads as $l ) {
-        $d   = $l['date'];
-        $t   = $map[$d] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
+        $d = $l['date'];
+        $t = $map[$d] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
         $conn = (int)$l['relevant'] + (int)$l['not_relevant'];
-        $rows[] = array_merge( [
+        $rows[] = array_merge([
             'date'           => $d,
             'total_leads'    => (int)$l['total_leads'],
             'relevant'       => (int)$l['relevant'],
@@ -844,7 +862,7 @@ public function get_daily_tracker_rows() {
         ], $t );
     }
 
-    // ⑥ Summary (over all rows)
+    // ⑦ Summary
     $summary = [
         'total_leads'     => 0,
         'relevant'        => 0,
@@ -866,7 +884,7 @@ public function get_daily_tracker_rows() {
     }
     $summary['connected'] = $summary['relevant'] + $summary['not_relevant'];
 
-    // ⑦ Pagination slice
+    // ⑧ Pagination slice
     $total_days = count($rows);
     $rows       = array_slice($rows, $offset, $per_page);
 
@@ -876,6 +894,7 @@ public function get_daily_tracker_rows() {
         'total_days' => $total_days,
     ]);
 }
+
 public function export_csv() {
     $this->verify();
     global $wpdb;
