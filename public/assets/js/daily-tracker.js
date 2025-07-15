@@ -209,6 +209,17 @@ jQuery(function ($) {
       }
     }
   }
+  // 1) Inject into the same <div class="d-flex align-items-center…">
+  $mount
+    .find("div.d-flex.align-items-center.mb-3")
+    .append(
+      '<button class="btn btn-sm btn-outline-secondary export-csv-daily ms-auto">Export CSV</button>'
+    );
+
+  // 2) Wire up click, passing nonce
+  $mount.on("click", ".export-csv-daily", () => {
+    window.location = `${AJAX}?action=lcm_export_csv&type=daily_tracker&nonce=${NONCE}`;
+  });
 
   // Clear‐filter buttons
   $mount.on("click", ".clear-filter", function () {

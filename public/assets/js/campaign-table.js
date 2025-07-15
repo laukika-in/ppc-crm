@@ -356,6 +356,15 @@ jQuery(function ($) {
       load(p);
     }
   });
+// 1) After your filter‐init code, append export button:
+$('#lcm-filter-date-to').after(
+  ' <button class="btn btn-sm btn-outline-secondary export-csv-campaigns">Export CSV</button>'
+);
+
+// 2) Delegate click—include nonce
+$(document).on('click', '.export-csv-campaigns', () => {
+  window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=campaigns&nonce=${LCM.nonce}`;
+});
 
   // ─── 9) Filters & CRUD bindings ─────────────────────────────────────────
   $filterClient.on("change", function () {

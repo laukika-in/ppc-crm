@@ -273,6 +273,17 @@ jQuery(function ($) {
   $mount.on("click", ".cancel-row", function () {
     reload();
   });
+  // 1) Inject the button into your filter bar
+  $mount
+    .find(".lcm-detail-filters")
+    .append(
+      '<button class="btn btn-sm btn-outline-secondary export-csv-detail ms-auto">Export CSV</button>'
+    );
+
+  // 2) Include the nonce when triggering the download
+  $mount.on("click", ".export-csv-detail", () => {
+    window.location = `${AJAX}?action=lcm_export_csv&type=campaign_detail&nonce=${NONCE}`;
+  });
 
   // Save handler
   $mount.on("click", ".save-row", function () {
