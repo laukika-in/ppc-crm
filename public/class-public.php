@@ -157,7 +157,7 @@ public function register_assets() {
     PPC_CRM_VERSION,
     true
 );
-// expose AJAX URL to that script
+wp_enqueue_script( 'lcm-export' );
 wp_localize_script(
     'lcm-export',
     'LCMExport',
@@ -432,9 +432,7 @@ private function render_table( string $which ): string {
         wp_enqueue_style( 'lcm-tables' );
         wp_enqueue_script( 'bootstrap-js' );
         wp_enqueue_script( 'flatpickr-js' );
-        wp_enqueue_script( 'flatpickr-init' );
-        
-            wp_enqueue_script( 'lcm-export' );
+        wp_enqueue_script( 'flatpickr-init' ); 
 
         if ( $which === 'lead' ) {
             // Already handled above, but keep consistent
