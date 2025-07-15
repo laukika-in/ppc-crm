@@ -882,40 +882,43 @@ public function export_csv() {
     $this->verify(); // nonce + capability check
     global $wpdb;
 
-    $type      = isset( $_GET['type'] ) ? sanitize_key( $_GET['type'] ) : '';
-    $lead_tbl  = $wpdb->prefix . 'lcm_leads';
-    $camp_tbl  = $wpdb->prefix . 'lcm_campaigns';
-    $users_tbl = $wpdb->users;
-    $dt_tbl    = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+    // determine dataset
+    $type = isset( $_GET['type'] ) ? sanitize_key( $_GET['type'] ) : '';
+
+    // table names
+    $leads_table    = $wpdb->prefix . 'lcm_leads';
+    $campaigns_table= $wpdb->prefix . 'lcm_campaigns';
+    $users_table    = $wpdb->users;
+    $tracker_table  = $wpdb->prefix . 'lcm_campaign_daily_tracker';
 
     // send CSV headers
     header( 'Content-Type: text/csv; charset=utf-8' );
 
     switch ( $type ) {
 
+        // ─── LEADS ───────────────────────────────────────────────────────
         case 'leads':
             header( 'Content-Disposition: attachment; filename="lcm-leads.csv"' );
+            // join to users for client_name, and to campaigns twice for ad_name/adset
             $sql = "
                 SELECT
-                  {$lead_tbl}.*,
-                  {$users_tbl}.display_name     AS client_label,
-                  camp_ad.campaign_name         AS ad_name_label,
-                  camp_as.adset                 AS adset_label
-                FROM {$lead_tbl}
-                LEFT JOIN {$users_tbl}
-                  ON {$lead_tbl}.client_id = {$users_tbl}.ID
-                LEFT JOIN {$camp_tbl} AS camp_ad
-                  ON {$lead_tbl}.ad_name = camp_ad.id
-                LEFT JOIN {$camp_tbl} AS camp_as
-                  ON {$lead_tbl}.adset   = camp_as.id
+                  l.*,
+                  u.display_name           AS client_label,
+                  c1.campaign_name         AS ad_name_label,
+                  c2.adset                 AS adset_label
+                FROM {$leads_table} l
+                LEFT JOIN {$users_table}    u  ON l.client_id = u.ID
+                LEFT JOIN {$campaigns_table} c1 ON l.ad_name    = c1.id
+                LEFT JOIN {$campaigns_table} c2 ON l.adset      = c2.id
             ";
             $rows = $wpdb->get_results( $sql, ARRAY_A );
             if ( empty( $rows ) ) {
                 wp_send_json_error( 'No leads to export' );
             }
-            // overwrite
+            // overwrite the raw columns
             foreach ( $rows as &$row ) {
                 $row['client_id'] = $row['client_label']   ?? '';
+                // leave campaign_id untouched
                 $row['ad_name']   = $row['ad_name_label']  ?? '';
                 $row['adset']     = $row['adset_label']    ?? '';
                 unset( $row['client_label'], $row['ad_name_label'], $row['adset_label'] );
@@ -923,15 +926,15 @@ public function export_csv() {
             unset( $row );
             break;
 
+        // ─── CAMPAIGNS ───────────────────────────────────────────────────
         case 'campaigns':
             header( 'Content-Disposition: attachment; filename="lcm-campaigns.csv"' );
             $sql = "
                 SELECT
-                  {$camp_tbl}.*,
-                  {$users_tbl}.display_name AS client_label
-                FROM {$camp_tbl}
-                LEFT JOIN {$users_tbl}
-                  ON {$camp_tbl}.client_id = {$users_tbl}.ID
+                  c.*,
+                  u.display_name AS client_label
+                FROM {$campaigns_table} c
+                LEFT JOIN {$users_table} u ON c.client_id = u.ID
             ";
             $rows = $wpdb->get_results( $sql, ARRAY_A );
             if ( empty( $rows ) ) {
@@ -944,23 +947,23 @@ public function export_csv() {
             unset( $row );
             break;
 
+        // ─── DAILY TRACKER & CAMPAIGN DETAIL ────────────────────────────
         case 'daily_tracker':
         case 'campaign_detail':
             header( 'Content-Disposition: attachment; filename="lcm-daily-tracker.csv"' );
             $sql = "
                 SELECT
-                  {$dt_tbl}.*,
-                  camp_main.campaign_name AS campaign_label
-                FROM {$dt_tbl}
-                LEFT JOIN {$camp_tbl} AS camp_main
-                  ON {$dt_tbl}.campaign_id = camp_main.id
+                  t.*,
+                  c.campaign_name AS campaign_label
+                FROM {$tracker_table} t
+                LEFT JOIN {$campaigns_table} c ON t.campaign_id = c.id
             ";
             $rows = $wpdb->get_results( $sql, ARRAY_A );
             if ( empty( $rows ) ) {
                 wp_send_json_error( 'No tracker data to export' );
             }
+            // leave campaign_id raw, just drop the label column
             foreach ( $rows as &$row ) {
-                // keep raw campaign_id; remove label if needed
                 unset( $row['campaign_label'] );
             }
             unset( $row );
@@ -970,7 +973,7 @@ public function export_csv() {
             wp_send_json_error( 'Invalid export type' );
     }
 
-    // output CSV
+    // stream CSV
     $out = fopen( 'php://output', 'w' );
     fputcsv( $out, array_keys( $rows[0] ) );
     foreach ( $rows as $row ) {
