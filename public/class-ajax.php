@@ -876,7 +876,6 @@ public function get_daily_tracker_rows() {
         'total_days' => $total_days,
     ]);
 }
-
 public function export_csv() {
     $this->verify(); // nonce + permission check
     global $wpdb;
@@ -903,15 +902,17 @@ public function export_csv() {
             $all_camp_ids = array_filter( array_unique(
                 array_merge( $camp_ids, $ad_name_ids, $adset_ids )
             ), 'intval' );
-            $ids_list     = implode( ',', array_map( 'absint', $all_camp_ids ) );
-
+           
             // build user map
             $user_map = [];
-            if ( $client_ids ) {
-                $users = $wpdb->get_results(
-                    "SELECT ID, display_name FROM {$users_tbl} WHERE ID IN ({$ids = implode(',', array_map('absint',$client_ids))})",
-                    ARRAY_A
-                );
+            $all_ids  = implode( ',', array_map( 'absint', $all_camp_ids ) );
+                if ( $all_ids ) {
+                    $camps = $wpdb->get_results(
+                        "SELECT id, campaign_name, adset
+                        FROM {$camp_tbl}
+                        WHERE id IN ({$all_ids})",
+                        ARRAY_A
+                    );
                 foreach ( $users as $u ) {
                     $user_map[ $u['ID'] ] = $u['display_name'];
                 }
@@ -1011,6 +1012,7 @@ public function export_csv() {
             wp_send_json_error( 'Invalid export type' );
     }
 }
+
 
 }
  
