@@ -29,8 +29,9 @@ class PPC_CRM_Ajax {
 
     add_action( 'wp_ajax_lcm_update_campaign_daily_totals', [ $this, 'update_campaign_daily_totals' ] );
     add_action( 'wp_ajax_nopriv_lcm_update_campaign_daily_totals', [ $this, 'forbid' ] );
+    
     add_action( 'wp_ajax_lcm_export_csv',    [ $this, 'export_csv' ] );
-        add_action( 'wp_ajax_nopriv_lcm_export_csv', [ $this, 'export_csv' ] );
+    add_action( 'wp_ajax_nopriv_lcm_export_csv', [ $this, 'export_csv' ] );
 
  }
 
@@ -895,44 +896,61 @@ public function export_csv() {
 
             // ─── LEADS ───────────────────────────────────────────────────────
             case 'leads':
-                header( 'Content-Disposition: attachment; filename="lcm-leads.csv"' );
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="lcm-leads.csv"');
 
-                // Join users for client name, campaigns for campaign_name/ad_name/adset
-                $sql = "
-                    SELECT
-                      l.*,
-                      u.display_name        AS client_name,
-                      c_main.campaign_name  AS campaign_label,
-                      c_ad.campaign_name    AS ad_name_label,
-                      c_as.adset            AS adset_label
-                    FROM {$lead_tbl} l
-                    LEFT JOIN {$users_tbl}    u      ON l.client_id   = u.ID
-                    LEFT JOIN {$camp_tbl}     c_main ON l.campaign_id = c_main.id
-                    LEFT JOIN {$camp_tbl}     c_ad   ON l.ad_name     = c_ad.id
-                    LEFT JOIN {$camp_tbl}     c_as   ON l.adset       = c_as.id
-                ";
-                $rows = $wpdb->get_results( $sql, ARRAY_A );
-                if ( empty( $rows ) ) {
-                    wp_send_json_error( 'No leads to export' );
-                }
+    // 1) Grab everything and join twice: once by ID, once by name
+    $sql = "
+      SELECT
+        l.*,
+        u.display_name      AS client_name,
+        c_id.campaign_name  AS campaign_by_id,
+        c_nm.campaign_name  AS campaign_by_name,
+        c_ad.campaign_name  AS ad_name_by_id,
+        c_as.adset          AS adset_by_id
+      FROM {$lead_tbl} l
+      LEFT JOIN {$users_tbl}    u    ON l.client_id   = u.ID
+      LEFT JOIN {$camp_tbl}     c_id ON l.campaign_id = c_id.id
+      LEFT JOIN {$camp_tbl}     c_nm ON l.campaign_id = c_nm.campaign_name
+      LEFT JOIN {$camp_tbl}     c_ad ON l.ad_name     = c_ad.id
+      LEFT JOIN {$camp_tbl}     c_as ON l.adset       = c_as.id
+    ";
 
-                // Rebuild each row: replace the three ID‐fields with their labels
-                foreach ( $rows as &$r ) {
-                    $r['client_id']    = $r['client_name'];
-                    $r['campaign_id']  = $r['campaign_label'];
-                    $r['ad_name']      = $r['ad_name_label'];
-                    $r['adset']        = $r['adset_label'];
-                    unset( $r['client_name'], $r['campaign_label'], $r['ad_name_label'], $r['adset_label'] );
-                }
-                unset( $r );
+    $rows = $wpdb->get_results( $sql, ARRAY_A );
+    if ( empty( $rows ) ) {
+      wp_send_json_error( 'No leads to export' );
+    }
 
-                $out = fopen( 'php://output', 'w' );
-                fputcsv( $out, array_keys( $rows[0] ) );
-                foreach ( $rows as $r ) {
-                    fputcsv( $out, $r );
-                }
-                fclose( $out );
-                exit;
+    // 2) Normalize each row:
+    foreach ( $rows as &$r ) {
+      // client_id → user name
+      $r['client_id'] = $r['client_name'] ?? '';
+
+      // campaign_id → prefer ID‑lookup, else name‑lookup
+      $r['campaign_id'] = $r['campaign_by_id'] 
+                           ?: $r['campaign_by_name'] 
+                           ?: '';
+
+      // ad_name → only ID‑lookup exists
+      $r['ad_name'] = $r['ad_name_by_id'] ?: '';
+
+      // adset → only ID‑lookup exists
+      $r['adset'] = $r['adset_by_id'] ?: '';
+
+      // drop the temp columns
+      unset( $r['client_name'], $r['campaign_by_id'], $r['campaign_by_name'],
+             $r['ad_name_by_id'], $r['adset_by_id'] );
+    }
+    unset( $r );
+
+    // 3) Stream CSV
+    $out = fopen( 'php://output', 'w' );
+    fputcsv( $out, array_keys( $rows[0] ) );
+    foreach ( $rows as $r ) {
+      fputcsv( $out, $r );
+    }
+    fclose( $out );
+    exit;
 
             // ─── CAMPAIGNS ─────────────────────────────────────────────────
             case 'campaigns':
