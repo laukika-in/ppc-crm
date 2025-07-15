@@ -426,6 +426,16 @@ jQuery(function ($) {
       }, (p - 1) * 500);
     }
   }
+  // after your filter‑init code runs:
+  $(".lcm-filters").append(
+    '<button class="btn btn-sm btn-outline-secondary export-csv ms-auto">Export CSV</button>'
+  );
+
+  // clicking it fires the download
+  $(".lcm-filters").on("click", ".export-csv", () => {
+    window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=leads`;
+  });
+
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
     const p = +e.currentTarget.dataset.p;
@@ -747,6 +757,7 @@ jQuery(function ($) {
     allowClear: true,
     width: "200px",
   });
+
   $("#lcm-filter-adset").select2({
     placeholder: "All Adsets",
     allowClear: true,
