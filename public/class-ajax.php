@@ -29,7 +29,10 @@ class PPC_CRM_Ajax {
 
     add_action( 'wp_ajax_lcm_update_campaign_daily_totals', [ $this, 'update_campaign_daily_totals' ] );
     add_action( 'wp_ajax_nopriv_lcm_update_campaign_daily_totals', [ $this, 'forbid' ] );
-
+add_action('wp_ajax_lcm_start_export',      [ $this, 'start_export_job' ] );
+add_action('wp_ajax_lcm_get_export_status', [ $this, 'get_export_status' ] );
+// Background hook (ActionScheduler or WP‑Cron)
+add_action('lcm_process_export_job',        [ $this, 'process_export_job' ], 10, 1 );
 	}
 
 private function verify() {
@@ -172,8 +175,8 @@ public function create_lead() {
 			'post_type'=>'lcm_lead','post_status'=>'publish','post_title'=>$data['uid']
 		],true);
         if ( isset( $data['campaign_id'], $data['lead_date'] ) ) {
-        $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
-    }
+            $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
+        }
 
 		if(is_wp_error($post_id)) wp_send_json_error(['msg'=>$post_id->get_error_message()],500);
 		$data['post_id']=$post_id;
@@ -248,8 +251,8 @@ public function create_lead() {
             [ '%d' ]
         );
         if ( isset( $data['campaign_id'], $data['lead_date'] ) ) {
-    $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
- }
+            $this->update_campaign_daily_totals( $data['campaign_id'], $data['lead_date'] );
+        }
 
         // Also update the WP post title (UID)
         $lead = $wpdb->get_var( $wpdb->prepare(
@@ -268,49 +271,49 @@ public function create_lead() {
             $ui->recount_campaign_counters( $data['campaign_id'] );
             }
             wp_send_json_success();
-        }
+    }
 
     /* ---------- 3) Delete saved lead row ------------------------------- */
 
     public function delete_lead() {
-    $this->verify();
+        $this->verify();
 
-    $id = absint( $_POST['id'] ?? 0 );
-    if ( ! $id ) {
-        wp_send_json_error( [ 'msg' => 'Missing ID' ], 400 );
+        $id = absint( $_POST['id'] ?? 0 );
+        if ( ! $id ) {
+            wp_send_json_error( [ 'msg' => 'Missing ID' ], 400 );
+        }
+
+        global $wpdb;
+        // ① grab the campaign_id for this lead
+        $campaign_id = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT campaign_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
+            $id
+        ) );
+
+        // ② fetch the WP post_id so we can delete it
+        $lead = $wpdb->get_row( $wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
+            $id
+        ), ARRAY_A );
+        if ( ! $lead || empty( $lead['post_id'] ) ) {
+            wp_send_json_error( [ 'msg' => 'Lead not found' ], 404 );
+        }
+
+        // ③ remove from custom table & delete the post
+        $wpdb->delete( $wpdb->prefix . 'lcm_leads', [ 'id' => $id ] );
+        wp_delete_post( (int) $lead['post_id'], true );
+
+        // ④ re‐count now that it’s gone
+        if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
+            $ui = new PPC_CRM_Admin_UI();
+            $ui->recount_total_leads( $campaign_id );
+            $ui->recount_campaign_counters( $campaign_id );
+        }
+
+        // ⑤ return updated total for pager
+        $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
+        wp_send_json_success( [ 'total' => $total ] );
     }
-
-    global $wpdb;
-    // ① grab the campaign_id for this lead
-    $campaign_id = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT campaign_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
-        $id
-    ) );
-
-    // ② fetch the WP post_id so we can delete it
-    $lead = $wpdb->get_row( $wpdb->prepare(
-        "SELECT post_id FROM {$wpdb->prefix}lcm_leads WHERE id = %d",
-        $id
-    ), ARRAY_A );
-    if ( ! $lead || empty( $lead['post_id'] ) ) {
-        wp_send_json_error( [ 'msg' => 'Lead not found' ], 404 );
-    }
-
-    // ③ remove from custom table & delete the post
-    $wpdb->delete( $wpdb->prefix . 'lcm_leads', [ 'id' => $id ] );
-    wp_delete_post( (int) $lead['post_id'], true );
-
-    // ④ re‐count now that it’s gone
-    if ( class_exists( 'PPC_CRM_Admin_UI' ) ) {
-        $ui = new PPC_CRM_Admin_UI();
-        $ui->recount_total_leads( $campaign_id );
-        $ui->recount_campaign_counters( $campaign_id );
-    }
-
-    // ⑤ return updated total for pager
-    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lcm_leads" );
-    wp_send_json_success( [ 'total' => $total ] );
-}
  
 public function get_campaigns() {
     $this->verify();
@@ -874,6 +877,133 @@ public function get_daily_tracker_rows() {
         'total_days' => $total_days,
     ]);
 }
+public function start_export_job() {
+    $this->verify();
+    global $wpdb;
 
+    $type    = sanitize_text_field( $_POST['export_type'] );          // 'leads','campaigns','daily'
+    $filters = wp_unslash( $_POST['filters'] );                       // array of your current filters
+    $f_json  = wp_json_encode( $filters );
+
+    $table = $wpdb->prefix . 'lcm_export_jobs';
+    $wpdb->insert( $table, [
+      'export_type' => $type,
+      'filters'     => $f_json,
+      'status'      => 'pending',
+    ] );
+    $job_id = $wpdb->insert_id;
+
+    // enqueue background
+    if ( function_exists('as_enqueue_async_action') ) {
+      as_enqueue_async_action( 'lcm_process_export_job', [ 'job_id'=>$job_id ], 'lcm_exports' );
+    } else {
+      wp_schedule_single_event( time()+5, 'lcm_process_export_job', [ 'job_id'=>$job_id ] );
+    }
+
+    wp_send_json_success( [ 'job_id' => $job_id ] );
+}
+
+// 3) Polling endpoint
+public function get_export_status() {
+    $this->verify();
+    global $wpdb;
+
+    $job_id = absint( $_POST['job_id'] );
+    $row = $wpdb->get_row(
+      $wpdb->prepare( "SELECT processed, total, status, file_path FROM {$wpdb->prefix}lcm_export_jobs WHERE id=%d", $job_id ),
+      ARRAY_A
+    );
+    wp_send_json_success( $row );
+}
+
+// 4) The background worker
+public function process_export_job( $args ) {
+    global $wpdb;
+    $job_id = absint( $args['job_id'] );
+
+    // 4.a) Load job record
+    $job = $wpdb->get_row(
+      $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}lcm_export_jobs WHERE id=%d", $job_id ),
+      ARRAY_A
+    );
+    if ( ! $job ) return;
+
+    $filters     = json_decode( $job['filters'], true );
+    $type        = $job['export_type'];
+    $export_dir  = wp_upload_dir()['basedir'] . '/lcm-exports';
+    wp_mkdir_p( $export_dir );
+    $file        = "{$export_dir}/export-{$type}-{$job_id}.csv";
+    $fh          = fopen( $file, 'w' );
+
+    // 4.b) Build WHERE clause based on $filters
+    //    (e.g. for date range: "WHERE tracker_date BETWEEN '{$filters['from']}' AND '{$filters['to']}'")
+    list( $table, $where_sql, $cols ) = $this->get_export_query_params( $type, $filters );
+
+    // 4.c) Count total rows
+    $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} {$where_sql}" );
+    $wpdb->update( $wpdb->prefix.'lcm_export_jobs',
+      [ 'total'=> $total, 'status'=>'processing' ],
+      [ 'id'=> $job_id ]
+    );
+
+    // 4.d) Write header row
+    fputcsv( $fh, $cols );
+
+    // 4.e) Stream in batches
+    $batch_size = 1000;
+    for ( $offset = 0; $offset < $total; $offset += $batch_size ) {
+      $rows = $wpdb->get_results(
+        "SELECT * FROM {$table} {$where_sql} LIMIT {$batch_size} OFFSET {$offset}", ARRAY_A
+      );
+      foreach ( $rows as $r ) {
+        fputcsv( $fh, array_map( 'strval', $r ) );
+      }
+      $processed = min( $offset + $batch_size, $total );
+      $wpdb->update( $wpdb->prefix.'lcm_export_jobs',
+        [ 'processed'=> $processed ],
+        [ 'id'=> $job_id ]
+      );
+    }
+
+    fclose( $fh );
+    // 4.f) Mark done
+    $wpdb->update( $wpdb->prefix.'lcm_export_jobs',
+      [ 'status'=>'completed', 'file_path'=>$file, 'processed'=>$total ],
+      [ 'id'=> $job_id ]
+    );
+}
+
+// 4.g) Helper to map type→table, WHERE and columns
+private function get_export_query_params( $type, $filters ) {
+    global $wpdb;
+    switch ( $type ) {
+      case 'leads':
+        $table   = "{$wpdb->prefix}lcm_leads";
+        $cols    = [ 'id','campaign_id','lead_name','lead_phone','created_at' ];
+        $where   = ''; // add WHERE if you have lead filters
+        break;
+      case 'campaigns':
+        $table   = "{$wpdb->prefix}lcm_campaigns";
+        $cols    = [ 'id','name','budget','start_date','end_date' ];
+        $where   = ''; // add WHERE for campaign filters
+        break;
+      default:
+      case 'daily':
+        $table   = "{$wpdb->prefix}lcm_campaign_daily_tracker";
+        $cols    = [ 'id','campaign_id','tracker_date','reach','impressions','amount_spent' ];
+        $where   = [];
+        if ( ! empty( $filters['from'] ) && ! empty( $filters['to'] ) ) {
+          $from = esc_sql( $filters['from'] );
+          $to   = esc_sql( $filters['to'] );
+          $where[] = "tracker_date BETWEEN '{$from}' AND '{$to}'";
+        } elseif ( ! empty( $filters['month'] ) ) {
+          $m = esc_sql( $filters['month'] );
+          $where[] = "LEFT(tracker_date,7) = '{$m}'";
+        }
+        $where = $where ? 'WHERE ' . implode( ' AND ', $where ) : '';
+        break;
+    }
+    return [ $table, $where, $cols ];
+}
 }
  

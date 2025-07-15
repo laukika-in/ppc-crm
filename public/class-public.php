@@ -12,6 +12,7 @@ class PPC_CRM_Public {
         add_shortcode('campaign_detail_page', [$this, 'render_campaign_detail']);
         add_shortcode( 'lcm_campaign_detail', [ $this, 'shortcode_campaign_detail' ] );
         add_shortcode( 'lcm_daily_tracker', [ $this, 'shortcode_daily_tracker' ] );
+        
   }
 
     /**
@@ -149,7 +150,19 @@ public function register_assets() {
           '4.1.0',
           true
       );
- 
+ wp_register_script(
+    'lcm-export',
+    plugin_dir_url(__FILE__) . 'assets/js/lcm-export.js',
+    [ 'jquery' ],
+    PPC_CRM_VERSION,
+    true
+);
+// expose AJAX URL to that script
+wp_localize_script(
+    'lcm-export',
+    'LCMExport',
+    [ 'ajax_url' => admin_url( 'admin-ajax.php' ) ]
+);
 }
 
     /**
@@ -208,6 +221,7 @@ public function register_assets() {
             wp_enqueue_script( 'select2-js' );
 
             wp_localize_script( 'lcm-lead-table', 'LCM', $vars );
+            wp_enqueue_script( 'lcm-export' );
 
             // Render HTML
             ob_start(); ?>
@@ -337,6 +351,16 @@ public function register_assets() {
   </div>
 
     <div class="btn-group btn-group-sm ms-2 mb-2" id="lcm-pager-lead"></div>
+    <div class="d-flex align-items-center mb-3 lcm-detail-filters">
+  <!-- existing filter markup… -->
+  <button class="btn btn-outline-primary btn-sm lcm-export-btn"
+          data-export-screen="leads">
+    Export CSV
+  </button>
+  <div class="lcm-export-progress" style="flex:1; margin-left:1rem;">
+    <div class="bar" style="width:0; background:#0073aa; color:#fff; text-align:center;">0%</div>
+  </div>
+</div>
   </div>
   <!-- Preloader overlay -->
   <div style="position: relative;">   
@@ -406,6 +430,8 @@ private function render_table( string $which ): string {
         wp_enqueue_script( 'bootstrap-js' );
         wp_enqueue_script( 'flatpickr-js' );
         wp_enqueue_script( 'flatpickr-init' );
+        
+            wp_enqueue_script( 'lcm-export' );
 
         if ( $which === 'lead' ) {
             // Already handled above, but keep consistent
@@ -561,6 +587,8 @@ public function shortcode_campaign_detail() {
             wp_enqueue_style( 'select2-css' );
             wp_enqueue_script( 'select2-js' );
   wp_enqueue_script( 'lcm-campaign-detail' );
+  
+            wp_enqueue_script( 'lcm-export' );
 
       wp_localize_script('lcm-campaign-detail', 'LCM', [
         'ajax_url' => admin_url('admin-ajax.php'),
@@ -583,6 +611,8 @@ public function shortcode_daily_tracker(): string {
             wp_enqueue_style( 'select2-css' );
             wp_enqueue_script( 'select2-js' );
     wp_enqueue_script( 'lcm-daily-tracker' );
+    
+            wp_enqueue_script( 'lcm-export' );
   $camp_posts = get_posts([
       'post_type'   => 'lcm_campaign',
       'numberposts' => -1,

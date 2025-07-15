@@ -120,7 +120,7 @@ public static function version() : string {
 		$campaigns = $wpdb->prefix . 'lcm_campaigns';
 		$leads     = $wpdb->prefix . 'lcm_leads';		
 		$daily = $wpdb->prefix . 'lcm_campaign_daily_tracker';
-
+		$export_jobs = $wpdb->prefix . 'lcm_export_jobs';
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		// Campaigns table
@@ -209,5 +209,19 @@ public static function version() : string {
 				KEY track_date (track_date)
 			) $charset;
 		");
+		
+		dbDelta( "
+			CREATE TABLE {$export_jobs} (
+			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			export_type  VARCHAR(20)     NOT NULL,
+			filters      LONGTEXT        NOT NULL,
+			status       VARCHAR(20)     NOT NULL DEFAULT 'pending',
+			total        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			processed    BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			file_path    VARCHAR(255)    NOT NULL DEFAULT '',
+			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id)
+			) {$charset};
+		" );
 	}
 }
