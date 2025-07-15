@@ -900,9 +900,9 @@ public function export_csv() {
             $sql = "
                 SELECT
                   {$lead_tbl}.*,
-                  {$users_tbl}.display_name         AS client_label,
-                  camp_ad.campaign_name             AS ad_name_label,
-                  camp_as.adset                     AS adset_label
+                  {$users_tbl}.display_name                    AS client_label,
+                  camp_ad.campaign_title                       AS ad_name_label,
+                  camp_as.adset                                AS adset_label
                 FROM {$lead_tbl}
                 LEFT JOIN {$users_tbl}
                   ON {$lead_tbl}.client_id = {$users_tbl}.ID
@@ -916,19 +916,20 @@ public function export_csv() {
                 wp_send_json_error( 'No leads to export' );
             }
 
-            // Replace columns in each row:
+            // Overwrite and clean up
             foreach ( $rows as &$row ) {
                 // client_id → display_name
-                $row['client_id'] = $row['client_label']   ?? '';
-                // ad_name → campaign_name
-                $row['ad_name']   = $row['ad_name_label']  ?? '';
+                $row['client_id'] = $row['client_label'] ?? '';
+                // ad_name → campaign_title
+                $row['ad_name']   = $row['ad_name_label'] ?? '';
                 // adset → adset
-                $row['adset']     = $row['adset_label']    ?? '';
-                // remove temporary labels
+                $row['adset']     = $row['adset_label'] ?? '';
+                // remove the temporary label fields
                 unset( $row['client_label'], $row['ad_name_label'], $row['adset_label'] );
             }
             unset( $row );
 
+            // Stream
             $out = fopen( 'php://output', 'w' );
             fputcsv( $out, array_keys( $rows[0] ) );
             foreach ( $rows as $row ) {
@@ -989,9 +990,9 @@ public function export_csv() {
             }
 
             foreach ( $rows as &$row ) {
-                // campaign_id remains the raw ID;
-                // if you ever want the title, you'd use campaign_label
-                $row['campaign_id'] = $row['campaign_id'];
+                // campaign_id stays as the raw ID,
+                // but you could also output the label if desired:
+                // $row['campaign_id'] = $row['campaign_label'] ?? $row['campaign_id'];
                 unset( $row['campaign_label'] );
             }
             unset( $row );
