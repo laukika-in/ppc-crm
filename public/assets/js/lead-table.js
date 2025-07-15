@@ -450,6 +450,7 @@ jQuery(function ($) {
 
     const url = `${LCM.ajax_url}?${params.toString()}`;
     window.open(url, "_blank");
+    console.log(url);
   });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
