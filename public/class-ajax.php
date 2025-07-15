@@ -883,7 +883,10 @@ public function export_csv() {
     if ( ! isset($_POST['nonce']) || ! wp_verify_nonce($_POST['nonce'], 'lcm_nonce') ) {
         wp_die('-1');
     }
-
+wp_localize_script('your-leads-js-handle', 'LCM', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce'    => wp_create_nonce('lcm_nonce'),
+]);
     global $wpdb;
     $type = sanitize_text_field($_POST['type'] ?? '');
 
