@@ -3,7 +3,7 @@ jQuery(function ($) {
   function gatherFilters(screen) {
     const f = {};
 
-    if (screen === "leads") {
+    if (screen === "lead-data") {
       f.client = $("#lcm-filter-client").val() || "";
       f.date_from = $("#lcm-filter-date-from").val() || "";
       f.date_to = $("#lcm-filter-date-to").val() || "";
@@ -59,7 +59,7 @@ jQuery(function ($) {
       LCMExport.ajax_url,
       {
         action: "lcm_start_export",
-        nonce:       LCMExport.nonce,
+        nonce: LCMExport.nonce,
         export_type: screen,
         filters: filters,
       },
@@ -70,7 +70,7 @@ jQuery(function ($) {
             LCMExport.ajax_url,
             {
               action: "lcm_get_export_status",
-              nonce:  LCMExport.nonce,  
+              nonce: LCMExport.nonce,
               job_id: jobId,
             },
             function (res2) {
