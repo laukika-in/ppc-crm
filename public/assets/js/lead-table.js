@@ -433,44 +433,55 @@ jQuery(function ($) {
 
   // 2) Handle click with nonce
   $(document).on("click", ".export-csv-leads", function () {
-    const form = $("<form>", {
-      method: "POST",
+    const $form = $("<form>", {
       action: LCM.ajax_url,
+      method: "POST",
       target: "_blank",
     });
 
-    // Core parameters
-    const baseData = {
-      action: "lcm_export_csv",
-      type: "leads",
-      nonce: LCM.nonce,
-      from: filterDateFrom,
-      to: filterDateTo,
-      campaign_id: filterAdNameVal,
-      adset: filterAdsetVal,
-      client_id: filterClient,
-      day: filterDayVal,
-      source: filterSourceVal,
-      client_type: filterClientTypeVal,
-      attempt_type: filterAttemptTypeVal,
-      attempt_status: filterAttemptStatusVal,
-      store_visit_status: filterStoreVal,
-      occasion: filterOccasionVal,
-      search: filterTextVal,
-      budget: filterBudgetVal,
-      product_interest: filterProductVal,
-      city: filterCityVal,
-    };
+    $form.append(
+      $("<input>", { type: "hidden", name: "action", value: "lcm_export_csv" })
+    );
+    $form.append(
+      $("<input>", { type: "hidden", name: "type", value: "leads" })
+    );
+    $form.append(
+      $("<input>", { type: "hidden", name: "nonce", value: LCM.nonce })
+    );
+    $form.append(
+      $("<input>", {
+        type: "hidden",
+        name: "from",
+        value: $("#lead-from").val(),
+      })
+    );
+    $form.append(
+      $("<input>", { type: "hidden", name: "to", value: $("#lead-to").val() })
+    );
+    $form.append(
+      $("<input>", {
+        type: "hidden",
+        name: "campaign_id",
+        value: $("#filter-campaign").val(),
+      })
+    );
+    $form.append(
+      $("<input>", {
+        type: "hidden",
+        name: "adset",
+        value: $("#filter-adset").val(),
+      })
+    );
+    $form.append(
+      $("<input>", {
+        type: "hidden",
+        name: "client_id",
+        value: $("#filter-client").val(),
+      })
+    );
 
-    Object.entries(baseData).forEach(([key, value]) => {
-      form.append(
-        $("<input>", { type: "hidden", name: key, value: value || "" })
-      );
-    });
-
-    // Submit
-    $("body").append(form);
-    form.submit().remove();
+    // Append to body, submit, then remove
+    $form.appendTo("body").submit().remove();
   });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
