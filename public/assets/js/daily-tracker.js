@@ -217,19 +217,14 @@ jQuery(function ($) {
     );
 
   $mount.on("click", ".export-csv-daily", () => {
-    const campaign = $("#dt-campaign").val();
-    const month = $("#dt-month").val();
-    const from = $("#dt-from").val();
-    const to = $("#dt-to").val();
-
     const params = new URLSearchParams({
       action: "lcm_export_csv",
       type: "daily_tracker",
       nonce: NONCE,
-      campaign_id: campaign,
-      month: month,
-      from: from,
-      to: to,
+      campaign_id: $("#dt-campaign").val(),
+      month: $("#dt-month").val(),
+      from: $("#dt-from").val(),
+      to: $("#dt-to").val(),
     });
 
     window.location = `${AJAX}?${params.toString()}`;

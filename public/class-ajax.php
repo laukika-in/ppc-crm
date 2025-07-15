@@ -1044,43 +1044,53 @@ public function export_csv() {
             break;
 
        case 'daily_tracker':
-        header('Content-Disposition: attachment; filename="lcm-daily-tracker.csv"');
+    header('Content-Disposition: attachment; filename="lcm-daily-tracker.csv"');
 
-        $where = [];
+    $campaign_id = absint($_GET['campaign_id'] ?? 0);
+    $month       = sanitize_text_field($_GET['month'] ?? '');
+    $from        = sanitize_text_field($_GET['from'] ?? '');
+    $to          = sanitize_text_field($_GET['to'] ?? '');
 
-        if (!empty($_GET['campaign_id'])) {
-            $cid = absint($_GET['campaign_id']);
-            $where[] = "t.campaign_id = {$cid}";
-        }
+    $where = "WHERE 1=1";
 
-        if (!empty($_GET['month'])) {
-            $month = esc_sql($_GET['month']);
-            $where[] = "DATE_FORMAT(t.track_date, '%Y-%m') = '{$month}'";
-        } elseif (!empty($_GET['from']) && !empty($_GET['to'])) {
-            $from = esc_sql($_GET['from']);
-            $to   = esc_sql($_GET['to']);
-            $where[] = "t.track_date BETWEEN '{$from}' AND '{$to}'";
-        }
+    if ($campaign_id) {
+        $where .= $wpdb->prepare(" AND t.campaign_id = %d", $campaign_id);
+    }
+    if ($month) {
+        $where .= $wpdb->prepare(" AND DATE_FORMAT(t.track_date, '%%Y-%%m') = %s", $month);
+    }
+    if ($from) {
+        $where .= $wpdb->prepare(" AND t.track_date >= %s", $from);
+    }
+    if ($to) {
+        $where .= $wpdb->prepare(" AND t.track_date <= %s", $to);
+    }
 
-        $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+    // Client role restriction
+    if (current_user_can('client')) {
+        $client_id = get_current_user_id();
+        $where .= $wpdb->prepare(" AND c.client_id = %d", $client_id);
+    }
 
-        $sql = "
-            SELECT
+    $sql = "
+        SELECT
             t.*,
             c.campaign_title AS campaign_label
-            FROM {$tracker_table} t
-            LEFT JOIN {$campaigns_table} c ON c.post_id = t.campaign_id
-            {$where_clause}
-        ";
+        FROM {$tracker_table} t
+        LEFT JOIN {$campaigns_table} c ON c.post_id = t.campaign_id
+        {$where}
+        ORDER BY t.track_date DESC
+    ";
 
-        $rows = $wpdb->get_results($sql, ARRAY_A);
+    $rows = $wpdb->get_results($sql, ARRAY_A);
 
-        foreach ($rows as &$row) {
-            $row['campaign_id'] = $row['campaign_label'] ?? $row['campaign_id'];
-            unset($row['campaign_label']);
-        }
-        unset($row);
-        break;
+    foreach ($rows as &$row) {
+        $row['campaign_id'] = $row['campaign_label'] ?? $row['campaign_id'];
+        unset($row['campaign_label']);
+    }
+    unset($row);
+    break;
+
 
         case 'campaign_detail':
             header('Content-Disposition: attachment; filename="lcm-campaign-detail.csv"');
