@@ -771,16 +771,21 @@ public function get_daily_tracker_rows() {
     $from        = sanitize_text_field( $_GET['from']  ?? '' );
     $to          = sanitize_text_field( $_GET['to']    ?? '' );
     $page        = max(1, (int)($_GET['page'] ?? 1));
-    $per_page    = 32;
+    $per_page    = 31;
     $offset      = ($page - 1) * $per_page;
-
-    // ①-A Apply default date filter for current month if none provided
-    if ( ! $month && ! $from && ! $to ) {
-        $month = date('Y-m');              // e.g., "2025-07"
-        $to    = date('Y-m-d');            // e.g., "2025-07-15"
+ $base_dates = [];
+if ( ! $_GET['month'] && ! $_GET['from'] && ! $_GET['to'] ) {
+    $today = new DateTime();
+    $start = new DateTime(date('Y-m-01'));
+    while ( $start <= $today ) {
+        $base_dates[] = $start->format('Y-m-d');
+        $start->modify('+1 day');
     }
-    
-    // ② Build WHERE clause for leads (uses lead_date)
+} else {
+    // Otherwise, base dates will be only those returned from leads
+    $base_dates = array_column($leads, 'date');
+}
+    //   Build WHERE clause for leads (uses lead_date)
     $where = "WHERE 1=1";
     if ( $month ) {
         $where .= $wpdb->prepare(
@@ -845,28 +850,48 @@ public function get_daily_tracker_rows() {
         ORDER BY track_date DESC
     ", ARRAY_A );
 
-    // ⑥ Merge leads + trackers
-    $map = [];
-    foreach ( $trackers as $t ) {
-        $map[ $t['date'] ] = $t;
-    }
-    $rows = [];
-    foreach ( $leads as $l ) {
-        $d = $l['date'];
-        $t = $map[$d] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
-        $conn = (int)$l['relevant'] + (int)$l['not_relevant'];
-        $rows[] = array_merge([
-            'date'           => $d,
-            'total_leads'    => (int)$l['total_leads'],
-            'relevant'       => (int)$l['relevant'],
-            'not_relevant'   => (int)$l['not_relevant'],
-            'not_connected'  => (int)$l['not_connected'],
-            'not_available'  => (int)$l['not_available'],
-            'scheduled_visit'=> (int)$l['scheduled_visit'],
-            'store_visit'    => (int)$l['store_visit'],
-            'connected_total'=> $conn,
-        ], $t );
-    }
+    // ⑤ Merge leads + trackers with base date list
+$lead_map    = [];
+foreach ( $leads as $l ) {
+    $lead_map[ $l['date'] ] = $l;
+}
+
+$tracker_map = [];
+foreach ( $trackers as $t ) {
+    $tracker_map[ $t['date'] ] = $t;
+}
+
+$rows = [];
+foreach ( $base_dates as $d ) {
+    $l = $lead_map[$d] ?? [
+        'total_leads'     => 0,
+        'relevant'        => 0,
+        'not_relevant'    => 0,
+        'not_connected'   => 0,
+        'not_available'   => 0,
+        'scheduled_visit' => 0,
+        'store_visit'     => 0,
+    ];
+    $t = $tracker_map[$d] ?? [
+        'reach'        => 0,
+        'impressions'  => 0,
+        'amount_spent' => 0,
+    ];
+    $conn = (int)$l['relevant'] + (int)$l['not_relevant'];
+
+    $rows[] = array_merge([
+        'date'            => $d,
+        'total_leads'     => (int)$l['total_leads'],
+        'relevant'        => (int)$l['relevant'],
+        'not_relevant'    => (int)$l['not_relevant'],
+        'not_connected'   => (int)$l['not_connected'],
+        'not_available'   => (int)$l['not_available'],
+        'scheduled_visit' => (int)$l['scheduled_visit'],
+        'store_visit'     => (int)$l['store_visit'],
+        'connected_total' => $conn,
+    ], $t);
+}
+
 
     // ⑦ Summary
     $summary = [
