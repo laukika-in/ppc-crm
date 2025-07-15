@@ -877,7 +877,6 @@ public function get_daily_tracker_rows() {
         'total_days' => $total_days,
     ]);
 }
-
 public function export_csv() {
     $this->verify();
     global $wpdb;
@@ -976,7 +975,6 @@ public function export_csv() {
     fclose($out);
     exit;
 }
-
 
 
 

@@ -426,12 +426,21 @@ jQuery(function ($) {
       }, (p - 1) * 500);
     }
   }
-  
 
-  // 2) Handle click with nonce
   $(document).on("click", ".export-csv-leads", () => {
-    window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=leads&nonce=${LCM.nonce}`;
+    const params = new URLSearchParams({
+      action: "lcm_export_csv",
+      type: "leads",
+      nonce: LCM.nonce,
+      source: $("#filter-source").val() || "",
+      client_type: $("#filter-client-type").val() || "",
+      from: $("#filter-from").val() || "",
+      to: $("#filter-to").val() || "",
+    });
+
+    window.location = `${LCM.ajax_url}?${params.toString()}`;
   });
+
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
     const p = +e.currentTarget.dataset.p;
