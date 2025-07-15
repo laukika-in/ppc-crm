@@ -442,6 +442,7 @@ jQuery(function ($) {
     const filters = {
       action: "lcm_export_csv",
       type: "leads",
+      nonce: LCM.nonce,
     };
 
     if (from) filters.from = from;
