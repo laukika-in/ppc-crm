@@ -428,12 +428,27 @@ jQuery(function ($) {
   }
   // 1) After you set up your filters, append export button:
   $("#lcm-filter-city").after(
-    ' <button class="btn btn-sm btn-outline-secondary export-leads export-csv-leads">Export CSV</button>'
+    ' <button class="btn btn-sm btn-outline-secondary export-leads">Export CSV</button>'
   );
 
   // 2) Handle click with nonce
-  $(document).on("click", ".export-csv-leads", () => {
-    window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=leads&nonce=${LCM.nonce}`;
+  $("#export-leads").on("click", function () {
+    const from = $("#filter-from").val();
+    const to = $("#filter-to").val();
+    const campaign = $("#filter-campaign").val();
+    const client = LCM.is_admin ? $("#filter-client").val() : ""; // only if admin
+
+    const params = new URLSearchParams({
+      action: "lcm_export_csv",
+      type: "leads",
+      from,
+      to,
+      campaign_id: campaign,
+      client_id: client,
+    });
+
+    const url = LCM.ajax_url + "?" + params.toString();
+    window.open(url, "_blank");
   });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
