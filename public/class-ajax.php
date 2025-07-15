@@ -889,7 +889,11 @@ public function export_csv() {
     $tracker_table   = $wpdb->prefix . 'lcm_campaign_daily_tracker';
 
     header('Content-Type: text/csv; charset=utf-8');
-    $where = [];
+    
+    switch ($type) {
+        case 'leads':
+            header('Content-Disposition: attachment; filename="lcm-leads.csv"');
+$where = [];
 
         if (current_user_can('client')) {
             $user_id = get_current_user_id();
@@ -948,10 +952,6 @@ public function export_csv() {
 
         $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
-    switch ($type) {
-        case 'leads':
-            header('Content-Disposition: attachment; filename="lcm-leads.csv"');
-
             $sql = "
                     SELECT
                     l.*,
@@ -979,14 +979,41 @@ public function export_csv() {
 
         case 'campaigns':
             header('Content-Disposition: attachment; filename="lcm-campaigns.csv"');
+$where = [];
+
+if (current_user_can('client')) {
+    $user_id = get_current_user_id();
+    $where[] = "c.client_id = {$user_id}";
+} elseif (!empty($_GET['client_id'])) {
+    $client_id = absint($_GET['client_id']);
+    $where[] = "c.client_id = {$client_id}";
+}
+
+if (!empty($_GET['from']) && !empty($_GET['to'])) {
+    $from = esc_sql($_GET['from']);
+    $to   = esc_sql($_GET['to']);
+    $where[] = "c.date BETWEEN '{$from}' AND '{$to}'";
+}
+
+if (!empty($_GET['month'])) {
+    $month = esc_sql($_GET['month']);
+    $where[] = $wpdb->prepare("c.month = %s", $month);
+}
+
+if (!empty($_GET['location'])) {
+    $where[] = $wpdb->prepare("c.location LIKE %s", '%' . $wpdb->esc_like($_GET['location']) . '%');
+}
+
+$where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
             $sql = "
-                SELECT
-                  c.*,
-                  u.display_name AS client_label
-                FROM {$campaigns_table} c
-                LEFT JOIN {$users_table} u ON u.ID = c.client_id
-            ";
+    SELECT
+      c.*,
+      u.display_name AS client_label
+    FROM {$campaigns_table} c
+    LEFT JOIN {$users_table} u ON u.ID = c.client_id
+    {$where_clause}
+";
 
             $rows = $wpdb->get_results($sql, ARRAY_A);
 

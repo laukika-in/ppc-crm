@@ -479,6 +479,9 @@ private function render_table( string $which ): string {
         </div>
 
             <div id="lcm-pager-<?= esc_attr( $which ); ?>" class="btn-group btn-group-sm ms-2"></div>
+
+            <button class="btn btn-sm btn-outline-secondary export-csv-campaigns">Export CSV</button>
+
         </div>
 
        <div class="lcm-campaign-wrapper" style="position: relative;">

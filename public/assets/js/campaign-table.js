@@ -357,14 +357,24 @@ jQuery(function ($) {
     }
   });
 // 1) After your filter‐init code, append export button:
-$('#lcm-filter-date-to').after(
-  ' <button class="btn btn-sm btn-outline-secondary export-csv-campaigns">Export CSV</button>'
-);
+ 
 
 // 2) Delegate click—include nonce
-$(document).on('click', '.export-csv-campaigns', () => {
-  window.location = `${LCM.ajax_url}?action=lcm_export_csv&type=campaigns&nonce=${LCM.nonce}`;
+$(document).on("click", ".export-csv-campaigns", () => {
+  const params = new URLSearchParams({
+    action: 'lcm_export_csv',
+    type: 'campaigns',
+    nonce: LCM.nonce,
+    from: $("#lcm-filter-date-from").val(),
+    to: $("#lcm-filter-date-to").val(),
+    month: $("#lcm-filter-month-camp").val(),
+    location: $("#lcm-filter-location-camp").val(),
+    client_id: $("#lcm-filter-client").val() || '', // if not client role
+  });
+
+  window.location = `${LCM.ajax_url}?${params.toString()}`;
 });
+
 
   // ─── 9) Filters & CRUD bindings ─────────────────────────────────────────
   $filterClient.on("change", function () {
