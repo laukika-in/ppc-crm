@@ -185,28 +185,28 @@ jQuery(function ($) {
       $tr.append(`
       <td>
    <span class="view reach">${r.reach}</span>
-  <input type="number" data-type="reach"
-         class="edit editable reach-input form-control form-control-sm d-none"
-         value="${r.reach}"/>
-</td>`);
+      <input type="number" data-type="reach"
+            class="edit editable reach-input form-control form-control-sm d-none"
+            value="${r.reach}"/>
+      </td>`);
 
       // 3) Impressions (editable)
       $tr.append(`
-      <td>
-      <span class="view impr">${r.impressions}</span>
-  <input type="number" data-type="impressions"
-         class="edit editable impressions-input form-control form-control-sm d-none"
-         value="${r.impressions}"/>
-</td>`);
+          <td>
+          <span class="view impr">${r.impressions}</span>
+      <input type="number" data-type="impressions"
+            class="edit editable impressions-input form-control form-control-sm d-none"
+            value="${r.impressions}"/>
+      </td>`);
 
       // 4) Amount Spent (editable)
       $tr.append(`
       <td>
    <span class="view spent">${r.amount_spent}</span>
-  <input type="number"   data-type="amount_spent"
-         class="edit editable spent-input form-control form-control-sm d-none"
-         value="${r.amount_spent}"/>
-</td>`);
+      <input type="number"   data-type="amount_spent"
+            class="edit editable spent-input form-control form-control-sm d-none"
+            value="${r.amount_spent}"/>
+    </td>`);
 
       // 5) Total Leads
       $tr.append(`<td>${r.total_leads}</td>`);
@@ -282,7 +282,17 @@ jQuery(function ($) {
 
   // 2) Include the nonce when triggering the download
   $mount.on("click", ".export-csv-detail", () => {
-    window.location = `${AJAX}?action=lcm_export_csv&type=campaign_detail&nonce=${NONCE}`;
+    const params = new URLSearchParams({
+      action: "lcm_export_csv",
+      type: "campaign_detail",
+      nonce: NONCE,
+      month: month,
+      from: from,
+      to: to,
+      campaign_id: CAMPAIGN_ID,
+    });
+
+    window.location = `${AJAX}?${params.toString()}`;
   });
 
   // Save handler

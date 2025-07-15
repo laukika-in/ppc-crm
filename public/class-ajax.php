@@ -1027,14 +1027,33 @@ $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
         case 'daily_tracker':
         case 'campaign_detail':
-            header('Content-Disposition: attachment; filename="lcm-daily-tracker.csv"');
+            header('Content-Disposition: attachment; filename="lcm-campaign-detail.csv"');
+
+            $where = [];
+
+            if (!empty($_GET['campaign_id'])) {
+                $cid = absint($_GET['campaign_id']);
+                $where[] = "t.campaign_id = {$cid}";
+            }
+
+            if (!empty($_GET['month'])) {
+                $month = esc_sql($_GET['month']);
+                $where[] = "DATE_FORMAT(t.track_date, '%Y-%m') = '{$month}'";
+            } elseif (!empty($_GET['from']) && !empty($_GET['to'])) {
+                $from = esc_sql($_GET['from']);
+                $to   = esc_sql($_GET['to']);
+                $where[] = "t.track_date BETWEEN '{$from}' AND '{$to}'";
+            }
+
+            $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
             $sql = "
                 SELECT
-                  t.*,
-                  c.campaign_title AS campaign_label
+                t.*,
+                c.campaign_title AS campaign_label
                 FROM {$tracker_table} t
                 LEFT JOIN {$campaigns_table} c ON c.post_id = t.campaign_id
+                {$where_clause}
             ";
 
             $rows = $wpdb->get_results($sql, ARRAY_A);
@@ -1045,6 +1064,7 @@ $where_clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
             }
             unset($row);
             break;
+
 
         default:
             wp_send_json_error('Invalid export type');
