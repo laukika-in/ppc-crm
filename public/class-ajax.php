@@ -966,7 +966,7 @@ public function export_csv() {
     if (empty($rows)) {
         wp_send_json_error('No records found');
     }
-
+error_log('Filters received: ' . json_encode($_GET));
     $out = fopen('php://output', 'w');
     fputcsv($out, array_keys($rows[0]));
     foreach ($rows as $row) {
