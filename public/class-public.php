@@ -334,6 +334,7 @@ public function register_assets() {
     <div class="filter-item">
       <input type="text" id="lcm-filter-product" class="form-control form-control-sm" placeholder="Product interest…">
     </div>
+     <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>
   </div>
 
     <div class="btn-group btn-group-sm ms-2 mb-2" id="lcm-pager-lead"></div>

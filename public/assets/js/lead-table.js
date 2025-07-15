@@ -426,9 +426,7 @@ jQuery(function ($) {
       }, (p - 1) * 500);
     }
   }
-  $("#lcm-filter-city").after(
-    ' <button class="btn btn-sm btn-outline-secondary export-csv-leads">Export CSV</button>'
-  );
+  
 
   // 2) Handle click with nonce
   $(document).on("click", ".export-csv-leads", () => {
