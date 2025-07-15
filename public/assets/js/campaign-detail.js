@@ -184,7 +184,7 @@ jQuery(function ($) {
       // 2) Reach (editable)
       $tr.append(`
       <td>
-  <span class="reach-display">${r.reach}</span>
+   <span class="view reach">${r.reach}</span>
   <input type="number" data-type="reach"
          class="edit editable reach-input form-control form-control-sm d-none"
          value="${r.reach}"/>
@@ -193,7 +193,7 @@ jQuery(function ($) {
       // 3) Impressions (editable)
       $tr.append(`
       <td>
-  <span class="impressions-display">${r.impressions}</span>
+      <span class="view impr">${r.impressions}</span>
   <input type="number" data-type="impressions"
          class="edit editable impressions-input form-control form-control-sm d-none"
          value="${r.impressions}"/>
@@ -202,7 +202,7 @@ jQuery(function ($) {
       // 4) Amount Spent (editable)
       $tr.append(`
       <td>
-  <span class="spent-display">${r.amount_spent}</span>
+   <span class="view spent">${r.amount_spent}</span>
   <input type="number" step="0.01" data-type="amount_spent"
          class="edit editable spent-input form-control form-control-sm d-none"
          value="${r.amount_spent}"/>
