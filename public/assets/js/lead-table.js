@@ -433,31 +433,44 @@ jQuery(function ($) {
 
   // 2) Handle click with nonce
   $(document).on("click", ".export-csv-leads", function () {
-    const params = new URLSearchParams({
+    const form = $("<form>", {
+      method: "POST",
+      action: LCM.ajax_url,
+      target: "_blank",
+    });
+
+    // Core parameters
+    const baseData = {
       action: "lcm_export_csv",
       type: "leads",
       nonce: LCM.nonce,
-      from: filterDateFrom || "",
-      to: filterDateTo || "",
-      campaign_id: filterAdNameVal || "",
-      adset: filterAdsetVal || "",
-      client_id: filterClient || "",
-      day: filterDayVal || "",
-      source: filterSourceVal || "",
-      client_type: filterClientTypeVal || "",
-      attempt_type: filterAttemptTypeVal || "",
-      attempt_status: filterAttemptStatusVal || "",
-      store_visit_status: filterStoreVal || "",
-      occasion: filterOccasionVal || "",
-      search: filterTextVal || "",
-      budget: filterBudgetVal || "",
-      product_interest: filterProductVal || "",
-      city: filterCityVal || "",
+      from: filterDateFrom,
+      to: filterDateTo,
+      campaign_id: filterAdNameVal,
+      adset: filterAdsetVal,
+      client_id: filterClient,
+      day: filterDayVal,
+      source: filterSourceVal,
+      client_type: filterClientTypeVal,
+      attempt_type: filterAttemptTypeVal,
+      attempt_status: filterAttemptStatusVal,
+      store_visit_status: filterStoreVal,
+      occasion: filterOccasionVal,
+      search: filterTextVal,
+      budget: filterBudgetVal,
+      product_interest: filterProductVal,
+      city: filterCityVal,
+    };
+
+    Object.entries(baseData).forEach(([key, value]) => {
+      form.append(
+        $("<input>", { type: "hidden", name: key, value: value || "" })
+      );
     });
 
-    console.log("Exporting with params:", params.toString());
-    const url = `${LCM.ajax_url}?${params.toString()}`;
-    window.open(url, "_blank");
+    // Submit
+    $("body").append(form);
+    form.submit().remove();
   });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
