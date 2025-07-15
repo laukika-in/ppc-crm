@@ -486,6 +486,30 @@ jQuery(function ($) {
 
     $form.appendTo("body").submit().remove();
   });
+  $(document).on("click", ".export-csv-leads", function () {
+    const $form = $("<form>", {
+      action: LCM.ajax_url,
+      method: "POST",
+      target: "_blank",
+    });
+
+    const filters = {
+      action: "lcm_export_csv",
+      type: "leads",
+      nonce: LCM.nonce, // ⬅️ HERE IS THE NONCE BEING SENT
+      from: $("#lead-from").val() || "",
+      to: $("#lead-to").val() || "",
+      campaign_id: $("#filter-campaign").val() || "",
+      adset: $("#filter-adset").val() || "",
+      client_id: $("#filter-client").val() || "",
+    };
+
+    Object.entries(filters).forEach(([key, value]) => {
+      $form.append($("<input>", { type: "hidden", name: key, value: value }));
+    });
+
+    $form.appendTo("body").submit().remove();
+  });
 
   // ─── 8) Pager click handler ──────────────────────────────────────────────
   $pager.on("click", "button", (e) => {
