@@ -773,39 +773,47 @@ public function get_daily_tracker_rows() {
     $page        = max(1, (int)($_GET['page'] ?? 1));
     $per_page    = 31;
     $offset      = ($page - 1) * $per_page;
-
+if (empty($month) && empty($from) && empty($to)) {
+    $month = date('Y-m'); // e.g. "2025-07"
+}
     // ② Build WHERE clause for leads (uses lead_date)
     $where = "WHERE 1=1";
     if ( $month ) {
-        $where .= $wpdb->prepare(" AND DATE_FORMAT(lead_date,'%%Y-%%m') = %s", $month);
+        $where .= $wpdb->prepare(
+            " AND DATE_FORMAT(lead_date,'%%Y-%%m') = %s",
+            $month
+        );
     }
     if ( $from ) {
-        $where .= $wpdb->prepare(" AND lead_date >= %s", $from);
+        $where .= $wpdb->prepare( " AND lead_date >= %s", $from );
     }
     if ( $to ) {
-        $where .= $wpdb->prepare(" AND lead_date <= %s", $to);
+        $where .= $wpdb->prepare( " AND lead_date <= %s", $to );
     }
     if ( $campaign_id ) {
-        $where .= $wpdb->prepare(" AND campaign_id = %d", $campaign_id);
+        $where .= $wpdb->prepare( " AND campaign_id = %d", $campaign_id );
     }
 
     // ③ Build WHERE clause for tracker (uses track_date)
     $tracker_where = "WHERE 1=1";
     if ( $month ) {
-        $tracker_where .= $wpdb->prepare(" AND DATE_FORMAT(track_date,'%%Y-%%m') = %s", $month);
+        $tracker_where .= $wpdb->prepare(
+            " AND DATE_FORMAT(track_date,'%%Y-%%m') = %s",
+            $month
+        );
     }
     if ( $from ) {
-        $tracker_where .= $wpdb->prepare(" AND track_date >= %s", $from);
+        $tracker_where .= $wpdb->prepare( " AND track_date >= %s", $from );
     }
     if ( $to ) {
-        $tracker_where .= $wpdb->prepare(" AND track_date <= %s", $to);
+        $tracker_where .= $wpdb->prepare( " AND track_date <= %s", $to );
     }
     if ( $campaign_id ) {
-        $tracker_where .= $wpdb->prepare(" AND campaign_id = %d", $campaign_id);
+        $tracker_where .= $wpdb->prepare( " AND campaign_id = %d", $campaign_id );
     }
 
     // ④ Lead aggregates by day
-    $leads = $wpdb->get_results("
+    $leads = $wpdb->get_results( "
         SELECT
             lead_date        AS date,
             COUNT(*)         AS total_leads,
@@ -822,7 +830,7 @@ public function get_daily_tracker_rows() {
     ", ARRAY_A );
 
     // ⑤ Tracker data by day
-    $trackers = $wpdb->get_results("
+    $trackers = $wpdb->get_results( "
         SELECT
             track_date    AS date,
             reach,
@@ -833,62 +841,30 @@ public function get_daily_tracker_rows() {
         ORDER BY track_date DESC
     ", ARRAY_A );
 
-    // ⑥ Prepare base dates
-    $base_dates = [];
-    if ( ! $month && ! $from && ! $to ) {
-        $today = new DateTime();
-        $start = new DateTime(date('Y-m-01'));
-        while ( $start <= $today ) {
-            $base_dates[] = $start->format('Y-m-d');
-            $start->modify('+1 day');
-        }
-    } else {
-        $base_dates = array_column($leads, 'date');
-    }
-
-    // ⑦ Merge leads + trackers using base date
-    $lead_map = [];
-    foreach ( $leads as $l ) {
-        $lead_map[ $l['date'] ] = $l;
-    }
-
-    $tracker_map = [];
+    // ⑥ Merge leads + trackers
+    $map = [];
     foreach ( $trackers as $t ) {
-        $tracker_map[ $t['date'] ] = $t;
+        $map[ $t['date'] ] = $t;
     }
-
     $rows = [];
-    foreach ( $base_dates as $d ) {
-        $l = $lead_map[$d] ?? [
-            'total_leads'     => 0,
-            'relevant'        => 0,
-            'not_relevant'    => 0,
-            'not_connected'   => 0,
-            'not_available'   => 0,
-            'scheduled_visit' => 0,
-            'store_visit'     => 0,
-        ];
-        $t = $tracker_map[$d] ?? [
-            'reach'        => 0,
-            'impressions'  => 0,
-            'amount_spent' => 0,
-        ];
+    foreach ( $leads as $l ) {
+        $d = $l['date'];
+        $t = $map[$d] ?? [ 'reach'=>0, 'impressions'=>0, 'amount_spent'=>0 ];
         $conn = (int)$l['relevant'] + (int)$l['not_relevant'];
-
         $rows[] = array_merge([
-            'date'            => $d,
-            'total_leads'     => (int)$l['total_leads'],
-            'relevant'        => (int)$l['relevant'],
-            'not_relevant'    => (int)$l['not_relevant'],
-            'not_connected'   => (int)$l['not_connected'],
-            'not_available'   => (int)$l['not_available'],
-            'scheduled_visit' => (int)$l['scheduled_visit'],
-            'store_visit'     => (int)$l['store_visit'],
-            'connected_total' => $conn,
-        ], $t);
+            'date'           => $d,
+            'total_leads'    => (int)$l['total_leads'],
+            'relevant'       => (int)$l['relevant'],
+            'not_relevant'   => (int)$l['not_relevant'],
+            'not_connected'  => (int)$l['not_connected'],
+            'not_available'  => (int)$l['not_available'],
+            'scheduled_visit'=> (int)$l['scheduled_visit'],
+            'store_visit'    => (int)$l['store_visit'],
+            'connected_total'=> $conn,
+        ], $t );
     }
 
-    // ⑧ Summary totals
+    // ⑦ Summary
     $summary = [
         'total_leads'     => 0,
         'relevant'        => 0,
@@ -910,11 +886,10 @@ public function get_daily_tracker_rows() {
     }
     $summary['connected'] = $summary['relevant'] + $summary['not_relevant'];
 
-    // ⑨ Pagination slice
+    // ⑧ Pagination slice
     $total_days = count($rows);
     $rows       = array_slice($rows, $offset, $per_page);
 
-    // ⑩ Return response
     wp_send_json_success([
         'summary'    => $summary,
         'rows'       => $rows,
