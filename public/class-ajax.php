@@ -876,147 +876,146 @@ public function get_daily_tracker_rows() {
         'total_days' => $total_days,
     ]);
 }
- public function export_csv() {
-        $this->verify(); // nonce + capability check
-        global $wpdb;
 
-        // Tables
-        $users_tbl = $wpdb->users;
-        $camp_tbl  = $wpdb->prefix . 'lcm_campaigns';
-        $lead_tbl  = $wpdb->prefix . 'lcm_leads';
-        $dt_tbl    = $wpdb->prefix . 'lcm_campaign_daily_tracker';
+public function export_csv() {
+    $this->verify(); // nonce + capability check
+    global $wpdb;
 
-        // What to export?
-        $type = isset( $_GET['type'] ) 
-              ? sanitize_key( $_GET['type'] ) 
-              : '';
+    // Determine which dataset to export
+    $type = isset( $_GET['type'] ) ? sanitize_key( $_GET['type'] ) : '';
 
-        // Always send CSV headers
-        header( 'Content-Type: text/csv; charset=utf-8' );
+    // Always send CSV headers
+    header( 'Content-Type: text/csv; charset=utf-8' );
 
-        switch ( $type ) {
+    switch ( $type ) {
 
-            // ─── LEADS ───────────────────────────────────────────────────────
-            case 'leads':
-                header( 'Content-Disposition: attachment; filename="lcm-leads.csv"' );
+        // ─── LEADS ───────────────────────────────────────────────────────
+        case 'leads':
+            header( 'Content-Disposition: attachment; filename="lcm-leads.csv"' );
 
-                // Pull leads joined to users + campaigns for labels
-                $sql = "
-                    SELECT
-                      l.*,
-                      u.display_name               AS client_label,
-                      c_main.campaign_title        AS campaign_label,
-                      c_ad.campaign_title          AS ad_name_label,
-                      c_as.adset                   AS adset_label
-                    FROM {$lead_tbl} l
-                    LEFT JOIN {$users_tbl}    u     ON l.client_id   = u.ID
-                    LEFT JOIN {$camp_tbl}     c_main ON l.campaign_id = c_main.id
-                    LEFT JOIN {$camp_tbl}     c_ad   ON l.ad_name     = c_ad.id
-                    LEFT JOIN {$camp_tbl}     c_as   ON l.adset       = c_as.id
-                ";
-                $rows = $wpdb->get_results( $sql, ARRAY_A );
-                if ( empty( $rows ) ) {
-                    wp_send_json_error( 'No leads to export' );
-                }
+            // Pull leads joined to users and campaigns
+            $sql = "
+                SELECT
+                  wp_lcm_leads.*,
+                  wp_users.display_name                   AS client_label,
+                  camp_main.campaign_title                AS campaign_label,
+                  camp_ad.campaign_title                  AS ad_name_label,
+                  camp_as.adset                           AS adset_label
+                FROM wp_lcm_leads
+                LEFT JOIN wp_users
+                  ON wp_lcm_leads.client_id = wp_users.ID
+                LEFT JOIN wp_lcm_campaigns AS camp_main
+                  ON wp_lcm_leads.campaign_id = camp_main.id
+                LEFT JOIN wp_lcm_campaigns AS camp_ad
+                  ON wp_lcm_leads.ad_name = camp_ad.id
+                LEFT JOIN wp_lcm_campaigns AS camp_as
+                  ON wp_lcm_leads.adset = camp_as.id
+            ";
+            $rows = $wpdb->get_results( $sql, ARRAY_A );
+            if ( empty( $rows ) ) {
+                wp_send_json_error( 'No leads to export' );
+            }
 
-                // Overwrite the raw ID‐columns with their labels:
-                foreach ( $rows as &$r ) {
-                    $r['client_id']   = $r['client_label']   ?? '';
-                    $r['campaign_id'] = $r['campaign_label'] ?? '';
-                    $r['ad_name']     = $r['ad_name_label']  ?? '';
-                    $r['adset']       = $r['adset_label']    ?? '';
-                    // remove temp columns
-                    unset(
-                        $r['client_label'],
-                        $r['campaign_label'],
-                        $r['ad_name_label'],
-                        $r['adset_label']
-                    );
-                }
-                unset( $r );
+            // Replace ID columns with labels
+            foreach ( $rows as &$row ) {
+                $row['client_id']   = $row['client_label']   ?? '';
+                $row['campaign_id'] = $row['campaign_label'] ?? '';
+                $row['ad_name']     = $row['ad_name_label']  ?? '';
+                $row['adset']       = $row['adset_label']    ?? '';
+                unset(
+                    $row['client_label'],
+                    $row['campaign_label'],
+                    $row['ad_name_label'],
+                    $row['adset_label']
+                );
+            }
+            unset( $row );
 
-                // Stream CSV
-                $out = fopen( 'php://output', 'w' );
-                fputcsv( $out, array_keys( $rows[0] ) );
-                foreach ( $rows as $r ) {
-                    fputcsv( $out, $r );
-                }
-                fclose( $out );
-                exit;
+            // Stream CSV
+            $out = fopen( 'php://output', 'w' );
+            fputcsv( $out, array_keys( $rows[0] ) );
+            foreach ( $rows as $row ) {
+                fputcsv( $out, $row );
+            }
+            fclose( $out );
+            exit;
 
 
-            // ─── CAMPAIGNS ───────────────────────────────────────────────────
-            case 'campaigns':
-                header( 'Content-Disposition: attachment; filename="lcm-campaigns.csv"' );
+        // ─── CAMPAIGNS ───────────────────────────────────────────────────
+        case 'campaigns':
+            header( 'Content-Disposition: attachment; filename="lcm-campaigns.csv"' );
 
-                // Pull campaigns joined to users
-                $sql = "
-                    SELECT
-                      c.*,
-                      u.display_name AS client_label
-                    FROM {$camp_tbl} c
-                    LEFT JOIN {$users_tbl} u ON c.client_id = u.ID
-                ";
-                $rows = $wpdb->get_results( $sql, ARRAY_A );
-                if ( empty( $rows ) ) {
-                    wp_send_json_error( 'No campaigns to export' );
-                }
+            // Pull campaigns joined to users
+            $sql = "
+                SELECT
+                  wp_lcm_campaigns.*,
+                  wp_users.display_name AS client_label
+                FROM wp_lcm_campaigns
+                LEFT JOIN wp_users
+                  ON wp_lcm_campaigns.client_id = wp_users.ID
+            ";
+            $rows = $wpdb->get_results( $sql, ARRAY_A );
+            if ( empty( $rows ) ) {
+                wp_send_json_error( 'No campaigns to export' );
+            }
 
-                // Replace client_id with display_name
-                foreach ( $rows as &$r ) {
-                    $r['client_id'] = $r['client_label'] ?? '';
-                    unset( $r['client_label'] );
-                }
-                unset( $r );
+            // Replace client_id with display_name
+            foreach ( $rows as &$row ) {
+                $row['client_id'] = $row['client_label'] ?? '';
+                unset( $row['client_label'] );
+            }
+            unset( $row );
 
-                $out = fopen( 'php://output', 'w' );
-                fputcsv( $out, array_keys( $rows[0] ) );
-                foreach ( $rows as $r ) {
-                    fputcsv( $out, $r );
-                }
-                fclose( $out );
-                exit;
-
-
-            // ─── DAILY TRACKER & CAMPAIGN DETAIL ────────────────────────────
-            case 'daily_tracker':
-            case 'campaign_detail':
-                header( 'Content-Disposition: attachment; filename="lcm-daily-tracker.csv"' );
-
-                // Pull tracker rows joined to campaign titles
-                $sql = "
-                    SELECT
-                      t.*,
-                      c.campaign_title AS campaign_label
-                    FROM {$dt_tbl} t
-                    LEFT JOIN {$camp_tbl}  c ON t.campaign_id = c.id
-                ";
-                $rows = $wpdb->get_results( $sql, ARRAY_A );
-                if ( empty( $rows ) ) {
-                    wp_send_json_error( 'No tracker data to export' );
-                }
-
-                // Replace campaign_id with its title
-                foreach ( $rows as &$r ) {
-                    $r['campaign_id'] = $r['campaign_label'] ?? '';
-                    unset( $r['campaign_label'] );
-                }
-                unset( $r );
-
-                $out = fopen( 'php://output', 'w' );
-                fputcsv( $out, array_keys( $rows[0] ) );
-                foreach ( $rows as $r ) {
-                    fputcsv( $out, $r );
-                }
-                fclose( $out );
-                exit;
+            $out = fopen( 'php://output', 'w' );
+            fputcsv( $out, array_keys( $rows[0] ) );
+            foreach ( $rows as $row ) {
+                fputcsv( $out, $row );
+            }
+            fclose( $out );
+            exit;
 
 
-            // ─── INVALID TYPE ────────────────────────────────────────────────
-            default:
-                wp_send_json_error( 'Invalid export type' );
-        }
+        // ─── DAILY TRACKER & CAMPAIGN DETAIL ────────────────────────────
+        case 'daily_tracker':
+        case 'campaign_detail':
+            header( 'Content-Disposition: attachment; filename="lcm-daily-tracker.csv"' );
+
+            // Pull tracker rows joined to campaigns
+            $sql = "
+                SELECT
+                  wp_lcm_campaign_daily_tracker.*,
+                  camp_main.campaign_title AS campaign_label
+                FROM wp_lcm_campaign_daily_tracker
+                LEFT JOIN wp_lcm_campaigns AS camp_main
+                  ON wp_lcm_campaign_daily_tracker.campaign_id = camp_main.id
+            ";
+            $rows = $wpdb->get_results( $sql, ARRAY_A );
+            if ( empty( $rows ) ) {
+                wp_send_json_error( 'No tracker data to export' );
+            }
+
+            // Replace campaign_id with campaign_title
+            foreach ( $rows as &$row ) {
+                $row['campaign_id'] = $row['campaign_label'] ?? '';
+                unset( $row['campaign_label'] );
+            }
+            unset( $row );
+
+            $out = fopen( 'php://output', 'w' );
+            fputcsv( $out, array_keys( $rows[0] ) );
+            foreach ( $rows as $row ) {
+                fputcsv( $out, $row );
+            }
+            fclose( $out );
+            exit;
+
+
+        // ─── INVALID TYPE ────────────────────────────────────────────────
+        default:
+            wp_send_json_error( 'Invalid export type' );
     }
+}
+
 
 
 
