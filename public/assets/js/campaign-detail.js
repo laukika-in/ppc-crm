@@ -203,7 +203,7 @@ jQuery(function ($) {
       $tr.append(`
       <td>
    <span class="view spent">${r.amount_spent}</span>
-  <input type="number" step="0.01" data-type="amount_spent"
+  <input type="number"   data-type="amount_spent"
          class="edit editable spent-input form-control form-control-sm d-none"
          value="${r.amount_spent}"/>
 </td>`);
@@ -286,7 +286,7 @@ jQuery(function ($) {
       date: $tr.data("date"),
       reach: parseInt($tr.find(".reach-input").val(), 10) || 0,
       impressions: parseInt($tr.find(".impressions-input").val(), 10) || 0,
-      amount_spent: parseFloat($tr.find(".amount_spent-input").val()) || 0,
+      amount_spent: parseFloat($tr.find(".spent-input").val()) || 0,
     };
     $.post(AJAX, payload, null, "json")
       .done((res) => {
