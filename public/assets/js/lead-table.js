@@ -436,12 +436,11 @@ jQuery(function ($) {
     const adName = $("#filter-adname").val();
     const adset = $("#filter-adset").val();
     const campaign = $("#filter-campaign").val();
-    const clientId = $("#filter-client").val();
+    const clientId = $("#filter-client").val(); // Only shown to admins
 
     const filters = {
       action: "lcm_export_csv",
       type: "leads",
-      nonce: LCM.nonce, // 👈 add this line
     };
 
     if (from) filters.from = from;
